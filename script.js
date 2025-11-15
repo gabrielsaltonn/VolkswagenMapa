@@ -209,7 +209,43 @@ window.addEventListener('click', (e) => {
     if (e.target === modal) modal.style.display = 'none';
 });
 
-// Adicionar impressora com duplo clique
+// --- Double Tap para Touch ---
+let lastTap = 0;
+
+panzoomArea.addEventListener("touchend", (e) => {
+    const currentTime = Date.now();
+    const tapLength = currentTime - lastTap;
+
+    // Se for um double tap (dois toques rápidos)
+    if (tapLength < 300 && tapLength > 0) {
+        if (!captureMode) return;
+
+        const touch = e.changedTouches[0];
+        const rect = panzoomArea.getBoundingClientRect();
+
+        const x = ((touch.clientX - rect.left) / rect.width) * 100;
+        const y = ((touch.clientY - rect.top) / rect.height) * 100;
+
+        printers.push({
+            model: " ",
+            serial: " ",
+            ip: " ",
+            loc: " ",
+            col: " ",
+            notes: " ",
+            backup: false,
+            photos: ["./img/printer.png"],
+            x, y
+        });
+
+        savePrinters();
+        renderPins();
+    }
+
+    lastTap = currentTime;
+});
+
+// Adicionar impressora com duplo clique mouse
 panzoomArea.addEventListener('dblclick', (e) => {
     if (!captureMode) return;
     const rect = panzoomArea.getBoundingClientRect();
