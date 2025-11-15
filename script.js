@@ -32,6 +32,13 @@ let currentPrinterIndex = null;
 let currentPhotoIndex = 0;
 let selectedPins = new Set();
 
+// 🔒 Impedir que qualquer botão envie toques/cliques para o mapa
+document.querySelectorAll("button").forEach(btn => {
+    ["touchstart", "touchend", "click"].forEach(ev => {
+        btn.addEventListener(ev, e => e.stopPropagation(), { passive: false });
+    });
+});
+
 // Panzoom
 const panzoomArea = document.getElementById('panzoom-area');
 const panzoomInstance = Panzoom(panzoomArea, {
@@ -48,26 +55,25 @@ function savePrinters() {
 
 // Atualizar contadores
 function updateCounters() {
-    document.getElementById("printerCounter").textContent = `${printers.length} ${printers.length === 1 ? 'impressora' : 'impressoras'}`;
+    document.getElementById("printerCounter").textContent = 
+        `${printers.length} ${printers.length === 1 ? 'impressora' : 'impressoras'}`;
     const backups = printers.filter(p => p.backup).length;
     document.getElementById("bkpCounter").textContent = ` | ${backups} backups ativos`;
 }
 
 // Ajustar tamanho dos pins conforme o zoom
 function adjustPins(scale) {
-    const minSize = 1;   // ponto mínimo
-    const maxSize = 10;  // bolinha grande
+    const minSize = 1;
+    const maxSize = 10;
     const zoomMax = panzoomInstance.getOptions().maxScale;
     const zoomMin = panzoomInstance.getOptions().minScale;
 
-    // cálculo proporcional inverso
     const size = Math.max(minSize, maxSize - ((scale - zoomMin) / (zoomMax - zoomMin)) * (maxSize - minSize));
 
     document.querySelectorAll(".pin-circle").forEach(pin => {
         pin.style.width = `${size}px`;
         pin.style.height = `${size}px`;
 
-        // No zoom máximo, vira só um ponto sólido
         if (size <= 1.5) {
             pin.style.border = "none";
             pin.style.boxShadow = "none";
@@ -79,7 +85,7 @@ function adjustPins(scale) {
 
     document.querySelectorAll(".pin-tip").forEach(tip => {
         if (size <= 1.5) {
-            tip.style.display = "none"; // 🔴 ponta some no zoom máximo
+            tip.style.display = "none";
         } else {
             tip.style.display = "block";
             tip.style.width = `${size * 0.8}px`;
@@ -133,7 +139,9 @@ function renderPins(selectMode = false) {
 function showModal(printer, index) {
     currentPrinterIndex = index;
     currentPhotoIndex = 0;
-    if (!printer.photos || printer.photos.length === 0) printer.photos = ["./img/printer.png"];
+    if (!printer.photos || printer.photos.length === 0)
+        printer.photos = ["./img/printer.png"];
+    
     photoPreview.src = printer.photos[currentPhotoIndex];
 
     mModel.value = printer.model;
@@ -216,7 +224,6 @@ panzoomArea.addEventListener("touchend", (e) => {
     const currentTime = Date.now();
     const tapLength = currentTime - lastTap;
 
-    // Se for um double tap (dois toques rápidos)
     if (tapLength < 300 && tapLength > 0) {
         if (!captureMode) return;
 
@@ -245,7 +252,7 @@ panzoomArea.addEventListener("touchend", (e) => {
     lastTap = currentTime;
 });
 
-// Adicionar impressora com duplo clique mouse
+// Double-click mouse
 panzoomArea.addEventListener('dblclick', (e) => {
     if (!captureMode) return;
     const rect = panzoomArea.getBoundingClientRect();
@@ -272,7 +279,9 @@ panzoomArea.addEventListener('panzoomchange', (e) => adjustPins(e.detail.scale))
 // Alternar modo de captura
 toggleHelper.addEventListener('click', () => {
     captureMode = !captureMode;
-    toggleHelper.textContent = captureMode ? 'Clique no mapa 2x para adicionar' : 'Adicionar impressoras';
+    toggleHelper.textContent = captureMode ?
+        'Clique no mapa 2x para adicionar' :
+        'Adicionar impressoras';
 });
 
 // Excluir impressora individual
