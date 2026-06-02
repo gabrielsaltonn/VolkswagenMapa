@@ -457,3 +457,5 @@ document.getElementById("deletePrinterSidebarBtn").addEventListener("click", ena
 
 // Inicializar pins
 renderPins();
+
+// Gabriel Salton
