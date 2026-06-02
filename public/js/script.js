@@ -7,6 +7,7 @@ const modal = document.getElementById('modal');
 const closeModal = document.getElementById('closeModal');
 const deletePrinterSidebarBtn = document.getElementById('deletePrinterSidebarBtn');
 const searchInput = document.getElementById("search");
+const plantSelect = document.getElementById("plantSelect");
 
 // Formulário do modal
 const mModel = document.getElementById('mModel');
@@ -43,6 +44,13 @@ function atualizarLinkIP(ip) {
     }
 }
 
+function updatePlantImage() {
+
+    floor.src =
+        plantImages[currentPlant];
+
+}
+
 // Fotos
 const photoPreview = document.getElementById('previewFoto');
 const prevPhotoBtn = document.getElementById('fotoAnterior');
@@ -62,7 +70,23 @@ let printers = [];
 
 let searchText = "";
 
+let currentPlant = "SJP";
+
 const selectedPins = new Set();
+
+const plantImages = {
+
+    ANC: "img/anc.png",
+
+    SCAR: "img/scar.png",
+
+    SJP: "img/sjp.png",
+
+    TAUB: "img/taub.png",
+
+    VIN: "img/vin.png"
+
+};
 
 async function loadPrinters() {
 
@@ -170,6 +194,26 @@ searchInput.addEventListener("input", (e) => {
 
 });
 
+plantSelect.addEventListener("change", (e) => {
+
+    currentPlant = e.target.value;
+
+    searchText = "";
+    searchInput.value = "";
+
+    selectedPins.clear();
+
+    updatePlantImage();
+
+    renderPins();
+
+    console.log(
+        "Planta selecionada:",
+        currentPlant
+    );
+
+});
+
 let captureMode = false;
 let currentPrinterIndex = null;
 
@@ -191,10 +235,20 @@ panzoomArea.parentElement.addEventListener('wheel', panzoomInstance.zoomWithWhee
 
 // Atualizar contadores
 function updateCounters() {
-    document.getElementById("printerCounter").textContent = 
-        `${printers.length} ${printers.length === 1 ? 'impressora' : 'impressoras'}`;
-    const backups = printers.filter(p => p.backup).length;
-    document.getElementById("bkpCounter").textContent = ` | ${backups} backups ativos`;
+
+    const plantPrinters = printers.filter(
+        printer => printer.plant === currentPlant
+    );
+
+    document.getElementById("printerCounter").textContent =
+        `${plantPrinters.length} ${plantPrinters.length === 1 ? 'impressora' : 'impressoras'}`;
+
+    const backups = plantPrinters.filter(
+        printer => printer.backup
+    ).length;
+
+    document.getElementById("bkpCounter").textContent =
+        ` | ${backups} backups ativos`;
 }
 
 function atualizarContadorFotos() {
@@ -247,73 +301,77 @@ function renderPins(selectMode = false) {
         }))
         .filter(item => {
 
-            const printer = item.printer;
+        const printer = item.printer;
 
-            if (!searchText) return true;
+        if (printer.plant !== currentPlant) {
+            return false;
+        }
 
-            return (
-                (printer.model || "")
-                    .toLowerCase()
-                    .includes(searchText)
+        if (!searchText) return true;
 
-                ||
+        return (
+                    (printer.model || "")
+                        .toLowerCase()
+                        .includes(searchText)
 
-                (printer.serial || "")
-                    .toLowerCase()
-                    .includes(searchText)
+                    ||
 
-                ||
+                    (printer.serial || "")
+                        .toLowerCase()
+                        .includes(searchText)
 
-                (printer.loc || "")
-                    .toLowerCase()
-                    .includes(searchText)
+                    ||
 
-                ||
+                    (printer.loc || "")
+                        .toLowerCase()
+                        .includes(searchText)
 
-                (printer.ip || "")
-                    .toLowerCase()
-                    .includes(searchText)
-            );
+                    ||
 
-        })
-        .forEach(item => {
+                    (printer.ip || "")
+                        .toLowerCase()
+                        .includes(searchText)
+                );
 
-            const printer = item.printer;
-            const index = item.realIndex;
+            })
+            .forEach(item => {
 
-            const pinWrapper = document.createElement("div");
-            pinWrapper.className = "pin-wrapper";
-            pinWrapper.style.left = `${printer.x}%`;
-            pinWrapper.style.top = `${printer.y}%`;
+                const printer = item.printer;
+                const index = item.realIndex;
 
-            const circle = document.createElement("div");
-            circle.className = "pin-circle";
-            circle.style.background = printer.backup ? "green" : "red";
+                const pinWrapper = document.createElement("div");
+                pinWrapper.className = "pin-wrapper";
+                pinWrapper.style.left = `${printer.x}%`;
+                pinWrapper.style.top = `${printer.y}%`;
 
-            pinWrapper.appendChild(circle);
+                const circle = document.createElement("div");
+                circle.className = "pin-circle";
+                circle.style.background = printer.backup ? "green" : "red";
 
-            pinWrapper.addEventListener("click", () => {
+                pinWrapper.appendChild(circle);
 
-            console.log("Pin clicado:", printer);
+                pinWrapper.addEventListener("click", () => {
 
-            if (selectMode) {
-                if (selectedPins.has(index)) {
-                    selectedPins.delete(index);
-                    pinWrapper.classList.remove("selected-pin");
+                console.log("Pin clicado:", printer);
+
+                if (selectMode) {
+                    if (selectedPins.has(index)) {
+                        selectedPins.delete(index);
+                        pinWrapper.classList.remove("selected-pin");
+                    } else {
+                        selectedPins.add(index);
+                        pinWrapper.classList.add("selected-pin");
+                    }
                 } else {
-                    selectedPins.add(index);
-                    pinWrapper.classList.add("selected-pin");
+                    showModal(printer, index);
                 }
-            } else {
-                showModal(printer, index);
-            }
+            });
+
+            pinsDiv.appendChild(pinWrapper);
         });
 
-        pinsDiv.appendChild(pinWrapper);
-    });
-
-    updateCounters();
-    adjustPins(panzoomInstance.getScale());
+        updateCounters();
+        adjustPins(panzoomInstance.getScale());
 }
 
 // Mostrar modal
@@ -535,6 +593,7 @@ panzoomArea.addEventListener("touchend", async (e) => {
     notes: "",
     backup: false,
     photos: [],
+    plant: currentPlant,
     x,
     y
 });
@@ -563,6 +622,7 @@ panzoomArea.addEventListener('dblclick', async (e) => {
     notes: "",
     backup: false,
     photos: [],
+    plant: currentPlant,
     x,
     y
 });
@@ -648,6 +708,8 @@ function enableMultiDelete() {
     });
 }
 document.getElementById("deletePrinterSidebarBtn").addEventListener("click", enableMultiDelete);
+
+updatePlantImage();
 
 // Inicializar pins
 loadPrinters();

@@ -51,19 +51,49 @@ header {
     gap: 15px;
     flex-wrap: wrap;
 }
-h1  { position: relative; left: 15%; }
+
+header {
+    padding: 12px 20px;
+    background-color: white;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 15px;
+}
+
 header h1 {
     font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
     font-size: 2rem;
+
     background: linear-gradient(80deg, #2d1f77, #6b00b6, #ff00cc);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
 }
 
-/* Logo */
-.logo1 { 
-    position: relative; top: 40%; right: 42%; 
+.logo1 {
+    height: 50px;
+    width: auto;
+}
+
+.search {
+    padding: 10px;
+    min-width: 280px;
+
+    border: 1px solid white;
+    border-radius: 5px;
+
+    text-align: center;
+    background-color: #7e79c049;
+}
+
+#plantSelect {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    cursor: pointer;
 }
 
 /* Layout principal */
@@ -348,16 +378,6 @@ header h1 {
 
 .sidebar-buttons button:hover {
      background-color: #312e81; 
-}
-
-.search {
-    position: relative; 
-    left: 20%; 
-    border: 1px solid white; 
-    border-radius: 5px;
-    text-align: center; 
-    padding: 10px 60px 10px; 
-    background-color: #7e79c049;
 }
 
 .search::placeholder { 
