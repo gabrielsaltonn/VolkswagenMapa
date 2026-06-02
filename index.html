@@ -45,11 +45,14 @@
             <div class="seçãoDeFotos">
                 <div class="efeitoCarrossel">
                     <button class="mFoto Esquerda" id="fotoAnterior">&#10094;</button>
-                    <img id="previewFoto" src="./img/printers.png" alt="Não há fotos">
+                    <img id="previewFoto" src="" alt="">
                     <button class="mFoto Direita" id="proxFoto">&#10095;</button>
                 </div>
+
+                <div id="contadorFotos"></div>
+                
                 <div class="actFotos">
-                    <input type="file" id="adFoto" accept="image/*" capture="ambiente" hidden>
+                    <input type="file" id="adFoto" accept="image/*" multiple hidden>
                     <button id="addFotoBtn">Adicionar / Tirar foto</button>
                     <button id="removerFoto">Remover Foto</button>
                 </div>
@@ -59,7 +62,15 @@
             <form id="infoPrinters">
                 <label>Modelo:<input type="text" id="mModel"></label>
                 <label>S/N:<input type="text" id="mSerial"></label>
-                <label>IP:<input type="text" id="mIP"></label>
+                <label>
+                    IP:
+                    <div class="ip-container">
+                        <input type="text" id="mIP">
+                        <button type="button" id="mIPLink" style="display:none;">
+                            Abrir
+                        </button>
+                    </div>
+                </label>
                 <label>Setor/Andar:<input type="text" id="mLocal"></label>
                 <label>Coluna:<input type="text" id="mCol"></label>
                 <label>Observações:<textarea id="mNotes"></textarea></label>

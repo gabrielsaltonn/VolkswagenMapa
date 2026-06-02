@@ -91,7 +91,7 @@ header h1 {
 #panzoom-area {
     position: relative;
     width: 100%;
-    height: auto;  
+    height: auto;
 }
 #panzoom-area .pins {
     position: absolute;
@@ -120,15 +120,6 @@ header h1 {
   box-shadow: 0 0 3px rgba(0,0,0,0.45);
   background: rgb(0, 3, 153);
   display: block;
-}
-
-.pin-tip {
-  position: absolute;
-  left: 50%;
-  bottom: -2px;
-  transform: translateX(-50%);
-  clip-path: polygon(50% 100%, 0 0, 100% 0);
-  background: rgb(0, 21, 214);
 }
 
 .pin-wrapper:hover .pin-circle { filter: brightness(0.92); }
@@ -169,6 +160,31 @@ header h1 {
     overflow-y: auto;
 
 }
+
+.ip-container {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.ip-container input {
+    flex: 1;
+}
+
+#mIPLink {
+    background-color: #1e1b4b;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    min-width: 75px;
+}
+
+#mIPLink:hover {
+    background-color: #312e81;
+}
+
 .close {
     position: relative;
     left: 47%;
@@ -183,6 +199,13 @@ header h1 {
 .close:hover { background-color: #312e81; border-radius: 5px; }
 
 /*Fotos*/
+#contadorFotos{
+    margin-top: 8px;
+    font-size: 13px;
+    font-weight: bold;
+    color: #1e1b4b;
+}
+
 .seçãoDeFotos { text-align: center; margin-bottom: 15px; }
 .efeitoCarrossel { position: relative; display: inline-block; }
 .efeitoCarrossel img { max-width: 250px; border-radius: 10px; }

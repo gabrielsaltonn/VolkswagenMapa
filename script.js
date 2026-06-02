@@ -11,19 +11,50 @@ const deletePrinterSidebarBtn = document.getElementById('deletePrinterSidebarBtn
 const mModel = document.getElementById('mModel');
 const mSerial = document.getElementById('mSerial');
 const mIP = document.getElementById('mIP');
+const mIPLink = document.getElementById('mIPLink');
+mIPLink.addEventListener("click", () => {
+    const ip = mIP.value.trim();
+
+    if (!ip) return;
+
+    let url = ip;
+
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+        url = "http://" + url;
+    }
+
+    window.open(url, "_blank");
+});
 const mLoc = document.getElementById('mLocal');
 const mCol = document.getElementById('mCol');
 const mNotes = document.getElementById('mNotes');
 const mBackup = document.getElementById('mBckp');
 const savePrinterBtn = document.getElementById('salvarImpressora');
 
+
+function atualizarLinkIP(ip) {
+    ip = ip.trim();
+
+    if (ip) {
+        mIPLink.style.display = "inline-block";
+    } else {
+        mIPLink.style.display = "none";
+    }
+}
+
 // Fotos
 const photoPreview = document.getElementById('previewFoto');
 const prevPhotoBtn = document.getElementById('fotoAnterior');
 const nextPhotoBtn = document.getElementById('proxFoto');
 const addPhotoBtn = document.getElementById('addFotoBtn');
+const carousel = document.querySelector(".efeitoCarrossel");
 const removePhotoBtn = document.getElementById('removerFoto');
 const photoInput = document.getElementById('adFoto');
+const contadorFotos = document.getElementById("contadorFotos");
+
+addPhotoBtn.addEventListener("click", () => {
+    photoInput.click();
+});
 
 // Dados
 let printers = JSON.parse(localStorage.getItem("printers")) || [];
@@ -61,10 +92,25 @@ function updateCounters() {
     document.getElementById("bkpCounter").textContent = ` | ${backups} backups ativos`;
 }
 
+function atualizarContadorFotos() {
+
+    const printer = printers[currentPrinterIndex];
+
+    if (!printer || !printer.photos || printer.photos.length === 0) {
+        contadorFotos.style.display = "none";
+        return;
+    }
+
+    contadorFotos.style.display = "block";
+
+    contadorFotos.textContent =
+        `Foto ${currentPhotoIndex + 1} de ${printer.photos.length}`;
+}
+
 // Ajustar tamanho dos pins conforme o zoom
 function adjustPins(scale) {
     const minSize = 1;
-    const maxSize = 10;
+    const maxSize = 20;
     const zoomMax = panzoomInstance.getOptions().maxScale;
     const zoomMin = panzoomInstance.getOptions().minScale;
 
@@ -82,16 +128,6 @@ function adjustPins(scale) {
             pin.style.boxShadow = "0 0 3px rgba(0,0,0,0.45)";
         }
     });
-
-    document.querySelectorAll(".pin-tip").forEach(tip => {
-        if (size <= 1.5) {
-            tip.style.display = "none";
-        } else {
-            tip.style.display = "block";
-            tip.style.width = `${size * 0.8}px`;
-            tip.style.height = `${size * 1.2}px`;
-        }
-    });
 }
 
 // Renderizar pins
@@ -107,12 +143,7 @@ function renderPins(selectMode = false) {
         circle.className = "pin-circle";
         circle.style.background = printer.backup ? "green" : "red";
 
-        const tip = document.createElement("div");
-        tip.className = "pin-tip";
-        tip.style.background = printer.backup ? "green" : "red";
-
         pinWrapper.appendChild(circle);
-        pinWrapper.appendChild(tip);
 
         pinWrapper.addEventListener("click", () => {
             if (selectMode) {
@@ -137,62 +168,149 @@ function renderPins(selectMode = false) {
 
 // Mostrar modal
 function showModal(printer, index) {
+
     currentPrinterIndex = index;
     currentPhotoIndex = 0;
-    if (!printer.photos || printer.photos.length === 0)
-        printer.photos = ["./img/printer.png"];
-    
-    photoPreview.src = printer.photos[currentPhotoIndex];
+
+    if (!printer.photos) {
+        printer.photos = [];
+    }
+
+    if (printer.photos.length > 0) {
+
+        carousel.style.display = "inline-block";
+        removePhotoBtn.style.display = "inline-block";
+
+        prevPhotoBtn.style.display =
+            printer.photos.length > 1 ? "block" : "none";
+
+        nextPhotoBtn.style.display =
+            printer.photos.length > 1 ? "block" : "none";
+
+        photoPreview.src = printer.photos[0];
+        atualizarContadorFotos();
+
+    } else {
+
+        carousel.style.display = "none";
+        removePhotoBtn.style.display = "none";
+
+    }
 
     mModel.value = printer.model;
     mSerial.value = printer.serial;
     mIP.value = printer.ip;
+    atualizarLinkIP(printer.ip);
     mLoc.value = printer.loc;
     mCol.value = printer.col;
     mNotes.value = printer.notes;
     mBackup.checked = printer.backup;
 
-    modal.style.display = 'flex';
+    modal.style.display = "flex";
 }
 
 // Navegação de fotos
 prevPhotoBtn.addEventListener("click", () => {
+
     const printer = printers[currentPrinterIndex];
+
     if (!printer.photos) return;
-    currentPhotoIndex = (currentPhotoIndex - 1 + printer.photos.length) % printer.photos.length;
-    photoPreview.src = printer.photos[currentPhotoIndex];
-});
-nextPhotoBtn.addEventListener("click", () => {
-    const printer = printers[currentPrinterIndex];
-    if (!printer.photos) return;
-    currentPhotoIndex = (currentPhotoIndex + 1) % printer.photos.length;
-    photoPreview.src = printer.photos[currentPhotoIndex];
+
+    currentPhotoIndex =
+        (currentPhotoIndex - 1 + printer.photos.length) %
+        printer.photos.length;
+
+    photoPreview.src =
+        printer.photos[currentPhotoIndex];
+
+    atualizarContadorFotos();
 });
 
 // Adicionar foto
-addPhotoBtn.addEventListener("click", () => photoInput.click());
 photoInput.addEventListener("change", (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-        printers[currentPrinterIndex].photos.push(reader.result);
-        savePrinters();
-        currentPhotoIndex = printers[currentPrinterIndex].photos.length - 1;
-        photoPreview.src = printers[currentPrinterIndex].photos[currentPhotoIndex];
-    };
-    reader.readAsDataURL(file);
+
+    const files = [...e.target.files];
+
+    if (files.length === 0) return;
+
+    const printer = printers[currentPrinterIndex];
+
+    if (!printer.photos) {
+        printer.photos = [];
+    }
+
+    let loaded = 0;
+
+    files.forEach(file => {
+
+        const reader = new FileReader();
+
+        reader.onload = () => {
+
+            printer.photos.push(reader.result);
+
+            loaded++;
+
+            if (loaded === files.length) {
+
+                carousel.style.display = "inline-block";
+                removePhotoBtn.style.display = "inline-block";
+
+                prevPhotoBtn.style.display =
+                    printer.photos.length > 1 ? "block" : "none";
+
+                nextPhotoBtn.style.display =
+                    printer.photos.length > 1 ? "block" : "none";
+
+                currentPhotoIndex = printer.photos.length - 1;
+
+                photoPreview.src =
+                    printer.photos[currentPhotoIndex];
+
+                savePrinters();
+            }
+        };
+
+        reader.readAsDataURL(file);
+
+    });
+
+    photoInput.value = "";
 });
 
 // Remover foto
 removePhotoBtn.addEventListener("click", () => {
+
     const printer = printers[currentPrinterIndex];
-    if (printer.photos.length > 1) {
-        printer.photos.splice(currentPhotoIndex, 1);
-        currentPhotoIndex = Math.max(0, currentPhotoIndex - 1);
+
+    if (!printer.photos || printer.photos.length === 0)
+        return;
+
+    printer.photos.splice(currentPhotoIndex, 1);
+
+    if (printer.photos.length === 0) {
+
+        carousel.style.display = "none";
+        removePhotoBtn.style.display = "none";
+
+    } else {
+
+        currentPhotoIndex = Math.min(
+            currentPhotoIndex,
+            printer.photos.length - 1
+        );
+
         photoPreview.src = printer.photos[currentPhotoIndex];
-        savePrinters();
+        atualizarContadorFotos();
+
+        prevPhotoBtn.style.display =
+            printer.photos.length > 1 ? "block" : "none";
+
+        nextPhotoBtn.style.display =
+            printer.photos.length > 1 ? "block" : "none";
     }
+    atualizarContadorFotos();
+    savePrinters();
 });
 
 // Salvar impressora
@@ -241,7 +359,7 @@ panzoomArea.addEventListener("touchend", (e) => {
             col: " ",
             notes: " ",
             backup: false,
-            photos: ["./img/printer.png"],
+            photos: [],
             x, y
         });
 
@@ -266,7 +384,7 @@ panzoomArea.addEventListener('dblclick', (e) => {
         col: " ",
         notes: " ",
         backup: false,
-        photos: ["./img/printer.png"],
+        photos: [],
         x, y
     });
     savePrinters();
