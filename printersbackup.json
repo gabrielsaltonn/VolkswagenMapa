@@ -1,0 +1,72 @@
+[
+  {
+    "id": 1,
+    "model": "",
+    "serial": "",
+    "ip": "",
+    "loc": "",
+    "col": "",
+    "notes": "",
+    "backup": false,
+    "photos": [],
+    "plant": "SJP",
+    "x": 61.501644589189944,
+    "y": 22.25983918183668
+  },
+  {
+    "id": 2,
+    "model": "",
+    "serial": "",
+    "ip": "",
+    "loc": "",
+    "col": "",
+    "notes": "",
+    "backup": false,
+    "photos": [],
+    "plant": "SJP",
+    "x": 61.57881315833376,
+    "y": 22.25983918183668
+  },
+  {
+    "id": 3,
+    "model": "",
+    "serial": "",
+    "ip": "",
+    "loc": "",
+    "col": "",
+    "notes": "",
+    "backup": false,
+    "photos": [],
+    "plant": "SJP",
+    "x": 69.21849914857408,
+    "y": 36.33591395858634
+  },
+  {
+    "id": 4,
+    "model": "",
+    "serial": "",
+    "ip": "",
+    "loc": "",
+    "col": "",
+    "notes": "",
+    "backup": false,
+    "photos": [],
+    "plant": "SJP",
+    "x": 65.29287556352547,
+    "y": 34.34946596558222
+  },
+  {
+    "id": 5,
+    "model": "",
+    "serial": "",
+    "ip": "",
+    "loc": "",
+    "col": "",
+    "notes": "",
+    "backup": false,
+    "photos": [],
+    "plant": "SJP",
+    "x": 65.29287556352547,
+    "y": 34.34946596558222
+  }
+]

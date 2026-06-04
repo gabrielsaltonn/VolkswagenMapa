@@ -160,8 +160,10 @@ async function updatePrinter(id, printerData) {
 
 async function syncPrinter(printer) {
 
+    console.log("ID Mongo:", printer._id);
+
     await updatePrinter(
-        printer.id,
+        printer._id,
         printer
     );
 
@@ -376,6 +378,8 @@ function renderPins(selectMode = false) {
 
 // Mostrar modal
 function showModal(printer, index) {
+
+    console.log("Printer recebida:", printer);
 
     currentPrinterIndex = index;
     currentPhotoIndex = 0;
@@ -649,7 +653,7 @@ async function deletePrinter() {
 
     const printer = printers[currentPrinterIndex];
 
-    await deletePrinterById(printer.id);
+    await deletePrinterById(printer._id);
 
     await loadPrinters();
 
@@ -688,7 +692,7 @@ function enableMultiDelete() {
         const printer = printers[index];
 
         await deletePrinterById(
-            printer.id
+            printer._id
         );
     }
 
