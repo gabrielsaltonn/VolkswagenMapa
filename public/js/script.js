@@ -802,21 +802,16 @@ function renderQuickLinks() {
 
 function createQuickLink(name, url, index) {
 
-    const linkContainer =
-        document.createElement("div");
+    const linkContainer = document.createElement("div");
+    linkContainer.className = "quick-link-container";
 
-    linkContainer.className =
-        "quick-link-container";
-
-    const link =
-        document.createElement("a");
+    const link = document.createElement("a");
 
     link.href = url;
     link.target = "_blank";
     link.className = "quick-link-item";
 
-    const domain =
-    new URL(url).hostname;
+    const domain = new URL(url).hostname;
 
     const faviconUrl =
         `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
@@ -830,63 +825,61 @@ function createQuickLink(name, url, index) {
         <span>${name}</span>
     `;
 
-    const editBtn =
-        document.createElement("button");
+    const pinBtn = document.createElement("button");
 
-    editBtn.textContent = "✏️";
+    pinBtn.textContent =
+        quickLinks[index]?.pinned ? "⭐" : "☆";
 
-    editBtn.className =
-        "quick-link-edit btn-effect";
+    pinBtn.className = "quick-link-pin btn-effect";
 
-    editBtn.addEventListener("click", (e) => {
-
+    pinBtn.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
-        
+
+        quickLinks[index].pinned = !quickLinks[index].pinned;
+
+        saveQuickLinks();
+        renderQuickLinks();
+    });
+
+    const editBtn = document.createElement("button");
+
+    editBtn.textContent = "✏️";
+    editBtn.className = "quick-link-edit btn-effect";
+
+    editBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
         editingQuickLinkIndex = index;
 
         quickLinkName.value = name;
         quickLinkUrl.value = url;
 
         quickLinkForm.classList.remove("hidden");
-
     });
 
-    const deleteBtn =
-        document.createElement("button");
+    const deleteBtn = document.createElement("button");
 
     deleteBtn.textContent = "🗑";
-
-    deleteBtn.className =
-        "quick-link-delete btn-effect";
+    deleteBtn.className = "quick-link-delete btn-effect";
 
     deleteBtn.addEventListener("click", (e) => {
-
         e.preventDefault();
         e.stopPropagation();
 
-        linkContainer.remove();
-
-        quickLinks = quickLinks.filter(
-            item =>
-                !(
-                    item.name === name &&
-                    item.url === url
-                )
-        );
+        quickLinks.splice(index, 1);
 
         saveQuickLinks();
-
+        renderQuickLinks();
     });
 
     linkContainer.appendChild(link);
-
+    linkContainer.appendChild(pinBtn);
     linkContainer.appendChild(editBtn);
-
     linkContainer.appendChild(deleteBtn);
 
     quickLinksList.appendChild(linkContainer);
-
 }
 
 addQuickLinkBtn.addEventListener("click", () => {
@@ -927,6 +920,7 @@ saveQuickLinkBtn.addEventListener("click", () => {
     if (editingQuickLinkIndex !== null) {
 
         quickLinks[editingQuickLinkIndex] = {
+            ...quickLinks[editingQuickLinkIndex],
             name,
             url
         };
@@ -937,7 +931,8 @@ saveQuickLinkBtn.addEventListener("click", () => {
 
         quickLinks.push({
             name,
-            url
+            url,
+            pinned: false
         });
 
     }

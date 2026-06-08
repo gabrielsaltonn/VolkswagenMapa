@@ -761,4 +761,12 @@ input[type="submit"] {
     padding: 15px 5px;
 }
 
+.quick-link-pin {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 6px;
+    padding: 4px;
+}
 /* Gabriel Salton */
