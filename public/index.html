@@ -13,10 +13,15 @@
    <header>
     <h1>Mapa de Impressoras</h1>
 
-    <img id="logoSimpress"
-         class="logo1"
-         src="logo/logo1.png"
-         alt="logoSimpress">
+    <button id="menuBtn" class="menu-btn btn-effect">
+
+        <img
+            id="logoSimpress"
+            class="logo1"
+            src="logo/logo1.png"
+            alt="logoSimpress">
+
+    </button>
 
     <input
         id="search"
@@ -24,20 +29,58 @@
         type="search"
         placeholder="Filtrar por S/N, modelo, setor..."
         aria-label="Buscar impressora">
-
-    <select id="plantSelect">
-        <option value="ANC">Anchieta</option>
-        <option value="SCAR">São Carlos</option>
-        <option value="SJP" selected>
-            São José dos Pinhais
-        </option>
-        <option value="TAUB">Taubaté</option>
-        <option value="VIN">Vinhedo</option>
-    </select>
 </header>
+
+
+<aside id="quickLinksSidebar" class="quick-links-sidebar">
+
+    <div class="quick-links-header">
+        <h2>Atalhos</h2>
+
+        <button id="closeQuickLinks" class="close-quick-links btn-effect">
+            &times;
+        </button>
+    </div>
+
+    <div class="quick-links-list"></div>
+
+        <button id="addQuickLinkBtn" class="add-quick-link-btn btn-effect">
+            + Adicionar atalho
+        </button>
+
+    <div id="quickLinkForm" class="quick-link-form hidden">
+
+    <input
+        type="text"
+        id="quickLinkName"
+        placeholder="Nome do atalho">
+
+    <input
+        type="url"
+        id="quickLinkUrl"
+        placeholder="https://site.com">
+
+    <button id="saveQuickLinkBtn" class="btn-effect">
+        Salvar Atalho
+    </button>
+
+</div>
+
+</aside>
  
     <!--Contêiner mapa, botões e contadores-->
     <div class="map-container">
+
+        <div class="plant-selector-box">
+            <select id="plantSelect">
+                <option value="ANC">Anchieta</option>
+                <option value="SCAR">São Carlos</option>
+                <option value="SJP" selected>São José dos Pinhais</option>
+                <option value="TAUB">Taubaté</option>
+                <option value="VIN">Vinhedo</option>
+            </select>
+        </div>
+
         <div class="map-wrap" id="mapWrap" aria-label="Planta do local com marcadores de impressoras">
             <div id="panzoom-area">
                 <img id="floor" src="" alt="Planta do local">

@@ -713,9 +713,253 @@ function enableMultiDelete() {
 }
 document.getElementById("deletePrinterSidebarBtn").addEventListener("click", enableMultiDelete);
 
+const menuBtn = document.getElementById("menuBtn");
+
+const quickLinksSidebar =
+    document.getElementById("quickLinksSidebar");
+
+const closeQuickLinks =
+    document.getElementById("closeQuickLinks");
+
+menuBtn.addEventListener("click", () => {
+
+    quickLinksSidebar.classList.add("open");
+
+});
+
+closeQuickLinks.addEventListener("click", () => {
+
+    quickLinksSidebar.classList.remove("open");
+
+});
+
+document.addEventListener("click", (e) => {
+
+    const clicouNoBotao =
+        menuBtn.contains(e.target);
+
+    const clicouNaSidebar =
+        quickLinksSidebar.contains(e.target);
+
+    if (!clicouNoBotao && !clicouNaSidebar) {
+        quickLinksSidebar.classList.remove("open");
+    }
+
+});
+
+const addQuickLinkBtn =
+    document.getElementById("addQuickLinkBtn");
+
+const quickLinkForm =
+    document.getElementById("quickLinkForm");
+
+const quickLinkName =
+    document.getElementById("quickLinkName");
+
+const quickLinkUrl =
+    document.getElementById("quickLinkUrl");
+
+const saveQuickLinkBtn =
+    document.getElementById("saveQuickLinkBtn");
+
+const quickLinksList =
+    document.querySelector(".quick-links-list");
+
+let quickLinks = JSON.parse(
+    localStorage.getItem("quickLinks")
+) || [];
+
+let editingQuickLinkIndex = null;
+
+function saveQuickLinks() {
+
+    localStorage.setItem(
+        "quickLinks",
+        JSON.stringify(quickLinks)
+    );
+}
+
+function renderQuickLinks() {
+
+    quickLinksList.innerHTML = "";
+
+    if (quickLinks.length === 0) {
+
+        quickLinksList.innerHTML = `
+            <p class="empty-quick-links">
+                Nenhum atalho cadastrado.
+                <br>
+                Clique em + Adicionar atalho.
+            </p>
+        `;
+
+        return;
+    }
+
+    loadQuickLinks();
+
+}
+
+function createQuickLink(name, url, index) {
+
+    const linkContainer =
+        document.createElement("div");
+
+    linkContainer.className =
+        "quick-link-container";
+
+    const link =
+        document.createElement("a");
+
+    link.href = url;
+    link.target = "_blank";
+    link.className = "quick-link-item";
+
+    const domain =
+    new URL(url).hostname;
+
+    const faviconUrl =
+        `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+
+    link.innerHTML = `
+        <img
+            src="${faviconUrl}"
+            class="quick-link-favicon"
+            alt="${name}">
+
+        <span>${name}</span>
+    `;
+
+    const editBtn =
+        document.createElement("button");
+
+    editBtn.textContent = "✏️";
+
+    editBtn.className =
+        "quick-link-edit btn-effect";
+
+    editBtn.addEventListener("click", (e) => {
+
+        e.preventDefault();
+        e.stopPropagation();
+        
+        editingQuickLinkIndex = index;
+
+        quickLinkName.value = name;
+        quickLinkUrl.value = url;
+
+        quickLinkForm.classList.remove("hidden");
+
+    });
+
+    const deleteBtn =
+        document.createElement("button");
+
+    deleteBtn.textContent = "🗑";
+
+    deleteBtn.className =
+        "quick-link-delete btn-effect";
+
+    deleteBtn.addEventListener("click", (e) => {
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        linkContainer.remove();
+
+        quickLinks = quickLinks.filter(
+            item =>
+                !(
+                    item.name === name &&
+                    item.url === url
+                )
+        );
+
+        saveQuickLinks();
+
+    });
+
+    linkContainer.appendChild(link);
+
+    linkContainer.appendChild(editBtn);
+
+    linkContainer.appendChild(deleteBtn);
+
+    quickLinksList.appendChild(linkContainer);
+
+}
+
+addQuickLinkBtn.addEventListener("click", () => {
+
+    quickLinkForm.classList.toggle("hidden");
+
+});
+
+function loadQuickLinks() {
+
+    quickLinks.forEach((link, index) => {
+
+        createQuickLink(
+            link.name,
+            link.url,
+            index
+        );
+
+    });
+
+}
+
+saveQuickLinkBtn.addEventListener("click", () => {
+
+    const name = quickLinkName.value.trim();
+
+    let url = quickLinkUrl.value.trim();
+
+    if (!name || !url) {
+        alert("Preencha nome e URL.");
+        return;
+    }
+
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+        url = "https://" + url;
+    }
+
+    if (editingQuickLinkIndex !== null) {
+
+        quickLinks[editingQuickLinkIndex] = {
+            name,
+            url
+        };
+
+        editingQuickLinkIndex = null;
+
+    } else {
+
+        quickLinks.push({
+            name,
+            url
+        });
+
+    }
+
+    saveQuickLinks();
+
+    renderQuickLinks();
+
+    quickLinkName.value = "";
+
+    quickLinkUrl.value = "";
+
+    quickLinkForm.classList.add("hidden");
+
+});
+
 updatePlantImage();
 
 // Inicializar pins
 loadPrinters();
+
+// Inicializar atalhos
+renderQuickLinks();
 
 // Gabriel Salton
