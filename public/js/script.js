@@ -1,3 +1,28 @@
+const loggedUser =
+    JSON.parse(localStorage.getItem("user"));
+
+if (!loggedUser) {
+    window.location.href = "login.html";
+}
+
+const loggedUserName =
+    document.getElementById("loggedUserName");
+
+const loggedUserRole =
+    document.getElementById("loggedUserRole");
+
+const loggedUserPlant =
+    document.getElementById("loggedUserPlant");
+
+loggedUserName.textContent =
+    `${loggedUser.username}`;
+
+loggedUserRole.textContent =
+    `${loggedUser.role}`;
+
+loggedUserPlant.textContent =
+    `${loggedUser.plant}`;
+
 // Seletores principais
 const mapWrap = document.getElementById('mapWrap');
 const floor = document.getElementById('floor');
@@ -8,6 +33,17 @@ const closeModal = document.getElementById('closeModal');
 const deletePrinterSidebarBtn = document.getElementById('deletePrinterSidebarBtn');
 const searchInput = document.getElementById("search");
 const plantSelect = document.getElementById("plantSelect");
+
+const isAdmin =
+    loggedUser.role === "admin";
+
+if (!isAdmin) {
+
+    toggleHelper.style.display = "none";
+
+    deletePrinterSidebarBtn.style.display = "none";
+
+}
 
 // Formulário do modal
 const mModel = document.getElementById('mModel');
@@ -72,7 +108,10 @@ let searchText = "";
 
 let currentPlant = "SJP";
 
-const currentUser = "gabriel";
+const currentUser =
+    JSON.parse(
+        localStorage.getItem("user")
+    ).username;
 
 const selectedPins = new Set();
 
@@ -1081,6 +1120,18 @@ saveQuickLinkBtn.addEventListener("click", async () => {
     quickLinkUrl.value = "";
 
     quickLinkForm.classList.add("hidden");
+
+});
+
+const logoutBtn =
+    document.getElementById("logoutBtn");
+
+logoutBtn.addEventListener("click", () => {
+
+    localStorage.removeItem("user");
+
+    window.location.href =
+        "login.html";
 
 });
 

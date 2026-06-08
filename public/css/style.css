@@ -871,4 +871,60 @@ input[type="submit"] {
 .login-card button:hover {
     background: #312e81;
 }
+
+.logout-btn {
+
+    margin-top: 10px;
+
+    width: 100%;
+
+    padding: 10px;
+
+    background: #dc2626;
+
+    color: white;
+
+    border: none;
+
+    border-radius: var(--radius-md);
+
+    cursor: pointer;
+
+}
+
+.logout-btn:hover {
+
+    background: #b91c1c;
+
+}
+
+.sidebar-user {
+    margin-bottom: 20px;
+    padding: 12px;
+
+    background: #f1f5f9;
+
+    border-radius: var(--radius-md);
+
+    font-weight: bold;
+    color: var(--primary);
+
+    text-align: center;
+}
+
+#loggedUserName::before {
+    content: "👤 ";
+}
+
+.sidebar-user {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+#loggedUserRole,
+#loggedUserPlant {
+    font-size: 13px;
+    color: #475569;
+}
 /* Gabriel Salton */

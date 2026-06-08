@@ -23,7 +23,10 @@ router.post("/register", async (req, res) => {
         const user =
             await User.create({
                 username,
-                password
+                password,
+                role: "user",
+                plant: "SJP",
+                status: "pending"
             });
 
         res.status(201).json({
@@ -66,11 +69,21 @@ router.post("/login", async (req, res) => {
 
         }
 
+        if (user.status !== "approved") {
+
+            return res.status(403).json({
+                mensagem: "Usuário aguardando aprovação"
+            });
+
+        }
+
         res.json({
             mensagem: "Login realizado",
             user: {
                 username: user.username,
-                role: user.role
+                role: user.role,
+                plant: user.plant,
+                status: user.status
             }
         });
 
