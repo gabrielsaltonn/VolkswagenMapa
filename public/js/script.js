@@ -72,6 +72,8 @@ let searchText = "";
 
 let currentPlant = "SJP";
 
+const currentUser = "gabriel";
+
 const selectedPins = new Set();
 
 const plantImages = {
@@ -192,9 +194,19 @@ searchInput.addEventListener("input", (e) => {
 
     searchText = e.target.value.toLowerCase();
 
+    console.log("Pesquisando:", searchText);
+
     renderPins();
 
 });
+
+// searchInput.addEventListener("input", (e) => {
+
+//     searchText = e.target.value.toLowerCase();
+
+//     renderPins();
+
+// });
 
 plantSelect.addEventListener("change", (e) => {
 
@@ -770,55 +782,34 @@ let quickLinks = [];
 let editingQuickLinkIndex = null;
 
 async function fetchQuickLinks() {
-
     try {
+        const response = await fetch(`/api/quicklinks?user=${currentUser}`);
 
-        const response =
-            await fetch("/api/quicklinks");
-
-        quickLinks =
-            await response.json();
+        quickLinks = await response.json();
 
         renderQuickLinks();
 
     } catch (error) {
-
-        console.error(
-            "Erro ao carregar atalhos:",
-            error
-        );
-
+        console.error("Erro ao carregar atalhos:", error);
     }
-
 }
 
 async function createQuickLinkAPI(data) {
-
     try {
-
-        await fetch(
-            "/api/quicklinks",
-            {
-                method: "POST",
-
-                headers: {
-                    "Content-Type":
-                        "application/json"
-                },
-
-                body: JSON.stringify(data)
-            }
-        );
+        await fetch("/api/quicklinks", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                ...data,
+                user: currentUser
+            })
+        });
 
     } catch (error) {
-
-        console.error(
-            "Erro ao criar atalho:",
-            error
-        );
-
+        console.error("Erro ao criar atalho:", error);
     }
-
 }
 
 async function deleteQuickLinkAPI(id) {
@@ -828,7 +819,15 @@ async function deleteQuickLinkAPI(id) {
         await fetch(
             `/api/quicklinks/${id}`,
             {
-                method: "DELETE"
+                method: "DELETE",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    user: currentUser
+                })
             }
         );
 
@@ -857,7 +856,10 @@ async function updateQuickLinkAPI(id, data) {
                         "application/json"
                 },
 
-                body: JSON.stringify(data)
+                body: JSON.stringify({
+                    ...data,
+                    user: currentUser
+                })
             }
         );
 
@@ -870,7 +872,7 @@ async function updateQuickLinkAPI(id, data) {
 
     }
 
-}
+} 
 
 function saveQuickLinks() {
 

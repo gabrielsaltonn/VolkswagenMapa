@@ -7,8 +7,12 @@ router.get("/", async (req, res) => {
 
     try {
 
+        const { user } = req.query;
+
+        const filtro = user ? { user } : {};
+
         const quickLinks =
-            await QuickLink.find();
+            await QuickLink.find(filtro);
 
         res.json(quickLinks);
 
@@ -45,9 +49,10 @@ router.delete("/:id", async (req, res) => {
 
     try {
 
-        await QuickLink.findByIdAndDelete(
-            req.params.id
-        );
+        await QuickLink.findOneAndDelete({
+            _id: req.params.id,
+            user: req.body.user
+        });
 
         res.json({
             mensagem: "Atalho excluído"
@@ -68,8 +73,11 @@ router.put("/:id", async (req, res) => {
     try {
 
         const quickLink =
-            await QuickLink.findByIdAndUpdate(
-                req.params.id,
+            await QuickLink.findOneAndUpdate(
+                {
+                    _id: req.params.id,
+                    user: req.body.user
+                },
                 req.body,
                 {
                     new: true

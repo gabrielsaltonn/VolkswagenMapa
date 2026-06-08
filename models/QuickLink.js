@@ -15,6 +15,11 @@ const quickLinkSchema = new mongoose.Schema({
     pinned: {
         type: Boolean,
         default: false
+    },
+
+    user: {
+        type: String,
+        required: true
     }
 
 });

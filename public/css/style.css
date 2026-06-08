@@ -62,11 +62,11 @@ table {
 header {
     padding: 12px 20px;
     background-color: var(--bg-light);
-    display: flex;
+    display: grid;
+    grid-template-columns: 70px 1fr 280px;
     align-items: center;
-    justify-content: space-between;
     gap: 15px;
-    flex-wrap: wrap;
+    justify-content: space-between;
 }
 
 .logo1 {
@@ -86,19 +86,23 @@ header h1 {
     background-clip: text;
     color: transparent;
 
-    transform: translateX(180px);
+    justify-self: center;
 }
 
 .search {
     padding: 10px;
     min-width: 260px;
+    width: 260px;
     border: 1px solid white;
     border-radius: 50px;
     text-align: center;
     background-color: #7e79c049;
     outline: none;
 
-    margin-right: 240px;
+    justify-self: start;
+    transform: translateX(-220px);
+    position: relative;
+    z-index: 5;
 
     transition:
         background-color 0.2s ease,
