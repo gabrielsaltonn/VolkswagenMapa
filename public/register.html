@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criar conta - Mapa de Impressoras</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="login-body">
+
+    <main class="login-container">
+        <div class="login-card">
+            <h1>Criar conta</h1>
+            <p>Cadastre seu usuário</p>
+
+            <form id="registerForm">
+                <input
+                    type="text"
+                    id="registerUser"
+                    placeholder="Usuário"
+                    required
+                >
+
+                <input
+                    type="password"
+                    id="registerPassword"
+                    placeholder="Senha"
+                    required
+                >
+
+                <button type="submit">
+                    Cadastrar
+                </button>
+            </form>
+
+            <a href="login.html">Já tenho conta</a>
+
+            <span id="registerMessage"></span>
+        </div>
+    </main>
+
+    <script src="js/register.js"></script>
+</body>
+</html>

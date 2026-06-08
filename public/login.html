@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Mapa de Impressoras</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="login-body">
+
+    <main class="login-container">
+        <div class="login-card">
+            <h1>Mapa de Impressoras</h1>
+            <p>Acesse sua conta</p>
+
+            <form id="loginForm">
+                <input
+                    type="text"
+                    id="loginUser"
+                    placeholder="Usuário"
+                    required
+                >
+
+                <input
+                    type="password"
+                    id="loginPassword"
+                    placeholder="Senha"
+                    required
+                >
+
+                <button type="submit">
+                    Entrar
+                </button>
+            </form>
+
+            <span id="loginMessage"></span>
+        </div>
+    </main>
+
+    <script src="js/login.js"></script>
+</body>
+</html>
