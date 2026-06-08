@@ -765,18 +765,119 @@ const saveQuickLinkBtn =
 const quickLinksList =
     document.querySelector(".quick-links-list");
 
-let quickLinks = JSON.parse(
-    localStorage.getItem("quickLinks")
-) || [];
+let quickLinks = [];
 
 let editingQuickLinkIndex = null;
 
+async function fetchQuickLinks() {
+
+    try {
+
+        const response =
+            await fetch("/api/quicklinks");
+
+        quickLinks =
+            await response.json();
+
+        renderQuickLinks();
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao carregar atalhos:",
+            error
+        );
+
+    }
+
+}
+
+async function createQuickLinkAPI(data) {
+
+    try {
+
+        await fetch(
+            "/api/quicklinks",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body: JSON.stringify(data)
+            }
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao criar atalho:",
+            error
+        );
+
+    }
+
+}
+
+async function deleteQuickLinkAPI(id) {
+
+    try {
+
+        await fetch(
+            `/api/quicklinks/${id}`,
+            {
+                method: "DELETE"
+            }
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao excluir atalho:",
+            error
+        );
+
+    }
+
+}
+
+async function updateQuickLinkAPI(id, data) {
+
+    try {
+
+        await fetch(
+            `/api/quicklinks/${id}`,
+            {
+                method: "PUT",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body: JSON.stringify(data)
+            }
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao atualizar atalho:",
+            error
+        );
+
+    }
+
+}
+
 function saveQuickLinks() {
 
-    localStorage.setItem(
-        "quickLinks",
-        JSON.stringify(quickLinks)
+    console.log(
+        "saveQuickLinks será substituída pela API"
     );
+
 }
 
 function renderQuickLinks() {
@@ -832,14 +933,23 @@ function createQuickLink(name, url, index) {
 
     pinBtn.className = "quick-link-pin btn-effect";
 
-    pinBtn.addEventListener("click", (e) => {
+    pinBtn.addEventListener("click", async (e) => {
+
         e.preventDefault();
         e.stopPropagation();
 
-        quickLinks[index].pinned = !quickLinks[index].pinned;
+        const quickLink = quickLinks[index];
 
-        saveQuickLinks();
-        renderQuickLinks();
+        await updateQuickLinkAPI(
+            quickLink._id,
+            {
+                ...quickLink,
+                pinned: !quickLink.pinned
+            }
+        );
+
+        await fetchQuickLinks();
+
     });
 
     const editBtn = document.createElement("button");
@@ -864,14 +974,19 @@ function createQuickLink(name, url, index) {
     deleteBtn.textContent = "🗑";
     deleteBtn.className = "quick-link-delete btn-effect";
 
-    deleteBtn.addEventListener("click", (e) => {
+    deleteBtn.addEventListener("click", async (e) => {
+
         e.preventDefault();
         e.stopPropagation();
 
-        quickLinks.splice(index, 1);
+        const quickLink = quickLinks[index];
 
-        saveQuickLinks();
-        renderQuickLinks();
+        await deleteQuickLinkAPI(
+            quickLink._id
+        );
+
+        await fetchQuickLinks();
+
     });
 
     linkContainer.appendChild(link);
@@ -890,19 +1005,33 @@ addQuickLinkBtn.addEventListener("click", () => {
 
 function loadQuickLinks() {
 
-    quickLinks.forEach((link, index) => {
+    const sortedLinks = [...quickLinks].sort(
+        (a, b) => {
+
+            if (a.pinned === b.pinned)
+                return 0;
+
+            return a.pinned ? -1 : 1;
+
+        }
+    );
+
+    sortedLinks.forEach((link) => {
+
+        const originalIndex =
+            quickLinks.indexOf(link);
 
         createQuickLink(
             link.name,
             link.url,
-            index
+            originalIndex
         );
 
     });
 
 }
 
-saveQuickLinkBtn.addEventListener("click", () => {
+saveQuickLinkBtn.addEventListener("click", async () => {
 
     const name = quickLinkName.value.trim();
 
@@ -919,17 +1048,23 @@ saveQuickLinkBtn.addEventListener("click", () => {
 
     if (editingQuickLinkIndex !== null) {
 
-        quickLinks[editingQuickLinkIndex] = {
-            ...quickLinks[editingQuickLinkIndex],
-            name,
-            url
-        };
+        const quickLink =
+            quickLinks[editingQuickLinkIndex];
+
+        await updateQuickLinkAPI(
+            quickLink._id,
+            {
+                ...quickLink,
+                name,
+                url
+            }
+        );
 
         editingQuickLinkIndex = null;
 
     } else {
 
-        quickLinks.push({
+        await createQuickLinkAPI({
             name,
             url,
             pinned: false
@@ -937,9 +1072,7 @@ saveQuickLinkBtn.addEventListener("click", () => {
 
     }
 
-    saveQuickLinks();
-
-    renderQuickLinks();
+    await fetchQuickLinks();
 
     quickLinkName.value = "";
 
@@ -955,6 +1088,6 @@ updatePlantImage();
 loadPrinters();
 
 // Inicializar atalhos
-renderQuickLinks();
+fetchQuickLinks();
 
 // Gabriel Salton
