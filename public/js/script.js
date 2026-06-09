@@ -406,6 +406,12 @@ function renderPins(selectMode = false) {
                     (printer.ip || "")
                         .toLowerCase()
                         .includes(searchText)
+
+                    ||
+
+                    (printer.col || "")
+                        .toLowerCase()
+                        .includes(searchText)
                 );
 
             })
