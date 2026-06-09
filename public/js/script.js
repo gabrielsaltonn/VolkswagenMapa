@@ -1,8 +1,24 @@
 const loggedUser =
     JSON.parse(localStorage.getItem("user"));
 
-if (!loggedUser) {
+    if (!loggedUser) {
     window.location.href = "login.html";
+}
+
+const userRole =
+    loggedUser.role;
+
+const userPlant =
+    loggedUser.plant;
+
+function canEditPlant(plant) {
+
+    if (userRole === "admin") {
+        return true;
+    }
+
+    return userPlant === plant;
+
 }
 
 const loggedUserName =
@@ -37,11 +53,15 @@ const plantSelect = document.getElementById("plantSelect");
 const isAdmin =
     loggedUser.role === "admin";
 
-if (!isAdmin) {
+function updatePermissionButtons() {
 
-    toggleHelper.style.display = "none";
-
-    deletePrinterSidebarBtn.style.display = "none";
+    if (canEditPlant(currentPlant)) {
+        toggleHelper.style.display = "block";
+        deletePrinterSidebarBtn.style.display = "block";
+    } else {
+        toggleHelper.style.display = "none";
+        deletePrinterSidebarBtn.style.display = "none";
+    }
 
 }
 
@@ -260,6 +280,8 @@ plantSelect.addEventListener("change", (e) => {
 
     renderPins();
 
+    updatePermissionButtons();
+
     console.log(
         "Planta selecionada:",
         currentPlant
@@ -435,6 +457,9 @@ function showModal(printer, index) {
     currentPrinterIndex = index;
     currentPhotoIndex = 0;
 
+    const canEdit =
+    canEditPlant(currentPlant);
+
     if (!printer.photos) {
         printer.photos = [];
     }
@@ -467,6 +492,28 @@ function showModal(printer, index) {
     mCol.value = printer.col || "";
     mNotes.value = printer.notes || "";
     mBackup.checked = printer.backup;
+
+    mModel.disabled = !canEdit;
+    mSerial.disabled = !canEdit;
+    mIP.disabled = !canEdit;
+    mLoc.disabled = !canEdit;
+    mCol.disabled = !canEdit;
+    mNotes.disabled = !canEdit;
+    mBackup.disabled = !canEdit;
+
+    savePrinterBtn.style.display =
+        canEdit ? "block" : "none";
+
+    document.getElementById("deletePrinterBtn").style.display =
+        canEdit ? "block" : "none";
+
+    addPhotoBtn.style.display =
+        canEdit ? "inline-block" : "none";
+
+    removePhotoBtn.style.display =
+        canEdit && printer.photos.length > 0
+            ? "inline-block"
+            : "none";
 
     atualizarLinkIP(printer.ip);
     modal.style.display = "flex";
@@ -691,10 +738,23 @@ panzoomArea.addEventListener('panzoomchange', (e) => adjustPins(e.detail.scale))
 
 // Alternar modo de captura
 toggleHelper.addEventListener('click', () => {
+
+    if (!canEditPlant(currentPlant)) {
+
+        alert(
+            "Você não tem permissão para alterar esta planta."
+        );
+
+        return;
+
+    }
+
     captureMode = !captureMode;
-    toggleHelper.textContent = captureMode ?
-        'Clique no mapa 2x para adicionar' :
-        'Adicionar impressoras';
+
+    toggleHelper.textContent = captureMode
+        ? 'Clique no mapa 2x para adicionar'
+        : 'Adicionar impressoras';
+
 });
 
 // Excluir impressora individual
@@ -1136,6 +1196,8 @@ logoutBtn.addEventListener("click", () => {
 });
 
 updatePlantImage();
+
+updatePermissionButtons();
 
 // Inicializar pins
 loadPrinters();
