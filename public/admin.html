@@ -8,13 +8,28 @@
 </head>
 <body>
 
-    <header>
-        <h1>Administração</h1>
+        <header>
 
-        <button id="backToMapBtn" class="menu-btn btn-effect">
-            Voltar
-        </button>
+            <button id="backToMapBtn" class="menu-btn btn-effect">
+                Voltar
+            </button>
+
+            <h1>Administração</h1>
+
+            <input
+                id="userSearch"
+                class="search"
+                type="search"
+                placeholder="Buscar usuário..."
+                aria-label="Buscar usuário">
+
     </header>
+
+    <div class="admin-counter">
+        <span id="activeUsersCounter">Ativos: 0</span>
+        <span id="pendingUsersCounter"> | Pendentes: 0</span>
+        <span id="adminUsersCounter"> | Adm's: 0</span>
+    </div>
 
     <main class="admin-container">
 

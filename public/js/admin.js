@@ -22,10 +22,26 @@ const pendingUsersList =
         "pendingUsersList"
     );
 
+const activeUsersCounter =
+    document.getElementById("activeUsersCounter");
+
+const pendingUsersCounter =
+    document.getElementById("pendingUsersCounter");
+
+const adminUsersCounter =
+    document.getElementById("adminUsersCounter");
+
 const allUsersList =
     document.getElementById(
         "allUsersList"
     );
+
+const userSearch =
+    document.getElementById(
+        "userSearch"
+    );
+
+let userSearchText = "";
 
 const userModal =
     document.getElementById(
@@ -91,6 +107,9 @@ async function loadPendingUsers() {
         const users =
             await response.json();
 
+        pendingUsersCounter.textContent =
+            ` | Pendentes: ${users.length}`;
+
         pendingUsersList.innerHTML = "";
 
         if (users.length === 0) {
@@ -109,6 +128,10 @@ async function loadPendingUsers() {
 
             div.className =
                 "admin-user-card";
+
+            if (user.role === "admin") {
+                    div.classList.add("admin-user-card-admin");
+                }
 
             div.innerHTML = `
                 <div class="admin-user-avatar">
@@ -223,14 +246,33 @@ async function loadAllUsers() {
         const users =
             await response.json();
 
+        activeUsersCounter.textContent =
+            `Ativos: ${users.length}`;
+
+        const admins =
+            users.filter(user => user.role === "admin").length;
+
+        adminUsersCounter.textContent =
+            ` | Adm's: ${admins}`;
+
         allUsersList.innerHTML = "";
 
-        users.forEach(user => {
+        users
+            .filter(user =>
+                user.username
+                    .toLowerCase()
+                    .includes(userSearchText)
+            )
+            .forEach(user => {
 
             const div =
                 document.createElement("div");
 
             div.className = "admin-user-card";
+
+            if (user.role === "admin") {
+                div.classList.add("admin-user-card-admin");
+            }
 
             div.innerHTML = `
                 <div class="admin-user-avatar">
@@ -332,9 +374,32 @@ deleteUserBtn.addEventListener("click", async () => {
         return;
     }
 
-    await fetch(`/api/auth/users/${selectedUser._id}`, {
-        method: "DELETE"
-    });
+    const response =
+        await fetch(`/api/auth/users/${selectedUser._id}`, {
+            method: "DELETE",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                loggedUsername: loggedUser.username
+            })
+        });
+
+    const data =
+        await response.json();
+
+    if (!response.ok) {
+
+        alert(
+            data.erro ||
+            "Erro ao excluir usuário."
+        );
+
+        return;
+
+    }
 
     userModal.style.display = "none";
 
@@ -387,6 +452,18 @@ rejectUserBtn.addEventListener(
 
         await loadPendingUsers();
         await loadAllUsers();
+
+    }
+);
+
+userSearch.addEventListener(
+    "input",
+    (e) => {
+
+        userSearchText =
+            e.target.value.toLowerCase();
+
+        loadAllUsers();
 
     }
 );

@@ -306,8 +306,10 @@ router.delete("/users/:id", async (req, res) => {
 
     try {
 
+        const { loggedUsername } = req.body;
+
         const user =
-            await User.findByIdAndDelete(
+            await User.findById(
                 req.params.id
             );
 
@@ -318,6 +320,18 @@ router.delete("/users/:id", async (req, res) => {
             });
 
         }
+
+        if (user.username === loggedUsername) {
+
+            return res.status(403).json({
+                erro: "Você não pode excluir sua própria conta."
+            });
+
+        }
+
+        await User.findByIdAndDelete(
+            req.params.id
+        );
 
         res.json({
             mensagem: "Usuário deletado"

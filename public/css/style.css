@@ -1010,9 +1010,10 @@ body > footer.app-footer {
 /* ===== ADMIN ===== */
 
 .admin-container {
-    width: 90%;
-    max-width: 1100px;
-    margin: 30px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    align-items: center;
 }
 
 .admin-section {
@@ -1021,6 +1022,10 @@ body > footer.app-footer {
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow);
     margin-bottom: 30px;
+
+    width: 55vw;
+    max-width: 1100px;
+    min-width: 320px;
 }
 
 .admin-section h2 {
@@ -1082,8 +1087,8 @@ body > footer.app-footer {
 }
 
 .admin-user-name {
-    font-weight: bold;
-    color: white;
+    color: #1e1b4b;
+    font-weight: 600;
 }
 
 /* Modal admin */
@@ -1177,5 +1182,54 @@ body > footer.app-footer {
     background: #f8d7da;
     border-color: #f1aeb5;
     color: #842029;
+}
+
+.admin-badge {
+    display: inline-block;
+    margin-right: 6px;
+    padding: 3px 6px;
+
+    background-color: #facc15;
+    color: #1e1b4b;
+
+    border-radius: 999px;
+
+    font-size: 0.65rem;
+    font-weight: bold;
+    letter-spacing: 0.04em;
+}
+
+.admin-search-box {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.admin-search-box .search {
+    transform: none;
+    width: 300px;
+    min-width: 300px;
+}
+
+.admin-user-card-admin .admin-user-avatar {
+    border: 3px solid #facc15;
+    box-sizing: border-box;
+}
+
+.admin-counter {
+    margin: 20px 0 25px 0;
+
+    font-size: 1rem;
+    font-weight: bold;
+
+    text-align: center;
+}
+
+#pendingUsersCounter {
+    color: var(--success);
+}
+
+#adminUsersCounter {
+    color: #facc15;
 }
 /* Gabriel Salton */
