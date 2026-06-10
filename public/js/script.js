@@ -366,13 +366,8 @@ function updateCounters() {
 
     document.getElementById("bkpCounter").textContent =
         ` | ${backups} backups ativos`;
-
-    // Mostrar/ocultar botão de excluir baseado na quantidade de impressoras
-    if (plantPrinters.length === 0) {
-        deletePrinterSidebarBtn.style.display = "none";
-    } else {
-        deletePrinterSidebarBtn.style.display = "block";
-    }
+        
+        updatePermissionButtons();
 }
 
 function atualizarContadorFotos() {

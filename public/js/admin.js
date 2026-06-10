@@ -355,8 +355,8 @@ saveUserBtn.addEventListener("click", async () => {
 
     userModal.style.display = "none";
 
+    await loadPendingUsers();
     await loadAllUsers();
-
 });
 
 deleteUserBtn.addEventListener("click", async () => {
