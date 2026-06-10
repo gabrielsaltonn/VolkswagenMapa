@@ -842,6 +842,7 @@ body > footer.app-footer {
     min-height: 100vh;
 
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
 
@@ -853,11 +854,16 @@ body > footer.app-footer {
     );
 }
 
+.login-body > footer {
+    margin-top: 0;
+}
+
 .login-container {
     width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
+    min-height: calc(100vh - 120px);
 }
 
 .login-card {

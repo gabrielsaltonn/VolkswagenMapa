@@ -75,15 +75,14 @@ function updatePermissionButtons() {
         printer => printer.plant === currentPlant
     );
 
-    if (canEditPlant(currentPlant)) {
-        toggleHelper.style.display = "block";
-        // Mostrar botão de excluir apenas se houver impressoras
-        deletePrinterSidebarBtn.style.display = plantPrinters.length > 0 ? "block" : "none";
+    if (canEditPlant(currentPlant) && plantPrinters.length > 0) {
+        deletePrinterSidebarBtn.style.display = "block";
     } else {
-        toggleHelper.style.display = "none";
         deletePrinterSidebarBtn.style.display = "none";
     }
 
+    toggleHelper.style.display =
+        canEditPlant(currentPlant) ? "block" : "none";
 }
 
 // Formulário do modal
@@ -190,6 +189,34 @@ async function loadPrinters() {
     }
 }
 
+async function updatePrinter(id, printerData) {
+
+    try {
+
+        const response = await fetch(`/api/printers/${id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                ...printerData,
+                userRole,
+                userPlant
+            })
+        });
+
+        return await response.json();
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao atualizar impressora:",
+            error
+        );
+
+    }
+}
+
 async function createPrinter(printerData) {
 
     try {
@@ -204,36 +231,21 @@ async function createPrinter(printerData) {
 
         const newPrinter = await response.json();
 
+        if (!response.ok) {
+            alert(
+                newPrinter.erro ||
+                "Erro ao criar impressora."
+            );
+
+            return null;
+        }
+
         return newPrinter;
 
     } catch (error) {
 
         console.error(
             "Erro ao criar impressora:",
-            error
-        );
-
-    }
-}
-
-async function updatePrinter(id, printerData) {
-
-    try {
-
-        const response = await fetch(`/api/printers/${id}`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(printerData)
-        });
-
-        return await response.json();
-
-    } catch (error) {
-
-        console.error(
-            "Erro ao atualizar impressora:",
             error
         );
 
@@ -257,7 +269,16 @@ async function deletePrinterById(id) {
     try {
 
         await fetch(`/api/printers/${id}`, {
-            method: "DELETE"
+            method: "DELETE",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                userRole,
+                userPlant
+            })
         });
 
     } catch (error) {
@@ -742,7 +763,10 @@ panzoomArea.addEventListener("touchend", async (e) => {
     photos: [],
     plant: currentPlant,
     x,
-    y
+    y,
+
+    userRole,
+    userPlant
 });
 
 await loadPrinters();
@@ -771,7 +795,10 @@ panzoomArea.addEventListener('dblclick', async (e) => {
     photos: [],
     plant: currentPlant,
     x,
-    y
+    y,
+
+    userRole,
+    userPlant
 });
 
 await loadPrinters();
