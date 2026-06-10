@@ -146,7 +146,13 @@ let printers = [];
 
 let searchText = "";
 
-let currentPlant = "SJP";
+let currentPlant =
+    userPlant === "ALL"
+        ? "SJP"
+        : userPlant;
+
+plantSelect.value =
+    currentPlant;
 
 const currentUser =
     JSON.parse(
