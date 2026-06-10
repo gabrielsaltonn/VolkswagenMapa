@@ -97,4 +97,240 @@ router.post("/login", async (req, res) => {
 
 });
 
+router.get("/pending", async (req, res) => {
+
+    try {
+
+        const users =
+            await User.find({
+                status: "pending"
+            });
+
+        res.json(users);
+
+    } catch (error) {
+
+        res.status(500).json({
+            erro: error.message
+        });
+
+    }
+
+});
+
+router.patch("/approve/:id", async (req, res) => {
+
+    try {
+
+        const user =
+            await User.findByIdAndUpdate(
+                req.params.id,
+                {
+                    status: "approved"
+                },
+                {
+                    new: true
+                }
+            );
+
+        if (!user) {
+
+            return res.status(404).json({
+                erro: "Usuário não encontrado"
+            });
+
+        }
+
+        res.json({
+            mensagem: "Usuário aprovado",
+            user
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+            erro: error.message
+        });
+
+    }
+
+});
+
+router.patch("/reject/:id", async (req, res) => {
+
+    try {
+
+        const user =
+            await User.findByIdAndUpdate(
+                req.params.id,
+                {
+                    status: "rejected"
+                },
+                {
+                    new: true
+                }
+            );
+
+        if (!user) {
+
+            return res.status(404).json({
+                erro: "Usuário não encontrado"
+            });
+
+        }
+
+        res.json({
+            mensagem: "Usuário rejeitado",
+            user
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+            erro: error.message
+        });
+
+    }
+
+});
+
+router.patch("/role/:id", async (req, res) => {
+
+    try {
+
+        const { role } = req.body;
+
+        if (
+            role !== "admin" &&
+            role !== "user"
+        ) {
+
+            return res.status(400).json({
+                erro: "Role inválida"
+            });
+
+        }
+
+        const user =
+            await User.findByIdAndUpdate(
+                req.params.id,
+                {
+                    role
+                },
+                {
+                    new: true
+                }
+            );
+
+        if (!user) {
+
+            return res.status(404).json({
+                erro: "Usuário não encontrado"
+            });
+
+        }
+
+        res.json({
+            mensagem: "Role atualizada",
+            user
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+            erro: error.message
+        });
+
+    }
+
+});
+
+router.patch("/plant/:id", async (req, res) => {
+
+    try {
+
+        const { plant } = req.body;
+
+        const validPlants = [
+            "ANC",
+            "SCAR",
+            "SJP",
+            "TAUB",
+            "VIN",
+            "ALL"
+        ];
+
+        if (!validPlants.includes(plant)) {
+
+            return res.status(400).json({
+                erro: "Planta inválida"
+            });
+
+        }
+
+        const user =
+            await User.findByIdAndUpdate(
+                req.params.id,
+                {
+                    plant
+                },
+                {
+                    new: true
+                }
+            );
+
+        if (!user) {
+
+            return res.status(404).json({
+                erro: "Usuário não encontrado"
+            });
+
+        }
+
+        res.json({
+            mensagem: "Planta atualizada",
+            user
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+            erro: error.message
+        });
+
+    }
+
+});
+
+router.delete("/users/:id", async (req, res) => {
+
+    try {
+
+        const user =
+            await User.findByIdAndDelete(
+                req.params.id
+            );
+
+        if (!user) {
+
+            return res.status(404).json({
+                erro: "Usuário não encontrado"
+            });
+
+        }
+
+        res.json({
+            mensagem: "Usuário deletado"
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+            erro: error.message
+        });
+
+    }
+
+});
+
 export default router;
