@@ -32,6 +32,83 @@
 
     </main>
 
+    <div
+    class="modal"
+    id="userModal"
+    role="dialog"
+    aria-modal="true">
+
+    <div class="card">
+
+        <button
+            class="close"
+            id="closeUserModal">
+            &times;
+        </button>
+
+        <h2 id="userModalName">
+            Usuário
+        </h2>
+
+        <label>
+            Role
+
+            <select id="userRole">
+                <option value="user">
+                    user
+                </option>
+
+                <option value="admin">
+                    admin
+                </option>
+            </select>
+        </label>
+
+        <label>
+            Planta
+
+            <select id="userPlant">
+                <option value="ANC">ANC</option>
+                <option value="SCAR">SCAR</option>
+                <option value="SJP">SJP</option>
+                <option value="TAUB">TAUB</option>
+                <option value="VIN">VIN</option>
+                <option value="ALL">ALL</option>
+            </select>
+        </label>
+
+        <label>
+            Status
+
+            <select id="userStatus">
+                <option value="pending">
+                    pending
+                </option>
+
+                <option value="approved">
+                    approved
+                </option>
+
+                <option value="rejected">
+                    rejected
+                </option>
+            </select>
+        </label>
+
+        <button id="saveUserBtn">
+            Salvar
+        </button>
+
+        <button
+            class="Delete"
+            id="deleteUserBtn">
+            Excluir Usuário
+        </button>
+
+    </div>
+
+</div>
+
     <footer class="app-footer">
         © Desenvolvido por
         <a href="https://www.linkedin.com/in/gabriel-salton-5686b1219"

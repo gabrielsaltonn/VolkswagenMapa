@@ -995,4 +995,154 @@ body > footer.app-footer {
     font-size: 13px;
     color: #475569;
 }
+
+.admin-panel-btn {
+    margin-top: 10px;
+    width: 100%;
+    padding: 10px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+}
+
+/* ===== ADMIN ===== */
+
+.admin-container {
+    width: 90%;
+    max-width: 1100px;
+    margin: 30px auto;
+}
+
+.admin-section {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 25px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    margin-bottom: 30px;
+}
+
+.admin-section h2 {
+    color: var(--primary);
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+}
+
+.admin-users-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 25px;
+    justify-content: center;
+}
+
+.admin-user-card {
+    width: 110px;
+    text-align: center;
+    cursor: pointer;
+}
+
+.admin-user-avatar {
+    width: 80px;
+    height: 80px;
+
+    margin: 0 auto 10px;
+
+    border-radius: 50%;
+
+    background: linear-gradient(
+        135deg,
+        #312e81,
+        #0e725c,
+        #217e97
+    );
+
+    color: white;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-weight: bold;
+    font-size: 1.3rem;
+
+    box-shadow:
+        0 8px 20px rgba(0, 0, 0, 0.35);
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.admin-user-card:hover .admin-user-avatar {
+    transform: translateY(-4px) scale(1.05);
+
+    box-shadow:
+        0 12px 25px rgba(0, 0, 0, 0.45);
+}
+
+.admin-user-name {
+    font-weight: bold;
+    color: white;
+}
+
+/* Modal admin */
+
+#userModal .card {
+    width: 360px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#userModal h2 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary);
+    margin-bottom: 10px;
+}
+
+#userModal label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    text-align: left;
+    font-weight: bold;
+    color: var(--primary);
+}
+
+#userModal select {
+    padding: 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid #cbd5e1;
+}
+
+#saveUserBtn {
+    margin-top: 10px;
+    padding: 10px;
+    border: none;
+    border-radius: var(--radius-md);
+    background: var(--primary);
+    color: white;
+    cursor: pointer;
+}
+
+#saveUserBtn:hover {
+    background: var(--primary-hover);
+}
+
+#deleteUserBtn {
+    margin-top: 5px;
+    padding: 10px;
+    border: none;
+    border-radius: var(--radius-md);
+    background: var(--danger);
+    color: white;
+    cursor: pointer;
+}
+
+#deleteUserBtn:hover {
+    background: var(--danger-hover);
+}
 /* Gabriel Salton */

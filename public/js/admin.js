@@ -27,6 +27,38 @@ const allUsersList =
         "allUsersList"
     );
 
+const userModal =
+    document.getElementById(
+        "userModal"
+    );
+
+const closeUserModal =
+    document.getElementById(
+        "closeUserModal"
+    );
+
+const userModalName =
+    document.getElementById(
+        "userModalName"
+    );
+
+const userRole =
+    document.getElementById(
+        "userRole"
+    );
+
+const userPlant =
+    document.getElementById(
+        "userPlant"
+    );
+
+const userStatus =
+    document.getElementById(
+        "userStatus"
+    );
+
+let selectedUser = null;
+
 async function loadPendingUsers() {
 
     try {
@@ -82,6 +114,48 @@ async function loadPendingUsers() {
 
 }
 
+function getInitials(name) {
+
+    return name
+        .split(" ")
+        .map(part => part[0])
+        .join("")
+        .substring(0, 2)
+        .toUpperCase();
+
+}
+
+function showUserModal(user) {
+
+    selectedUser = user;
+
+    userModalName.textContent =
+        user.username;
+
+    userRole.value =
+        user.role;
+
+    userPlant.value =
+        user.plant;
+
+    userStatus.value =
+        user.status;
+
+    userModal.style.display =
+        "flex";
+
+}
+
+closeUserModal.addEventListener(
+    "click",
+    () => {
+
+        userModal.style.display =
+            "none";
+
+    }
+);
+
 async function loadAllUsers() {
 
     try {
@@ -101,41 +175,21 @@ async function loadAllUsers() {
             const div =
                 document.createElement("div");
 
-                div.innerHTML = `
-                    <strong>${user.username}</strong>
+            div.className = "admin-user-card";
 
-                    | Role:
-                    <select id="role-${user._id}">
-                        <option value="user" ${user.role === "user" ? "selected" : ""}>
-                            user
-                        </option>
+            div.innerHTML = `
+                <div class="admin-user-avatar">
+                    ${getInitials(user.username)}
+                </div>
 
-                        <option value="admin" ${user.role === "admin" ? "selected" : ""}>
-                            admin
-                        </option>
-                    </select>
+                <div class="admin-user-name">
+                    ${user.username}
+                </div>
+            `;
 
-                    | Planta:
-                    <select id="plant-${user._id}">
-                        <option value="ANC" ${user.plant === "ANC" ? "selected" : ""}>ANC</option>
-                        <option value="SCAR" ${user.plant === "SCAR" ? "selected" : ""}>SCAR</option>
-                        <option value="SJP" ${user.plant === "SJP" ? "selected" : ""}>SJP</option>
-                        <option value="TAUB" ${user.plant === "TAUB" ? "selected" : ""}>TAUB</option>
-                        <option value="VIN" ${user.plant === "VIN" ? "selected" : ""}>VIN</option>
-                        <option value="ALL" ${user.plant === "ALL" ? "selected" : ""}>ALL</option>
-                    </select>
-
-                    | Status:
-                    ${user.status}
-
-                    <button onclick="saveUserChanges('${user._id}')">
-                        Salvar
-                    </button>
-
-                    <button onclick="deleteUser('${user._id}')">
-                        Excluir
-                    </button>
-                `;
+            div.addEventListener("click", () => {
+                showUserModal(user);
+            });
 
             allUsersList.appendChild(div);
 
@@ -219,36 +273,6 @@ async function deleteUser(id) {
         `/api/auth/users/${id}`,
         {
             method: "DELETE"
-        }
-    );
-
-    await loadAllUsers();
-
-}
-
-async function toggleRole(
-    id,
-    currentRole
-) {
-
-    const newRole =
-        currentRole === "admin"
-            ? "user"
-            : "admin";
-
-    await fetch(
-        `/api/auth/role/${id}`,
-        {
-            method: "PATCH",
-
-            headers: {
-                "Content-Type":
-                    "application/json"
-            },
-
-            body: JSON.stringify({
-                role: newRole
-            })
         }
     );
 

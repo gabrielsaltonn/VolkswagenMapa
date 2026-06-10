@@ -1285,6 +1285,17 @@ saveQuickLinkBtn.addEventListener("click", async () => {
 
 });
 
+const adminPanelBtn =
+    document.getElementById("adminPanelBtn");
+
+if (loggedUser.role !== "admin") {
+    adminPanelBtn.style.display = "none";
+}
+
+adminPanelBtn.addEventListener("click", () => {
+    window.location.href = "admin.html";
+});
+
 const logoutBtn =
     document.getElementById("logoutBtn");
 
