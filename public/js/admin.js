@@ -57,6 +57,26 @@ const userStatus =
         "userStatus"
     );
 
+const saveUserBtn =
+    document.getElementById(
+        "saveUserBtn"
+    );
+
+const approveUserBtn =
+    document.getElementById(
+        "approveUserBtn"
+    );
+
+const rejectUserBtn =
+    document.getElementById(
+        "rejectUserBtn"
+    );
+
+const deleteUserBtn =
+    document.getElementById(
+        "deleteUserBtn"
+    );
+
 let selectedUser = null;
 
 async function loadPendingUsers() {
@@ -84,23 +104,25 @@ async function loadPendingUsers() {
 
         users.forEach(user => {
 
-            const div =
+           const div =
                 document.createElement("div");
 
+            div.className =
+                "admin-user-card";
+
             div.innerHTML = `
-                <strong>${user.username}</strong>
-                (${user.plant})
+                <div class="admin-user-avatar">
+                    ${getInitials(user.username)}
+                </div>
 
-                <button
-                    onclick="approveUser('${user._id}')">
-                    Aprovar
-                </button>
-
-                <button
-                    onclick="rejectUser('${user._id}')">
-                    Rejeitar
-                </button>
+                <div class="admin-user-name">
+                    ${user.username}
+                </div>
             `;
+
+            div.addEventListener("click", () => {
+                showUserModal(user);
+            });
 
             pendingUsersList.appendChild(div);
 
@@ -138,8 +160,41 @@ function showUserModal(user) {
     userPlant.value =
         user.plant;
 
-    userStatus.value =
+    userStatus.textContent =
         user.status;
+
+    userStatus.className =
+        "user-status-box " + user.status;
+        
+        if (user.status === "pending") {
+
+            approveUserBtn.style.display =
+                "block";
+
+            rejectUserBtn.style.display =
+                "block";
+
+            saveUserBtn.style.display =
+                "none";
+
+            deleteUserBtn.style.display =
+                "none";
+
+        } else {
+
+            approveUserBtn.style.display =
+                "none";
+
+            rejectUserBtn.style.display =
+                "none";
+
+            saveUserBtn.style.display =
+                "block";
+
+            deleteUserBtn.style.display =
+                "block";
+
+        }
 
     userModal.style.display =
         "flex";
@@ -203,34 +258,6 @@ async function loadAllUsers() {
 
 }
 
-async function saveUserChanges(id) {
-
-    const role =
-        document.getElementById(`role-${id}`).value;
-
-    const plant =
-        document.getElementById(`plant-${id}`).value;
-
-    await fetch(`/api/auth/role/${id}`, {
-        method: "PATCH",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ role })
-    });
-
-    await fetch(`/api/auth/plant/${id}`, {
-        method: "PATCH",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ plant })
-    });
-
-    await loadAllUsers();
-
-}
-
 async function approveUser(id) {
 
     await fetch(
@@ -258,27 +285,111 @@ async function rejectUser(id) {
     await loadAllUsers();
 }
 
-async function deleteUser(id) {
+saveUserBtn.addEventListener("click", async () => {
+
+    if (!selectedUser) {
+        return;
+    }
+
+    await fetch(`/api/auth/role/${selectedUser._id}`, {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            role: userRole.value
+        })
+    });
+
+    await fetch(`/api/auth/plant/${selectedUser._id}`, {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            plant: userPlant.value
+        })
+    });
+
+    userModal.style.display = "none";
+
+    await loadAllUsers();
+
+});
+
+deleteUserBtn.addEventListener("click", async () => {
+
+    if (!selectedUser) {
+        return;
+    }
 
     const confirmDelete =
         confirm(
-            "Deseja realmente excluir este usuário?"
+            `Deseja realmente excluir o usuário ${selectedUser.username}?`
         );
 
     if (!confirmDelete) {
         return;
     }
 
-    await fetch(
-        `/api/auth/users/${id}`,
-        {
-            method: "DELETE"
-        }
-    );
+    await fetch(`/api/auth/users/${selectedUser._id}`, {
+        method: "DELETE"
+    });
 
+    userModal.style.display = "none";
+
+    await loadPendingUsers();
     await loadAllUsers();
 
-}
+});
+
+approveUserBtn.addEventListener(
+    "click",
+    async () => {
+
+        if (!selectedUser) {
+            return;
+        }
+
+        await fetch(
+            `/api/auth/approve/${selectedUser._id}`,
+            {
+                method: "PATCH"
+            }
+        );
+
+        userModal.style.display =
+            "none";
+
+        await loadPendingUsers();
+        await loadAllUsers();
+
+    }
+);
+
+rejectUserBtn.addEventListener(
+    "click",
+    async () => {
+
+        if (!selectedUser) {
+            return;
+        }
+
+        await fetch(
+            `/api/auth/reject/${selectedUser._id}`,
+            {
+                method: "PATCH"
+            }
+        );
+
+        userModal.style.display =
+            "none";
+
+        await loadPendingUsers();
+        await loadAllUsers();
+
+    }
+);
 
 loadPendingUsers();
 loadAllUsers();

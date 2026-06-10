@@ -338,7 +338,9 @@ router.get("/users", async (req, res) => {
     try {
 
         const users =
-            await User.find().select("-password");
+            await User.find({
+                status: "approved"
+            }).select("-password");
 
         res.json(users);
 

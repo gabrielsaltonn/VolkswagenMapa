@@ -1145,4 +1145,37 @@ body > footer.app-footer {
 #deleteUserBtn:hover {
     background: var(--danger-hover);
 }
+
+.user-status-box {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+
+    font-size: 0.95rem;
+    font-weight: 600;
+
+    box-sizing: border-box;
+}
+
+.user-status-box.pending {
+    background: #fff3cd;
+    border-color: #ffe69c;
+    color: #856404;
+}
+
+.user-status-box.approved {
+    background: #d1e7dd;
+    border-color: #a3cfbb;
+    color: #0f5132;
+}
+
+.user-status-box.rejected {
+    background: #f8d7da;
+    border-color: #f1aeb5;
+    color: #842029;
+}
 /* Gabriel Salton */
