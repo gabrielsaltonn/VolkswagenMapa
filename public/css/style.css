@@ -258,6 +258,19 @@ input[type="submit"] {
     display: block;
 }
 
+.pin-circle.pin-floating {
+    animation: floatPin 1.5s ease-in-out infinite;
+}
+
+@keyframes floatPin {
+    0%, 100% {
+        transform: translateX(-50%) translateY(0);
+    }
+    50% {
+        transform: translateX(-50%) translateY(-8px);
+    }
+}
+
 .pin-wrapper:hover .pin-circle {
     filter: brightness(0.92);
 }
@@ -324,6 +337,38 @@ input[type="submit"] {
 
 .ip-container input {
     flex: 1;
+}
+
+/* Footer padrão */
+.app-footer {
+    padding: 14px 0;
+    color: rgba(255, 255, 255, 0.28);
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+    text-align: center;
+    width: 100%;
+    background: transparent;
+    pointer-events: none;
+}
+
+.app-footer a {
+    color: rgba(255, 255, 255, 0.28);
+    text-decoration: underline;
+    pointer-events: auto;
+}
+
+.app-footer a:hover {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+body > footer.app-footer {
+    margin-top: auto;
 }
 
 #mIPLink {
@@ -550,24 +595,41 @@ input[type="submit"] {
 
 /* Sidebar de atalhos */
 .menu-btn {
-    background: none;
-    border: none;
-    padding: 4px;
+    background: linear-gradient(145deg, #f5f6ff, #dedfff);
+    border: 1px solid rgba(30, 27, 75, 0.15);
+    padding: 10px;
     cursor: pointer;
 
     order: -1;
 
-    border-radius: var(--radius-md);
+    border-radius: 16px;
 
     display: flex;
-
     align-items: center;
-
     justify-content: center;
+
+    box-shadow:
+        0 10px 16px rgba(30, 27, 75, 0.14),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        background-color 0.2s ease;
 }
 
 .menu-btn:hover {
-    background-color: rgba(30, 27, 75, 0.08);
+    transform: translateY(-1px);
+    box-shadow:
+        0 14px 20px rgba(30, 27, 75, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.85);
+    background: linear-gradient(145deg, #eef0ff, #d7d7ff);
+}
+
+.menu-btn:active {
+    transform: translateY(0px);
+    box-shadow:
+        0 6px 12px rgba(30, 27, 75, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.85);
 }
 
 .quick-links-sidebar {

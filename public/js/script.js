@@ -50,14 +50,35 @@ const deletePrinterSidebarBtn = document.getElementById('deletePrinterSidebarBtn
 const searchInput = document.getElementById("search");
 const plantSelect = document.getElementById("plantSelect");
 
+let isMultiDeleteMode = false;
+
+function setPinsFloating(active) {
+    isMultiDeleteMode = active;
+
+    document.querySelectorAll(".pin-circle.pin-floating").forEach(pin => {
+        pin.classList.remove("pin-floating");
+    });
+
+    if (active) {
+        document.querySelectorAll(".pin-wrapper.selected-pin .pin-circle").forEach(pin => {
+            pin.classList.add("pin-floating");
+        });
+    }
+}
+
 const isAdmin =
     loggedUser.role === "admin";
 
 function updatePermissionButtons() {
 
+    const plantPrinters = printers.filter(
+        printer => printer.plant === currentPlant
+    );
+
     if (canEditPlant(currentPlant)) {
         toggleHelper.style.display = "block";
-        deletePrinterSidebarBtn.style.display = "block";
+        // Mostrar botão de excluir apenas se houver impressoras
+        deletePrinterSidebarBtn.style.display = plantPrinters.length > 0 ? "block" : "none";
     } else {
         toggleHelper.style.display = "none";
         deletePrinterSidebarBtn.style.display = "none";
@@ -324,6 +345,13 @@ function updateCounters() {
 
     document.getElementById("bkpCounter").textContent =
         ` | ${backups} backups ativos`;
+
+    // Mostrar/ocultar botão de excluir baseado na quantidade de impressoras
+    if (plantPrinters.length === 0) {
+        deletePrinterSidebarBtn.style.display = "none";
+    } else {
+        deletePrinterSidebarBtn.style.display = "block";
+    }
 }
 
 function atualizarContadorFotos() {
@@ -429,6 +457,13 @@ function renderPins(selectMode = false) {
                 circle.className = "pin-circle";
                 circle.style.background = printer.backup ? "green" : "red";
 
+                if (selectedPins.has(index)) {
+                    pinWrapper.classList.add("selected-pin");
+                    if (isMultiDeleteMode) {
+                        circle.classList.add("pin-floating");
+                    }
+                }
+
                 pinWrapper.appendChild(circle);
 
                 pinWrapper.addEventListener("click", () => {
@@ -439,9 +474,13 @@ function renderPins(selectMode = false) {
                     if (selectedPins.has(index)) {
                         selectedPins.delete(index);
                         pinWrapper.classList.remove("selected-pin");
+                        circle.classList.remove("pin-floating");
                     } else {
                         selectedPins.add(index);
                         pinWrapper.classList.add("selected-pin");
+                        if (isMultiDeleteMode) {
+                            circle.classList.add("pin-floating");
+                        }
                     }
                 } else {
                     showModal(printer, index);
@@ -745,6 +784,10 @@ panzoomArea.addEventListener('panzoomchange', (e) => adjustPins(e.detail.scale))
 // Alternar modo de captura
 toggleHelper.addEventListener('click', () => {
 
+    if (isMultiDeleteMode) {
+        return;
+    }
+
     if (!canEditPlant(currentPlant)) {
 
         alert(
@@ -781,8 +824,13 @@ document.getElementById("deletePrinterBtn").addEventListener("click", deletePrin
 
 // Excluir múltiplas impressoras
 function enableMultiDelete() {
+    captureMode = false;
+    toggleHelper.textContent = 'Adicionar impressoras';
+    toggleHelper.disabled = true;
+
     selectedPins.clear();
     renderPins(true);
+    setPinsFloating(true);
     const sidebar = document.querySelector(".sidebar-buttons");
     if (document.getElementById("confirmDeleteBtn")) return;
 
@@ -803,26 +851,47 @@ function enableMultiDelete() {
     sidebar.appendChild(cancelBtn);
 
     confirmBtn.addEventListener("click", async () => {
+        if (selectedPins.size === 0) {
+            alert("Nenhuma impressora selecionada para exclusão.");
+            return;
+        }
 
-    for (const index of selectedPins) {
+        const serials = Array.from(selectedPins).map(index => {
+            const printer = printers[index];
+            return printer.serial || "sem número de série";
+        });
 
-        const printer = printers[index];
+        const message = selectedPins.size === 1
+            ? `Deseja realmente apagar a impressora com S/N ${serials[0]} do mapa?`
+            : `Deseja realmente apagar as impressoras com os seguintes S/N do mapa?\n- ${serials.join("\n- ")}`;
 
-        await deletePrinterById(
-            printer._id
-        );
-    }
+        if (!confirm(message)) {
+            return;
+        }
 
-    selectedPins.clear();
+        for (const index of selectedPins) {
+            const printer = printers[index];
+            await deletePrinterById(printer._id);
+        }
 
-    await loadPrinters();
+        selectedPins.clear();
+        setPinsFloating(false);
+        captureMode = false;
+        toggleHelper.textContent = 'Adicionar impressoras';
+        toggleHelper.disabled = false;
 
-    confirmBtn.remove();
-    cancelBtn.remove();
-});
+        await loadPrinters();
+
+        confirmBtn.remove();
+        cancelBtn.remove();
+    });
 
     cancelBtn.addEventListener("click", () => {
         selectedPins.clear();
+        setPinsFloating(false);
+        captureMode = false;
+        toggleHelper.textContent = 'Adicionar impressoras';
+        toggleHelper.disabled = false;
         renderPins();
         confirmBtn.remove();
         cancelBtn.remove();
