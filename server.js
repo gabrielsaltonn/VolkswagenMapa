@@ -5,6 +5,7 @@ import Printer from "./models/Printer.js";
 import printerRoutes from "./routes/printers.js";
 import quickLinkRoutes from "./routes/quickLinks.js";
 import authRoutes from "./routes/auth.js";
+import mapRoutes from "./routes/maps.js";
 
 dotenv.config();
 
@@ -16,6 +17,7 @@ app.use(express.static("public"));
 app.use("/api/printers", printerRoutes);
 app.use("/api/quicklinks", quickLinkRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/maps", mapRoutes);
 
 app.get("/api/test", async (req, res) => {
 

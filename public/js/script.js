@@ -245,7 +245,7 @@ function atualizarLinkIP(ip) {
 function renderMapPagination() {
 
     const pages =
-        plantImages[currentPlant];
+        getCurrentMapPages();
 
     if (pages.length <= 1) {
 
@@ -325,7 +325,7 @@ nextMapPageBtn.addEventListener(
     () => {
 
         const pages =
-            plantImages[currentPlant];
+            getCurrentMapPages();
 
         if (
             currentMapPage <
@@ -345,10 +345,25 @@ nextMapPageBtn.addEventListener(
     }
 );
 
+function getCurrentMapPages() {
+
+    const map =
+        maps.find(
+            item => item.name === currentPlant
+        );
+
+    if (!map) {
+        return [];
+    }
+
+    return map.pages;
+
+}
+
 function updatePlantImage() {
 
     const pages =
-        plantImages[currentPlant];
+        getCurrentMapPages();
 
     floor.src =
         pages[currentMapPage];
@@ -393,20 +408,48 @@ const currentUser =
 
 const selectedPins = new Set();
 
-const plantImages = {
-    ANC: ["img/anc.png"],
+// const plantImages = {
+//     ANC: ["img/anc.png"],
 
-    SCAR: ["img/scar.png"],
+//     SCAR: ["img/scar.png"],
 
-    SJP: ["img/sjp.png"],
+//     SJP: ["img/sjp.png"],
 
-    TAUB: [
-        "img/taub.png",
-        "img/taub2.png"
-    ],
+//     TAUB: [
+//         "img/taub.png",
+//         "img/taub2.png"
+//     ],
 
-    VIN: ["img/vin.png"]
-};
+//     VIN: ["img/vin.png"]
+// };
+
+let maps = [];
+
+async function loadMaps() {
+
+    try {
+
+        const response =
+            await fetch("/api/maps");
+
+        maps =
+            await response.json();
+
+        console.log(
+            "Mapas carregados:",
+            maps
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao carregar mapas:",
+            error
+        );
+
+    }
+
+}
 
 async function loadPrinters() {
 
@@ -1581,8 +1624,17 @@ updatePlantImage();
 
 updatePermissionButtons();
 
-// Inicializar pins
-loadPrinters();
+async function startApp() {
+
+    await loadMaps();
+
+    updatePlantImage();
+
+    await loadPrinters();
+
+}
+
+startApp();
 
 // Inicializar atalhos
 fetchQuickLinks();
