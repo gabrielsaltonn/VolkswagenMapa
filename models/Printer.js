@@ -9,7 +9,14 @@ const PrinterSchema = new mongoose.Schema({
     notes: String,
     backup: Boolean,
     photos: [String],
+
     plant: String,
+
+    page: {
+        type: Number,
+        default: 1
+    },
+
     x: Number,
     y: Number
 });

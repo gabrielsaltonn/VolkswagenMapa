@@ -242,18 +242,6 @@ function atualizarLinkIP(ip) {
     }
 }
 
-function updatePlantImage() {
-
-    const pages =
-        plantImages[currentPlant];
-
-    floor.src =
-        pages[currentMapPage];
-
-    renderMapPagination();
-
-}
-
 function renderMapPagination() {
 
     const pages =
@@ -296,9 +284,11 @@ function renderMapPagination() {
                 currentMapPage =
                     index;
 
+                selectedPins.clear();
+
                 updatePlantImage();
 
-                renderMapPagination();
+                renderPins();
 
             }
         );
@@ -319,7 +309,11 @@ prevMapPageBtn.addEventListener(
 
             currentMapPage--;
 
+            selectedPins.clear();
+
             updatePlantImage();
+
+            renderPins();
 
         }
 
@@ -340,12 +334,28 @@ nextMapPageBtn.addEventListener(
 
             currentMapPage++;
 
+            selectedPins.clear();
+
             updatePlantImage();
+
+            renderPins();
 
         }
 
     }
 );
+
+function updatePlantImage() {
+
+    const pages =
+        plantImages[currentPlant];
+
+    floor.src =
+        pages[currentMapPage];
+
+    renderMapPagination();
+
+}
 
 // Fotos
 const photoPreview = document.getElementById('previewFoto');
@@ -654,6 +664,13 @@ function renderPins(selectMode = false) {
         const printer = item.printer;
 
         if (printer.plant !== currentPlant) {
+            return false;
+        }
+
+        const printerPage =
+            printer.page || 1;
+
+        if (printerPage !== currentMapPage + 1) {
             return false;
         }
 
@@ -988,6 +1005,7 @@ panzoomArea.addEventListener("touchend", async (e) => {
     backup: false,
     photos: [],
     plant: currentPlant,
+    page: currentMapPage + 1,
     x,
     y,
 
@@ -1020,6 +1038,7 @@ panzoomArea.addEventListener('dblclick', async (e) => {
     backup: false,
     photos: [],
     plant: currentPlant,
+    page: currentMapPage + 1,
     x,
     y,
 
