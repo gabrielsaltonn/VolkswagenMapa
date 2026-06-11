@@ -22,6 +22,9 @@ const pendingUsersList =
         "pendingUsersList"
     );
 
+const pendingSection =
+    document.getElementById("pendingSection");
+
 const activeUsersCounter =
     document.getElementById("activeUsersCounter");
 
@@ -111,14 +114,10 @@ async function loadPendingUsers() {
             ` | Pendentes: ${users.length}`;
 
         pendingUsersList.innerHTML = "";
+        pendingSection.style.display = users.length > 0 ? "block" : "none";
 
         if (users.length === 0) {
-
-            pendingUsersList.innerHTML =
-                "<p>Nenhum usuário pendente.</p>";
-
             return;
-
         }
 
         users.forEach(user => {
