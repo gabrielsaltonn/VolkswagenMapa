@@ -50,7 +50,132 @@ const deletePrinterSidebarBtn = document.getElementById('deletePrinterSidebarBtn
 const searchInput = document.getElementById("search");
 const plantSelect = document.getElementById("plantSelect");
 
+const manageMapsBtn =
+    document.getElementById("manageMapsBtn");
+
+const mapManagerActions =
+    document.getElementById("mapManagerActions");
+
+const prevMapPageBtn =
+    document.getElementById(
+        "prevMapPageBtn"
+    );
+
+const nextMapPageBtn =
+    document.getElementById(
+        "nextMapPageBtn"
+    );
+
+const mapPageNumbers =
+    document.getElementById(
+        "mapPageNumbers"
+    );
+
+const mapPagination =
+    document.getElementById(
+        "mapPagination"
+    );
+
+const isAdmin =
+    loggedUser.role === "admin";
+
+if (!isAdmin) {
+    manageMapsBtn.style.display = "none";
+    mapManagerActions.style.display = "none";
+}
+
+manageMapsBtn.addEventListener("click", () => {
+
+    const wasHidden =
+        mapManagerActions.classList.contains(
+            "hidden"
+        );
+
+    closeSidebarModes();
+
+    if (wasHidden) {
+
+        mapManagerActions.classList.remove(
+            "hidden"
+        );
+
+    }
+
+});
+
 let isMultiDeleteMode = false;
+
+function closeAllMenus() {
+
+    mapManagerActions.classList.add(
+        "hidden"
+    );
+
+    quickLinkForm.classList.add(
+        "hidden"
+    );
+
+    if (captureMode) {
+
+        captureMode = false;
+
+        toggleHelper.textContent =
+            "Adicionar impressoras";
+
+    }
+
+}
+
+function disableCaptureMode() {
+
+    if (!captureMode) {
+        return;
+    }
+
+    captureMode = false;
+
+    toggleHelper.textContent =
+        "Adicionar impressoras";
+
+}
+
+function closeSidebarModes() {
+
+    disableCaptureMode();
+
+    mapManagerActions.classList.add(
+        "hidden"
+    );
+
+    const confirmBtn =
+        document.getElementById(
+            "confirmDeleteBtn"
+        );
+
+    const cancelBtn =
+        document.getElementById(
+            "cancelDeleteBtn"
+        );
+
+    if (confirmBtn) {
+        confirmBtn.remove();
+    }
+
+    if (cancelBtn) {
+        cancelBtn.remove();
+    }
+
+    selectedPins.clear();
+
+    setPinsFloating(false);
+
+    isMultiDeleteMode = false;
+
+    toggleHelper.disabled = false;
+
+    renderPins();
+
+}
 
 function setPinsFloating(active) {
     isMultiDeleteMode = active;
@@ -65,9 +190,6 @@ function setPinsFloating(active) {
         });
     }
 }
-
-const isAdmin =
-    loggedUser.role === "admin";
 
 function updatePermissionButtons() {
 
@@ -122,10 +244,108 @@ function atualizarLinkIP(ip) {
 
 function updatePlantImage() {
 
-    floor.src =
+    const pages =
         plantImages[currentPlant];
 
+    floor.src =
+        pages[currentMapPage];
+
+    renderMapPagination();
+
 }
+
+function renderMapPagination() {
+
+    const pages =
+        plantImages[currentPlant];
+
+    if (pages.length <= 1) {
+
+        mapPagination.style.display =
+            "none";
+
+        return;
+
+    }
+
+    mapPagination.style.display =
+        "flex";
+
+    mapPageNumbers.innerHTML = "";
+
+    pages.forEach((page, index) => {
+
+        const btn =
+            document.createElement("button");
+
+        btn.textContent =
+            index + 1;
+
+        if (index === currentMapPage) {
+
+            btn.classList.add(
+                "active"
+            );
+
+        }
+
+        btn.addEventListener(
+            "click",
+            () => {
+
+                currentMapPage =
+                    index;
+
+                updatePlantImage();
+
+                renderMapPagination();
+
+            }
+        );
+
+        mapPageNumbers.appendChild(
+            btn
+        );
+
+    });
+
+}
+
+prevMapPageBtn.addEventListener(
+    "click",
+    () => {
+
+        if (currentMapPage > 0) {
+
+            currentMapPage--;
+
+            updatePlantImage();
+
+        }
+
+    }
+);
+
+nextMapPageBtn.addEventListener(
+    "click",
+    () => {
+
+        const pages =
+            plantImages[currentPlant];
+
+        if (
+            currentMapPage <
+            pages.length - 1
+        ) {
+
+            currentMapPage++;
+
+            updatePlantImage();
+
+        }
+
+    }
+);
 
 // Fotos
 const photoPreview = document.getElementById('previewFoto');
@@ -151,6 +371,8 @@ let currentPlant =
         ? "SJP"
         : userPlant;
 
+let currentMapPage = 0;
+
 plantSelect.value =
     currentPlant;
 
@@ -162,17 +384,18 @@ const currentUser =
 const selectedPins = new Set();
 
 const plantImages = {
+    ANC: ["img/anc.png"],
 
-    ANC: "img/anc.png",
+    SCAR: ["img/scar.png"],
 
-    SCAR: "img/scar.png",
+    SJP: ["img/sjp.png"],
 
-    SJP: "img/sjp.png",
+    TAUB: [
+        "img/taub.png",
+        "img/taub2.png"
+    ],
 
-    TAUB: "img/taub.png",
-
-    VIN: "img/vin.png"
-
+    VIN: ["img/vin.png"]
 };
 
 async function loadPrinters() {
@@ -318,6 +541,8 @@ searchInput.addEventListener("input", (e) => {
 plantSelect.addEventListener("change", (e) => {
 
     currentPlant = e.target.value;
+
+    currentMapPage = 0;
 
     searchText = "";
     searchInput.value = "";
@@ -812,25 +1037,19 @@ panzoomArea.addEventListener('panzoomchange', (e) => adjustPins(e.detail.scale))
 // Alternar modo de captura
 toggleHelper.addEventListener('click', () => {
 
-    if (isMultiDeleteMode) {
+    const wasCaptureMode =
+        captureMode;
+
+    closeSidebarModes();
+
+    if (wasCaptureMode) {
         return;
     }
 
-    if (!canEditPlant(currentPlant)) {
+    captureMode = true;
 
-        alert(
-            "Você não tem permissão para alterar esta planta."
-        );
-
-        return;
-
-    }
-
-    captureMode = !captureMode;
-
-    toggleHelper.textContent = captureMode
-        ? 'Clique no mapa 2x para adicionar'
-        : 'Adicionar impressoras';
+    toggleHelper.textContent =
+        'Clique no mapa 2x para adicionar';
 
 });
 
@@ -925,7 +1144,17 @@ function enableMultiDelete() {
         cancelBtn.remove();
     });
 }
-document.getElementById("deletePrinterSidebarBtn").addEventListener("click", enableMultiDelete);
+
+deletePrinterSidebarBtn.addEventListener(
+    "click",
+    () => {
+
+        closeSidebarModes();
+
+        enableMultiDelete();
+
+    }
+);
 
 const menuBtn = document.getElementById("menuBtn");
 
@@ -955,8 +1184,28 @@ document.addEventListener("click", (e) => {
     const clicouNaSidebar =
         quickLinksSidebar.contains(e.target);
 
+    const clicouNoMapa =
+        mapWrap.contains(e.target);
+
+    const clicouNoAdicionar =
+        toggleHelper.contains(e.target);
+
     if (!clicouNoBotao && !clicouNaSidebar) {
-        quickLinksSidebar.classList.remove("open");
+
+        quickLinksSidebar.classList.remove(
+            "open"
+        );
+
+    }
+
+    if (
+        !clicouNoMapa &&
+        !clicouNoAdicionar &&
+        !clicouNaSidebar
+    ) {
+
+        closeAllMenus();
+        disableCaptureMode();
     }
 
 });

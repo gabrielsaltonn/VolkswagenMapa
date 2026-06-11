@@ -8,6 +8,12 @@
     max-width: 100%;
 }
 
+.map-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
 #mapWrap {
     position: relative;
     width: 50vw;
@@ -240,6 +246,46 @@
 #bkpCounter {
     font-size: 1rem;
     color: var(--success);
+    font-weight: bold;
+}
+
+.map-manager-actions.hidden {
+    display: none;
+}
+
+.map-manager-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.map-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+
+    margin-top: 12px;
+}
+
+.map-pagination button,
+#mapPageNumbers button {
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+#mapPageNumbers {
+    display: flex;
+    gap: 6px;
+}
+
+#mapPageNumbers button.active {
+    background: var(--success);
+    color: var(--primary);
     font-weight: bold;
 }
 

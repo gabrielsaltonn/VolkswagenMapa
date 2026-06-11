@@ -98,11 +98,23 @@
             </select>
         </div>
 
-        <div class="map-wrap" id="mapWrap" aria-label="Planta do local com marcadores de impressoras">
-            <div id="panzoom-area">
-                <img id="floor" src="" alt="Planta do local">
-                <div class="pins" id="pins"></div>
+        <div class="map-column">
+
+            <div class="map-wrap" id="mapWrap" aria-label="Planta do local com marcadores de impressoras">
+                <div id="panzoom-area">
+                    <img id="floor" src="" alt="Planta do local">
+                    <div class="pins" id="pins"></div>
+                </div>
             </div>
+
+            <div class="map-pagination" id="mapPagination">
+                <button id="prevMapPageBtn" type="button">◀</button>
+
+                <div id="mapPageNumbers"></div>
+
+                <button id="nextMapPageBtn" type="button">▶</button>
+            </div>
+
         </div>
  
         <!-- Botões ao lado direito do mapa -->
@@ -112,6 +124,21 @@
                  <span id="bkpCounter"> | 0 Backups ativos</span>
             </div>
             <button id="toggleHelper" type="button" title="Dê dois cliques no local para adicionar a impressora">Adicionar impressoras</button>
+
+            <button id="manageMapsBtn" type="button">
+                Gerenciar Mapas
+            </button>
+
+            <div id="mapManagerActions" class="map-manager-actions hidden">
+                <button id="addMapBtn" type="button">
+                    Adicionar Planta
+                </button>
+
+                <button id="deleteMapBtn" type="button">
+                    Excluir Planta
+                </button>
+            </div>
+
             <button id="deletePrinterSidebarBtn" type="button">Excluir Impressoras</button>
         </div>
     </div>
