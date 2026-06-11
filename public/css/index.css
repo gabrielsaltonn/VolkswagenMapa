@@ -1,0 +1,290 @@
+﻿.map-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 30px;
+    margin: 20px auto;
+    width: fit-content;
+    max-width: 100%;
+}
+
+#mapWrap {
+    position: relative;
+    width: 50vw;
+    max-width: 900px;
+    min-width: 320px;
+    border-radius: var(--radius-lg);
+    background: white;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+#mapWrap img,
+#mapWrap .pins {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+#panzoom-area {
+    position: relative;
+    width: 100%;
+    height: auto;
+}
+
+#panzoom-area .pins {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.pin-wrapper {
+    position: absolute;
+    transform: translate(-50%, -100%);
+    pointer-events: auto;
+    cursor: pointer;
+    display: block;
+}
+
+.pin-circle {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    border: 1px solid white;
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.45);
+    background: rgb(0, 3, 153);
+    display: block;
+}
+
+.pin-circle.pin-floating {
+    animation: floatPin 1.5s ease-in-out infinite;
+}
+
+@keyframes floatPin {
+    0%, 100% {
+        transform: translateX(-50%) translateY(0);
+    }
+    50% {
+        transform: translateX(-50%) translateY(-8px);
+    }
+}
+
+.pin-wrapper:hover .pin-circle {
+    filter: brightness(0.92);
+}
+
+.pin-wrapper.selected-pin .pin-circle {
+    outline: 2px solid rgba(255, 255, 255, 0.35);
+}
+
+.selected-pin .pin-circle {
+    background-color: red !important;
+    border: 2px solid rgb(255, 0, 0);
+}
+
+#contadorFotos {
+    margin-top: 8px;
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--primary);
+}
+
+.seçãoDeFotos {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.efeitoCarrossel {
+    position: relative;
+    display: inline-block;
+}
+
+.efeitoCarrossel img {
+    max-width: 250px;
+    border-radius: 10px;
+}
+
+.mFoto {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    color: black;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.mFoto.Esquerda {
+    left: -30px;
+}
+
+.mFoto.Direita {
+    right: -30px;
+}
+
+.actFotos button {
+    margin: 5px;
+    padding: 8px 12px;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    background: var(--primary);
+    color: white;
+}
+
+#infoPrinters {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#infoPrinters label {
+    display: flex;
+    flex-direction: column;
+    font-size: 14px;
+    text-align: left;
+}
+
+#infoPrinters input,
+#infoPrinters textarea {
+    padding: 5px;
+    border: 1px solid black;
+    border-radius: var(--radius-sm);
+    text-align: center;
+}
+
+.ip-container {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.ip-container input {
+    flex: 1;
+}
+
+#salvarImpressora {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: var(--radius-md);
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+#mIPLink {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 6px 12px;
+    cursor: pointer;
+    min-width: 75px;
+}
+
+.checkBkp {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin: 10px 0;
+}
+
+#mBckp:checked {
+    accent-color: var(--success);
+}
+
+#deletePrinterBtn {
+    color: white;
+    background: var(--primary);
+    border: 1px solid black;
+    border-radius: var(--radius-sm);
+    padding: 5px 20px;
+    cursor: pointer;
+    display: block;
+    margin: 10px auto 0;
+}
+
+.sidebar-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-self: flex-start;
+    padding-top: 5px;
+}
+
+.sidebar-buttons button,
+.sidebar-buttons input {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: 14px;
+}
+
+#printerCounter {
+    font-size: 1rem;
+    color: var(--text-light);
+    font-weight: bold;
+}
+
+#bkpCounter {
+    font-size: 1rem;
+    color: var(--success);
+    font-weight: bold;
+}
+
+@media (max-width: 900px) {
+    .map-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    #mapWrap {
+        width: 90vw;
+        min-width: unset;
+    }
+
+    .sidebar-buttons {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        padding-top: 15px;
+    }
+
+    .sidebar-buttons button,
+    .sidebar-buttons input {
+        flex: 1 1 45%;
+        margin: 5px;
+    }
+}
+
+@media (max-width: 480px) {
+    #printerCounter,
+    #bkpCounter {
+        font-size: 0.9rem;
+    }
+
+    .card {
+        width: 90%;
+    }
+
+    .efeitoCarrossel img {
+        max-width: 220px;
+    }
+}
+
+
+
+
+
+

@@ -1,0 +1,331 @@
+.btn,
+.sidebar-buttons button,
+.sidebar-buttons input,
+#salvarImpressora,
+#deletePrinterBtn,
+#mIPLink,
+.actFotos button,
+.close {
+    transition:
+        background-color 0.2s ease,
+        transform 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.sidebar-buttons button:hover,
+#salvarImpressora:hover,
+#deletePrinterBtn:hover,
+#mIPLink:hover,
+.actFotos button:hover,
+.close:hover {
+    background-color: var(--primary-hover);
+    transform: scale(1.03);
+}
+
+.sidebar-buttons button:active,
+#salvarImpressora:active,
+#deletePrinterBtn:active,
+#mIPLink:active,
+.actFotos button:active,
+.close:active {
+    transform: scale(0.95);
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.btn-effect {
+    transition:
+        background-color 0.2s ease,
+        transform 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.btn-effect:hover {
+    transform: translateY(-1px) scale(1.03);
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-effect:active {
+    transform: scale(0.95);
+    box-shadow:
+        inset 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    justify-content: center;
+    align-items: center;
+    overflow-y: auto;
+}
+
+.card {
+    background: aliceblue;
+    padding: 20px;
+    border-radius: 10px;
+    width: 300px;
+    text-align: center;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+    position: relative;
+    z-index: 2000;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.close {
+    display: block;
+    margin-left: auto;
+    color: white;
+    background-color: var(--primary);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 4px 8px;
+}
+
+.menu-btn {
+    background: linear-gradient(145deg, #f5f6ff, #dedfff);
+    border: 1px solid rgba(30, 27, 75, 0.15);
+    padding: 10px;
+    cursor: pointer;
+    order: -1;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+        0 10px 16px rgba(30, 27, 75, 0.14),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        background-color 0.2s ease;
+}
+
+.menu-btn:hover {
+    transform: translateY(-1px);
+    box-shadow:
+        0 14px 20px rgba(30, 27, 75, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.85);
+    background: linear-gradient(145deg, #eef0ff, #d7d7ff);
+}
+
+.menu-btn:active {
+    transform: translateY(0px);
+    box-shadow:
+        0 6px 12px rgba(30, 27, 75, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+.quick-links-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 260px;
+    height: 100vh;
+    background: white;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.4);
+    z-index: 3000;
+    padding: 20px;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+}
+
+.quick-links-sidebar.open {
+    transform: translateX(0);
+}
+
+.quick-links-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.quick-links-header h2 {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: var(--primary);
+}
+
+.close-quick-links {
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px 10px;
+}
+
+.quick-links-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.quick-link-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--primary);
+    padding: 10px;
+    border-radius: var(--radius-md);
+    background: #f1f5f9;
+    font-weight: bold;
+}
+
+.quick-link-item:hover {
+    background: #e0e7ff;
+}
+
+.quick-link-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 8px;
+    background: var(--primary);
+    color: white;
+    font-weight: bold;
+}
+
+.add-quick-link-btn {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    width: 100%;
+    padding: 10px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+}
+
+#saveQuickLinkBtn {
+    width: 100%;
+    padding: 10px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+}
+
+.admin-panel-btn {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    width: 100%;
+    padding: 10px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+}
+
+.logout-btn {
+    margin-top: 10px;
+    width: 100%;
+    padding: 10px;
+    background: var(--danger);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+}
+
+.logout-btn:hover {
+    background: var(--danger-hover);
+}
+
+.quick-link-form {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: #f1f5f9;
+    border-radius: var(--radius-md);
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.quick-link-form.hidden {
+    display: none;
+}
+
+.quick-link-form input {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: var(--radius-sm);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.quick-link-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.quick-link-container .quick-link-item {
+    flex: 1;
+}
+
+.quick-link-edit,
+.quick-link-delete,
+.quick-link-pin {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 6px;
+    padding: 4px;
+}
+
+.quick-link-favicon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+
+.empty-quick-links {
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.4;
+    text-align: center;
+    padding: 15px 5px;
+}
+
+.sidebar-user {
+    margin-bottom: 20px;
+    padding: 12px;
+    background: #f1f5f9;
+    border-radius: var(--radius-md);
+    font-weight: bold;
+    color: var(--primary);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+#loggedUserName::before {
+    content: "👤 ";
+}
+
+#loggedUserRole,
+#loggedUserPlant {
+    font-size: 13px;
+    color: #475569;
+}

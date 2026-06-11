@@ -1,0 +1,91 @@
+/* Reset CSS */
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, b, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    vertical-align: baseline;
+}
+
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section {
+    display: block;
+}
+
+:root {
+    --primary: #1e1b4b;
+    --primary-hover: #312e81;
+    --success: #00ff95;
+    --danger: #dc2626;
+    --danger-hover: #b91c1c;
+    --text-light: #ffffff;
+    --bg-light: #ffffff;
+    --shadow: 4px 4px 20px 4px rgba(0, 0, 0, 0.8);
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 20px;
+}
+
+body {
+    line-height: 1;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: 0;
+    min-height: 100vh;
+    background: linear-gradient(80deg, #1a223d, #0e725c, #217e97);
+    display: flex;
+    flex-direction: column;
+}
+
+ol, ul {
+    list-style: none;
+}
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+button,
+input[type="button"],
+input[type="submit"] {
+    font-family: Arial, sans-serif;
+}
+
+.app-footer {
+    padding: 14px 0;
+    color: rgba(255, 255, 255, 0.28);
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+    text-align: center;
+    width: 100%;
+    background: transparent;
+    pointer-events: none;
+}
+
+.app-footer a {
+    color: rgba(255, 255, 255, 0.28);
+    text-decoration: underline;
+    pointer-events: auto;
+}
+
+.app-footer a:hover {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+body > footer.app-footer {
+    margin-top: auto;
+}
