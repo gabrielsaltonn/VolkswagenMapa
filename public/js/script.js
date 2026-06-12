@@ -111,6 +111,16 @@ const deleteMapBtn =
         "deleteMapBtn"
     );
 
+const addPageBtn = 
+    document.getElementById(
+        "addPageBtn"
+    );
+
+const deletePageBtn =
+    document.getElementById(
+        "deletePageBtn"
+    );
+
 const prevMapPageBtn =
     document.getElementById(
         "prevMapPageBtn"
@@ -205,6 +215,118 @@ addMapBtn.addEventListener("click", async () => {
 
     alert("Planta criada com sucesso!");
 
+});
+
+addPageBtn.addEventListener("click", async () => {
+
+    const map =
+        maps.find(
+            item => item.name === currentPlant
+        );
+
+    if (!map) {
+        alert("Planta não encontrada.");
+        return;
+    }
+
+    const pagePath =
+        prompt(
+            "Caminho da nova imagem:"
+        );
+
+    if (!pagePath) {
+        return;
+    }
+
+    if (map.pages.includes(pagePath)) {
+
+        alert(
+            "Essa página já está cadastrada."
+        );
+
+        return;
+
+    }
+
+    map.pages.push(
+        pagePath
+    );
+
+    await updateMap(
+        map._id,
+        map
+    );
+
+    await loadMaps();
+
+    currentMapPage =
+        map.pages.length - 1;
+
+    updatePlantImage();
+
+    renderPins();
+
+    alert("Página adicionada com sucesso!");
+
+});
+
+deletePageBtn.addEventListener("click", async () => {
+
+    const map =
+        maps.find(
+            item => item.name === currentPlant
+        );
+
+    if (!map) {
+        alert("Planta não encontrada.");
+        return;
+    }
+
+    if (map.pages.length <= 1) {
+
+        alert(
+            "A planta precisa ter pelo menos uma página."
+        );
+
+        return;
+
+    }
+
+    const pagePath =
+        map.pages[currentMapPage];
+
+    const confirmDelete =
+        confirm(
+            `Excluir a página ${currentMapPage + 1}?\n\n${pagePath}`
+        );
+
+    if (!confirmDelete) {
+        return;
+    }
+
+    map.pages.splice(
+        currentMapPage,
+        1
+    );
+
+    await updateMap(
+        map._id,
+        map
+    );
+
+    await loadMaps();
+
+    if (currentMapPage >= map.pages.length) {
+        currentMapPage = 
+            map.pages.length - 1;
+    }
+
+    updatePlantImage();
+
+    renderPins();
+
+    alert("Página exlcuída com sucesso!");
+    
 });
 
 deleteMapBtn.addEventListener("click", async () => {
@@ -526,7 +648,7 @@ function updatePlantImage() {
         renderMapPagination();
 
         return;
-        
+
     }
 
     floor.src =
@@ -588,6 +710,21 @@ const selectedPins = new Set();
 // };
 
 let maps = [];
+
+async function updateMap(id, mapData) {
+
+    const response =
+        await fetch(`/api/maps/${id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(mapData)
+        });
+
+    return await response.json();
+
+}
 
 async function loadMaps() {
 
