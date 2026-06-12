@@ -76,7 +76,7 @@
 </div>
 
         <button id="adminPanelBtn" class="admin-panel-btn btn-effect">
-            Administração
+            Configurar usuários
         </button>
 
         <button id="logoutBtn" class="logout-btn btn-effect">
@@ -139,15 +139,21 @@
             </button>
 
             <div id="mapManagerActions" class="map-manager-actions hidden">
-                
+
                 <div class="map-actions-row">
+
                     <button id="addMapBtn" type="button">
                         Adicionar<br>Planta
+                    </button>
+
+                    <button id="renameMapBtn" type="button">
+                        Renomear<br>Planta
                     </button>
 
                     <button id="deleteMapBtn" type="button">
                         Excluir<br>Planta
                     </button>
+
                 </div>
 
                 <div class="map-actions-row">
@@ -221,6 +227,66 @@
     id="mapUploadInput"
     accept=".png,image/png"
     hidden>
+
+    <div
+        id="mapAdminModal"
+        class="modal"
+        role="dialog"
+        aria-modal="true">
+
+        <div class="card map-admin-card">
+
+            <button
+                id="closeMapAdminModal"
+                class="close">
+                &times;
+            </button>
+
+            <h2>
+                Administração de Plantas
+            </h2>
+
+            <div id="mapsAdminList"></div>
+
+            <button
+                id="newPlantBtn"
+                class="btn-effect">
+                + Nova Planta
+            </button>
+
+        </div>
+
+    </div>
+
+    <div
+        id="mapPagesModal"
+        class="modal"
+        role="dialog"
+        aria-modal="true">
+
+        <div class="card map-admin-card">
+
+            <button
+                id="closeMapPagesModal"
+                class="close">
+                &times;
+            </button>
+
+            <h2 id="mapPagesTitle">
+                Páginas da Planta
+            </h2>
+
+            <div id="pagesAdminList"></div>
+
+            <button
+                id="addPageModalBtn"
+                class="btn-effect">
+                + Adicionar Página
+            </button>
+
+        </div>
+
+    </div>
 
     <!-- Scripts -->
     <footer class="app-footer">© Desenvolvido por <a href="https://www.linkedin.com/in/gabriel-salton-5686b1219" target="_blank" rel="noopener noreferrer">Gabriel Salton</a></footer>

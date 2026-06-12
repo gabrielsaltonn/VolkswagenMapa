@@ -297,13 +297,80 @@
 }
 
 .map-actions-row {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: 10px;
 }
 
+.map-actions-row:last-child {
+    grid-template-columns: repeat(2, 1fr);
+}
+
 .map-actions-row button {
-    flex: 1;
+    min-width: 0;
     line-height: 1.2;
+    padding: 10px 8px;
+}
+
+.map-admin-card {
+    width: 600px;
+    max-width: 95%;
+}
+
+.map-admin-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 12px;
+    margin-bottom: 10px;
+
+    border: 1px solid #ddd;
+    border-radius: 8px;
+
+    cursor: pointer;
+}
+
+.map-admin-item:hover {
+    background: #f5f5f5;
+}
+
+.map-admin-item {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    padding: 15px;
+
+    margin-bottom: 12px;
+
+    border: 1px solid #ddd;
+
+    border-radius: 10px;
+}
+
+.map-admin-actions {
+
+    display: flex;
+
+    gap: 8px;
+}
+
+.map-admin-actions button {
+
+    min-width: 45px;
+
+    font-size: 1.1rem;
+}
+
+.map-admin-info {
+
+    display: flex;
+
+    flex-direction: column;
 }
 
 @media (max-width: 900px) {

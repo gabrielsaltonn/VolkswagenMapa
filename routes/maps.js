@@ -1,7 +1,13 @@
 import express from "express";
+import fs from "fs/promises";
+import path from "path";
+import { fileURLToPath } from "url";
 import Map from "../models/Map.js";
 
 const router = express.Router();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 router.get("/", async (req, res) => {
 
@@ -76,14 +82,58 @@ router.put("/:id", async (req, res) => {
 
 router.delete("/:id", async (req, res) => {
 
+    console.log("EXCLUINDO PLANTA:", req.params.id);
+
     try {
 
-        await Map.findByIdAndDelete(
-            req.params.id
-        );
+        const map =
+            await Map.findById(req.params.id);
+
+        if (!map) {
+
+            return res.status(404).json({
+                erro: "Planta não encontrada"
+            });
+
+        }
+
+        for (const page of map.pages) {
+
+            const cleanPage =
+                page.replace(/^\/+/, "");
+
+            const imagePath =
+                path.join(
+                    __dirname,
+                    "..",
+                    "public",
+                    cleanPage
+                );
+
+            console.log("Tentando apagar:", imagePath);
+
+            try {
+
+                await fs.unlink(imagePath);
+
+                console.log("Imagem apagada:", imagePath);
+
+            } catch (error) {
+
+                console.warn(
+                    "Não consegui apagar a imagem:",
+                    imagePath,
+                    error.message
+                );
+
+            }
+
+        }
+
+        await Map.findByIdAndDelete(req.params.id);
 
         res.json({
-            mensagem: "Planta excluída"
+            mensagem: "Planta e imagens excluídas"
         });
 
     } catch (error) {

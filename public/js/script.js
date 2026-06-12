@@ -111,6 +111,11 @@ const addMapBtn =
         "addMapBtn"
     );
 
+const renameMapBtn =
+    document.getElementById(
+        "renameMapBtn"
+    );
+
 const deleteMapBtn =
     document.getElementById(
         "deleteMapBtn"
@@ -146,6 +151,51 @@ const mapPagination =
         "mapPagination"
     );
 
+const mapAdminModal =
+    document.getElementById(
+        "mapAdminModal"
+    );
+
+const closeMapAdminModal =
+    document.getElementById(
+        "closeMapAdminModal"
+    );
+
+const mapsAdminList =
+    document.getElementById(
+        "mapsAdminList"
+    );
+
+const newPlantBtn =
+    document.getElementById(
+        "newPlantBtn"
+    );
+
+const mapPagesModal =
+    document.getElementById(
+        "mapPagesModal"
+    );
+
+const closeMapPagesModal =
+    document.getElementById(
+        "closeMapPagesModal"
+    );
+
+const mapPagesTitle =
+    document.getElementById(
+        "mapPagesTitle"
+    );
+
+const pagesAdminList =
+    document.getElementById(
+        "pagesAdminList"
+    );
+
+const addPageModalBtn =
+    document.getElementById(
+        "addPageModalBtn"
+    );
+
 const isAdmin =
     loggedUser.role === "admin";
 
@@ -156,20 +206,10 @@ if (!isAdmin) {
 
 manageMapsBtn.addEventListener("click", () => {
 
-    const wasHidden =
-        mapManagerActions.classList.contains(
-            "hidden"
-        );
+    renderMapAdmin();
 
-    closeSidebarModes();
-
-    if (wasHidden) {
-
-        mapManagerActions.classList.remove(
-            "hidden"
-        );
-
-    }
+    mapAdminModal.style.display =
+        "flex";
 
 });
 
@@ -221,6 +261,64 @@ addMapBtn.addEventListener("click", async () => {
     alert("Planta criada com sucesso!");
 
 });
+
+renameMapBtn.addEventListener(
+    "click",
+    async () => {
+
+        const map =
+            maps.find(
+                item => item.name === currentPlant
+            );
+
+        if (!map) {
+            return;
+        }
+
+        const newLabel =
+            prompt(
+                "Novo nome da planta:",
+                map.label
+            );
+
+        if (!newLabel) {
+            return;
+        }
+
+        map.label =
+            newLabel;
+
+        await updateMap(
+            map._id,
+            map
+        );
+
+        await loadMaps();
+
+        plantSelect.value =
+            currentPlant;
+
+        alert(
+            "Planta renomeada com sucesso!"
+        );
+
+    }
+);
+
+closeMapPagesModal.addEventListener(
+    "click",
+    () => {
+
+        mapPagesModal.style.display =
+            "none";
+
+        renderMapAdmin();
+
+        mapAdminModal.style.display =
+            "flex";
+
+    }
+);
 
 addPageBtn.addEventListener("click", () => {
 
@@ -735,22 +833,9 @@ const currentUser =
 
 const selectedPins = new Set();
 
-// const plantImages = {
-//     ANC: ["img/anc.png"],
-
-//     SCAR: ["img/scar.png"],
-
-//     SJP: ["img/sjp.png"],
-
-//     TAUB: [
-//         "img/taub.png",
-//         "img/taub2.png"
-//     ],
-
-//     VIN: ["img/vin.png"]
-// };
-
 let maps = [];
+
+let selectedMapAdmin = null;
 
 async function updateMap(id, mapData) {
 
@@ -822,6 +907,160 @@ async function loadMaps() {
         );
 
     }
+
+}
+
+function renderMapAdmin() {
+
+    mapsAdminList.innerHTML = "";
+
+    maps.forEach(map => {
+
+        const div =
+            document.createElement("div");
+
+        div.className =
+            "map-admin-item";
+
+        div.innerHTML = `
+            <div class="map-admin-info">
+
+                <strong>
+                    ${map.name}
+                </strong>
+
+                <div>
+                    ${map.label}
+                </div>
+
+                <small>
+                    ${map.pages.length}
+                    mapa(s)
+                </small>
+
+            </div>
+
+            <div class="map-admin-actions">
+
+                <button class="edit-map-btn">
+                    ✏️
+                </button>
+
+                <button class="pages-map-btn">
+                    📄
+                </button>
+
+                <button class="delete-map-btn">
+                    🗑️
+                </button>
+
+            </div>
+        `;
+
+        div.querySelector(".edit-map-btn").addEventListener(
+            "click",
+            async () => {
+
+                const newLabel =
+                    prompt(
+                        "Novo nome da planta:",
+                        map.label
+                    );
+
+                if (!newLabel) {
+                    return;
+                }
+
+                map.label = newLabel;
+
+                await updateMap(map._id, map);
+                await loadMaps();
+
+                renderMapAdmin();
+
+            }
+        );
+
+        div.querySelector(".delete-map-btn").addEventListener(
+            "click",
+            async () => {
+
+                const confirmDelete =
+                    confirm(
+                        `Excluir ${map.label}?`
+                    );
+
+                if (!confirmDelete) {
+                    return;
+                }
+
+                await fetch(
+                    `/api/maps/${map._id}`,
+                    {
+                        method: "DELETE"
+                    }
+                );
+
+                await loadMaps();
+
+                renderMapAdmin();
+
+            }
+        );
+
+        div.querySelector(".pages-map-btn").addEventListener(
+            "click",
+            () => {
+
+                mapAdminModal.style.display =
+                    "none";
+
+                renderMapPages(map);
+
+            }
+        );
+
+        mapsAdminList.appendChild(div);
+
+    });
+
+}
+
+function renderMapPages(map) {
+
+    selectedMapAdmin = map;
+
+    mapPagesTitle.textContent =
+        map.label;
+
+    pagesAdminList.innerHTML = "";
+
+    map.pages.forEach((page, index) => {
+
+        const div =
+            document.createElement("div");
+
+        div.className =
+            "map-admin-item";
+
+        div.innerHTML = `
+            <div>
+                Página ${index + 1}
+                <br>
+                <small>${page}</small>
+            </div>
+
+            <button class="delete-page-btn">
+                🗑️
+            </button>
+        `;
+
+        pagesAdminList.appendChild(div);
+
+    });
+
+    mapPagesModal.style.display =
+        "flex";
 
 }
 
@@ -1389,6 +1628,17 @@ closeModal.addEventListener('click', () => {
     modal.style.display = 'none';
     currentPrinterIndex = null;
 });
+
+closeMapAdminModal.addEventListener(
+    "click",
+    () => {
+
+        mapAdminModal.style.display =
+            "none";
+
+    }
+);
+
 window.addEventListener('click', (e) => {
     if (e.target === modal) {
         modal.style.display = 'none';
