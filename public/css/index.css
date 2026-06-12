@@ -237,6 +237,13 @@
     font-size: 14px;
 }
 
+.sidebar-divider {
+    width: 100%;
+    height: 1px;
+    margin: 8px 0;
+    background: rgba(255, 255, 255, 0.35);
+}
+
 #printerCounter {
     font-size: 1rem;
     color: var(--text-light);

@@ -22,13 +22,19 @@ function canEditPlant(plant) {
 }
 
 const loggedUserName =
-    document.getElementById("loggedUserName");
+    document.getElementById(
+        "loggedUserName"
+    );
 
 const loggedUserRole =
-    document.getElementById("loggedUserRole");
+    document.getElementById(
+        "loggedUserRole"
+    );
 
 const loggedUserPlant =
-    document.getElementById("loggedUserPlant");
+    document.getElementById(
+        "loggedUserPlant"
+    );
 
 loggedUserName.textContent =
     `${loggedUser.username}`;
@@ -40,21 +46,70 @@ loggedUserPlant.textContent =
     `${loggedUser.plant}`;
 
 // Seletores principais
-const mapWrap = document.getElementById('mapWrap');
-const floor = document.getElementById('floor');
-const pinsDiv = document.getElementById('pins');
-const toggleHelper = document.getElementById('toggleHelper');
-const modal = document.getElementById('modal');
-const closeModal = document.getElementById('closeModal');
-const deletePrinterSidebarBtn = document.getElementById('deletePrinterSidebarBtn');
-const searchInput = document.getElementById("search");
-const plantSelect = document.getElementById("plantSelect");
+const mapWrap = 
+    document.getElementById(
+        'mapWrap'
+    );
+
+const floor = 
+    document.getElementById(
+        'floor'
+    );
+
+const pinsDiv = 
+    document.getElementById(
+        'pins'
+    );
+
+const toggleHelper = 
+    document.getElementById(
+        'toggleHelper'
+    );
+
+const modal = 
+    document.getElementById(
+        'modal'
+    );
+
+const closeModal = 
+    document.getElementById(
+        'closeModal'
+    );
+
+const deletePrinterSidebarBtn = 
+    document.getElementById(
+        'deletePrinterSidebarBtn'
+    );
+
+const searchInput = 
+    document.getElementById(
+        "search"
+    );
+
+const plantSelect = 
+    document.getElementById(
+        "plantSelect"
+    );
 
 const manageMapsBtn =
-    document.getElementById("manageMapsBtn");
+    document.getElementById(
+        "manageMapsBtn"
+    );
 
 const mapManagerActions =
-    document.getElementById("mapManagerActions");
+    document.getElementById(
+        "mapManagerActions"
+    );
+
+const addMapBtn = 
+    document.getElementById(
+        "addMapBtn"
+    );
+
+const deleteMapBtn =
+    document.getElementById(
+        "deleteMapBtn"
+    );
 
 const prevMapPageBtn =
     document.getElementById(
@@ -100,6 +155,104 @@ manageMapsBtn.addEventListener("click", () => {
         );
 
     }
+
+});
+
+addMapBtn.addEventListener("click", async () => {
+
+    const plantName = 
+        prompt("Sigla da nova planta:");
+
+    if(!plantName) {
+        return;
+    }
+
+    const label = 
+        prompt("Nome completo da planta:")
+
+    if (!label) {
+        return;
+    }
+
+    const response =
+        await fetch("/api/maps", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                name: plantName.toUpperCase(),
+                label, 
+                pages: []
+            })
+        });
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+
+            alert(
+                data.erro ||
+                "Erro ao criar planta."
+            );
+
+            return;
+
+        }
+    
+    await loadMaps();
+
+    alert("Planta criada com sucesso!");
+
+});
+
+deleteMapBtn.addEventListener("click", async () => {
+
+    const map =
+        maps.find(
+            item => item.name === currentPlant
+        );
+
+    if (!map) {
+        alert("Planta não encontrada.");
+        return;
+    }
+
+    const confirmDelete =
+        confirm(
+            `Deseja realmente excluir a planta ${map.label}?`
+        );
+
+    if (!confirmDelete) {
+        return;
+    }
+
+    const response =
+        await fetch(`/api/maps/${map._id}`, {
+            method: "DELETE"
+        });
+
+    if (!response.ok) {
+        alert("Erro ao excluir planta.");
+        return;
+    }
+
+    await loadMaps();
+
+    currentPlant =
+        maps[0]?.name || "";
+
+    plantSelect.value =
+        currentPlant;
+
+    currentMapPage = 0;
+
+    updatePlantImage();
+
+    renderPins();
+
+    alert("Planta excluída com sucesso!");
 
 });
 
@@ -193,8 +346,9 @@ function setPinsFloating(active) {
 
 function updatePermissionButtons() {
 
-    const plantPrinters = printers.filter(
-        printer => printer.plant === currentPlant
+    const plantPrinters = 
+        printers.filter(
+            printer => printer.plant === currentPlant
     );
 
     if (canEditPlant(currentPlant) && plantPrinters.length > 0) {
@@ -365,6 +519,16 @@ function updatePlantImage() {
     const pages =
         getCurrentMapPages();
 
+    if (!pages.length) {
+        
+        floor.removeAttribute("src");
+
+        renderMapPagination();
+
+        return;
+        
+    }
+
     floor.src =
         pages[currentMapPage];
 
@@ -398,8 +562,8 @@ let currentPlant =
 
 let currentMapPage = 0;
 
-plantSelect.value =
-    currentPlant;
+// plantSelect.value =
+//     currentPlant;
 
 const currentUser =
     JSON.parse(
@@ -434,6 +598,38 @@ async function loadMaps() {
 
         maps =
             await response.json();
+
+        plantSelect.innerHTML = "";
+
+        maps.forEach(map => {
+            const option = 
+                document.createElement(
+                    "option"
+                );
+            option.value = 
+                map.name;
+            
+            option.textContent =
+                map.label;
+
+            plantSelect.appendChild(
+                option
+            );
+
+        });
+
+        plantSelect.value =
+            currentPlant;
+
+        if (!maps.some(map => map.name === currentPlant)) {
+
+            currentPlant = 
+                maps[0]?.name || "";
+            
+            plantSelect.value = 
+                currentPlant;
+
+        }
 
         console.log(
             "Mapas carregados:",

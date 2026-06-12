@@ -89,13 +89,14 @@
     <div class="map-container">
 
         <div class="plant-selector-box">
-            <select id="plantSelect">
+            <select id="plantSelect"></select>
+            <!-- <select id="plantSelect">
                 <option value="ANC">Anchieta</option>
                 <option value="SCAR">São Carlos</option>
                 <option value="SJP" selected>São José dos Pinhais</option>
                 <option value="TAUB">Taubaté</option>
                 <option value="VIN">Vinhedo</option>
-            </select>
+            </select> -->
         </div>
 
         <div class="map-column">
@@ -123,7 +124,15 @@
                 <span id="printerCounter">0 Impressoras</span>
                  <span id="bkpCounter"> | 0 Backups ativos</span>
             </div>
-            <button id="toggleHelper" type="button" title="Dê dois cliques no local para adicionar a impressora">Adicionar impressoras</button>
+            <button id="toggleHelper" type="button" title="Dê dois cliques no local para adicionar a impressora">
+                Adicionar impressoras
+            </button>
+
+            <button id="deletePrinterSidebarBtn" type="button">
+                Excluir Impressoras
+            </button>
+
+            <div class="sidebar-divider"></div>
 
             <button id="manageMapsBtn" type="button">
                 Gerenciar Mapas
@@ -139,7 +148,6 @@
                 </button>
             </div>
 
-            <button id="deletePrinterSidebarBtn" type="button">Excluir Impressoras</button>
         </div>
     </div>
    
