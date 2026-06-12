@@ -6,6 +6,7 @@ import printerRoutes from "./routes/printers.js";
 import quickLinkRoutes from "./routes/quickLinks.js";
 import authRoutes from "./routes/auth.js";
 import mapRoutes from "./routes/maps.js";
+import uploadRoutes from "./routes/upload.js"
 
 dotenv.config();
 
@@ -18,6 +19,8 @@ app.use("/api/printers", printerRoutes);
 app.use("/api/quicklinks", quickLinkRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/maps", mapRoutes);
+app.use("/api/upload", uploadRoutes)
+
 
 app.get("/api/test", async (req, res) => {
 

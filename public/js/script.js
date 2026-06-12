@@ -51,6 +51,11 @@ const mapWrap =
         'mapWrap'
     );
 
+const mapUploadInput =
+    document.getElementById(
+        "mapUploadInput"
+    );
+
 const floor = 
     document.getElementById(
         'floor'
@@ -217,58 +222,94 @@ addMapBtn.addEventListener("click", async () => {
 
 });
 
-addPageBtn.addEventListener("click", async () => {
+addPageBtn.addEventListener("click", () => {
 
-    const map =
-        maps.find(
-            item => item.name === currentPlant
-        );
-
-    if (!map) {
-        alert("Planta não encontrada.");
-        return;
-    }
-
-    const pagePath =
-        prompt(
-            "Caminho da nova imagem:"
-        );
-
-    if (!pagePath) {
-        return;
-    }
-
-    if (map.pages.includes(pagePath)) {
-
-        alert(
-            "Essa página já está cadastrada."
-        );
-
-        return;
-
-    }
-
-    map.pages.push(
-        pagePath
+    alert(
+        "Selecione um arquivo PNG do mapa."
     );
 
-    await updateMap(
-        map._id,
-        map
-    );
-
-    await loadMaps();
-
-    currentMapPage =
-        map.pages.length - 1;
-
-    updatePlantImage();
-
-    renderPins();
-
-    alert("Página adicionada com sucesso!");
+    mapUploadInput.click();
 
 });
+
+mapUploadInput.addEventListener(
+    "change",
+    async () => {
+
+        const file =
+            mapUploadInput.files[0];
+
+        if (!file) {
+            return;
+        }
+
+        const formData =
+            new FormData();
+
+        formData.append(
+            "map",
+            file
+        );
+
+        const response =
+            await fetch(
+                "/api/upload",
+                {
+                    method: "POST",
+                    body: formData
+                }
+            );
+
+        const data =
+            await response.json();
+
+        console.log(
+            "Upload concluído:",
+            data
+        );
+
+        const map =
+            maps.find(
+                item => item.name === currentPlant
+            );
+        
+        if (!map) {
+            alert("Planta não encontrada.");
+            return;
+        }
+
+        if (map.pages.includes(data.path)) {
+
+            alert(
+                "Está página já está cadastrada."
+            );
+
+            return;
+
+        }
+
+        map.pages.push(
+            data.path
+        );
+
+        await updateMap(
+            map._id,
+            map
+        );
+
+        await loadMaps();
+
+        currentMapPage =
+            map.pages.length - 1;
+
+        updatePlantImage();
+
+        renderPins();
+
+        alert("Página adicionada com sucesso!");
+
+    }
+);
 
 deletePageBtn.addEventListener("click", async () => {
 
@@ -326,7 +367,7 @@ deletePageBtn.addEventListener("click", async () => {
     renderPins();
 
     alert("Página exlcuída com sucesso!");
-    
+
 });
 
 deleteMapBtn.addEventListener("click", async () => {
