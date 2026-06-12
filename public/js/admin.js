@@ -415,6 +415,26 @@ approveUserBtn.addEventListener(
             return;
         }
 
+        await fetch(`/api/auth/role/${selectedUser._id}`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                role: userRole.value
+            })
+        });
+
+        await fetch(`/api/auth/plant/${selectedUser._id}`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                plant: userPlant.value
+            })
+        });
+
         await fetch(
             `/api/auth/approve/${selectedUser._id}`,
             {

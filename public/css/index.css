@@ -296,6 +296,16 @@
     font-weight: bold;
 }
 
+.map-actions-row {
+    display: flex;
+    gap: 10px;
+}
+
+.map-actions-row button {
+    flex: 1;
+    line-height: 1.2;
+}
+
 @media (max-width: 900px) {
     .map-container {
         flex-direction: column;
