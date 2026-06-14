@@ -106,10 +106,10 @@ const mapManagerActions =
         "mapManagerActions"
     );
 
-const addMapBtn = 
-    document.getElementById(
-        "addMapBtn"
-    );
+// const addMapBtn = 
+//     document.getElementById(
+//         "addMapBtn"
+//     );
 
 const renameMapBtn =
     document.getElementById(
@@ -213,34 +213,45 @@ manageMapsBtn.addEventListener("click", () => {
 
 });
 
-addMapBtn.addEventListener("click", async () => {
+newPlantBtn.addEventListener(
+    "click",
+    async () => {
 
-    const plantName = 
-        prompt("Sigla da nova planta:");
+        const plantName =
+            prompt(
+                "Sigla da nova planta:"
+            );
 
-    if(!plantName) {
-        return;
-    }
+        if (!plantName) {
+            return;
+        }
 
-    const label = 
-        prompt("Nome completo da planta:")
+        const label =
+            prompt(
+                "Nome completo da planta:"
+            );
 
-    if (!label) {
-        return;
-    }
+        if (!label) {
+            return;
+        }
 
-    const response =
-        await fetch("/api/maps", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                name: plantName.toUpperCase(),
-                label, 
-                pages: []
-            })
-        });
+        const response =
+            await fetch(
+                "/api/maps",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+                    body: JSON.stringify({
+                        name:
+                            plantName.toUpperCase(),
+                        label,
+                        pages: []
+                    })
+                }
+            );
 
         const data =
             await response.json();
@@ -255,12 +266,66 @@ addMapBtn.addEventListener("click", async () => {
             return;
 
         }
+
+        await loadMaps();
+
+        renderMapAdmin();
+
+        alert(
+            "Planta criada com sucesso!"
+        );
+
+    }
+);
+
+// addMapBtn.addEventListener("click", async () => {
+
+//     const plantName = 
+//         prompt("Sigla da nova planta:");
+
+//     if(!plantName) {
+//         return;
+//     }
+
+//     const label = 
+//         prompt("Nome completo da planta:")
+
+//     if (!label) {
+//         return;
+//     }
+
+//     const response =
+//         await fetch("/api/maps", {
+//             method: "POST",
+//             headers: {
+//                 "Content-Type": "application/json"
+//             },
+//             body: JSON.stringify({
+//                 name: plantName.toUpperCase(),
+//                 label, 
+//                 pages: []
+//             })
+//         });
+
+//         const data =
+//             await response.json();
+
+//         if (!response.ok) {
+
+//             alert(
+//                 data.erro ||
+//                 "Erro ao criar planta."
+//             );
+
+//             return;
+
+//         }
     
-    await loadMaps();
+//     await loadMaps();
 
-    alert("Planta criada com sucesso!");
+//     alert("Planta criada com sucesso!");
 
-});
+// });
 
 renameMapBtn.addEventListener(
     "click",
@@ -320,15 +385,18 @@ closeMapPagesModal.addEventListener(
     }
 );
 
-addPageBtn.addEventListener("click", () => {
+addPageModalBtn.addEventListener(
+    "click",
+    () => {
 
-    alert(
-        "Selecione um arquivo PNG do mapa."
-    );
+        alert(
+            "Selecione um arquivo PNG do mapa."
+        );
 
-    mapUploadInput.click();
+        mapUploadInput.click();
 
-});
+    }
+);
 
 mapUploadInput.addEventListener(
     "change",
@@ -366,10 +434,9 @@ mapUploadInput.addEventListener(
             data
         );
 
-        const map =
-            maps.find(
-                item => item.name === currentPlant
-            );
+        const map = selectedMapAdmin || maps.find(
+            item => item.name === currentPlant
+        );
         
         if (!map) {
             alert("Planta não encontrada.");
@@ -404,7 +471,22 @@ mapUploadInput.addEventListener(
 
         renderPins();
 
-        alert("Página adicionada com sucesso!");
+        await loadMaps();
+
+        const updatedMap =
+            maps.find(
+                m => m._id === map._id
+            );
+
+        if (updatedMap) {
+
+            renderMapPages(
+                updatedMap
+            );
+
+        }
+
+        alert("Mapa adicionado com sucesso!");
 
     }
 );
@@ -823,9 +905,6 @@ let currentPlant =
 
 let currentMapPage = 0;
 
-// plantSelect.value =
-//     currentPlant;
-
 const currentUser =
     JSON.parse(
         localStorage.getItem("user")
@@ -1037,28 +1116,82 @@ function renderMapPages(map) {
 
     map.pages.forEach((page, index) => {
 
-        const div =
-            document.createElement("div");
+    const div =
+        document.createElement("div");
 
-        div.className =
-            "map-admin-item";
+    div.className =
+        "map-admin-item";
 
-        div.innerHTML = `
-            <div>
-                Página ${index + 1}
-                <br>
-                <small>${page}</small>
-            </div>
+    div.innerHTML = `
+        <div>
+            Página ${index + 1}
+            <br>
+            <small>${page}</small>
+        </div>
 
-            <button class="delete-page-btn">
-                🗑️
-            </button>
-        `;
+        <button class="delete-page-btn">
+            🗑️
+        </button>
+    `;
 
-        pagesAdminList.appendChild(div);
+    div.querySelector(
+        ".delete-page-btn"
+    ).addEventListener(
+        "click",
+        async () => {
 
-    });
+            const confirmDelete =
+                confirm(
+                    `Excluir Página ${index + 1}?`
+                );
 
+            if (!confirmDelete) {
+                return;
+            }
+
+            const response =
+                await fetch(
+                    `/api/maps/${map._id}/pages/${index}`,
+                    {
+                        method: "DELETE"
+                    }
+                );
+
+            const data =
+                await response.json();
+
+            if (!response.ok) {
+
+                alert(
+                    data.erro ||
+                    "Erro ao excluir página."
+                );
+
+                return;
+
+            }
+
+            await loadMaps();
+
+            const updatedMap =
+                maps.find(
+                    m => m._id === map._id
+                );
+
+            if (updatedMap) {
+
+                renderMapPages(
+                    updatedMap
+                );
+
+            }
+
+        }
+    );
+
+    pagesAdminList.appendChild(div);
+
+});
     mapPagesModal.style.display =
         "flex";
 
@@ -1196,14 +1329,6 @@ searchInput.addEventListener("input", (e) => {
 
 });
 
-// searchInput.addEventListener("input", (e) => {
-
-//     searchText = e.target.value.toLowerCase();
-
-//     renderPins();
-
-// });
-
 plantSelect.addEventListener("change", (e) => {
 
     currentPlant = e.target.value;
@@ -1231,7 +1356,7 @@ plantSelect.addEventListener("change", (e) => {
 let captureMode = false;
 let currentPrinterIndex = null;
 
-// 🔒 Impedir que qualquer botão envie toques/cliques para o mapa
+// Impedir que qualquer botão envie toques/cliques para o mapa
 document.querySelectorAll("button").forEach(btn => {
     ["touchstart", "touchend", "click"].forEach(ev => {
         btn.addEventListener(ev, e => e.stopPropagation(), { passive: false });

@@ -80,6 +80,96 @@ router.put("/:id", async (req, res) => {
 
 });
 
+router.delete("/:id/pages/:pageIndex", async (req, res) => {
+
+    try {
+
+        const map =
+            await Map.findById(req.params.id);
+
+        if (!map) {
+
+            return res.status(404).json({
+                erro: "Planta não encontrada"
+            });
+
+        }
+
+        const pageIndex =
+            Number(req.params.pageIndex);
+
+        if (
+            Number.isNaN(pageIndex) ||
+            pageIndex < 0 ||
+            pageIndex >= map.pages.length
+        ) {
+
+            return res.status(400).json({
+                erro: "Página inválida"
+            });
+
+        }
+
+        if (map.pages.length <= 1) {
+
+            return res.status(400).json({
+                erro: "A planta precisa ter pelo menos uma página."
+            });
+
+        }
+
+        const page =
+            map.pages[pageIndex];
+
+        const cleanPage =
+            page.replace(/^\/+/, "");
+
+        const imagePath =
+            path.join(
+                __dirname,
+                "..",
+                "public",
+                cleanPage
+            );
+
+        try {
+
+            await fs.unlink(imagePath);
+
+            console.log(
+                "Imagem da página apagada:",
+                imagePath
+            );
+
+        } catch (error) {
+
+            console.warn(
+                "Não consegui apagar a imagem da página:",
+                imagePath,
+                error.message
+            );
+
+        }
+
+        map.pages.splice(pageIndex, 1);
+
+        await map.save();
+
+        res.json({
+            mensagem: "Página excluída com sucesso",
+            map
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+            erro: error.message
+        });
+
+    }
+
+});
+
 router.delete("/:id", async (req, res) => {
 
     console.log("EXCLUINDO PLANTA:", req.params.id);
