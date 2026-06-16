@@ -3,6 +3,7 @@ import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
 import Map from "../models/Map.js";
+import Printer from "../models/Printer.js";
 
 const router = express.Router();
 
@@ -186,6 +187,10 @@ router.delete("/:id", async (req, res) => {
             });
 
         }
+
+        await Printer.deleteMany({
+            plant: map.name
+        });
 
         for (const page of map.pages) {
 

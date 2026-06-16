@@ -101,36 +101,6 @@ const manageMapsBtn =
         "manageMapsBtn"
     );
 
-const mapManagerActions =
-    document.getElementById(
-        "mapManagerActions"
-    );
-
-// const addMapBtn = 
-//     document.getElementById(
-//         "addMapBtn"
-//     );
-
-const renameMapBtn =
-    document.getElementById(
-        "renameMapBtn"
-    );
-
-const deleteMapBtn =
-    document.getElementById(
-        "deleteMapBtn"
-    );
-
-const addPageBtn = 
-    document.getElementById(
-        "addPageBtn"
-    );
-
-const deletePageBtn =
-    document.getElementById(
-        "deletePageBtn"
-    );
-
 const prevMapPageBtn =
     document.getElementById(
         "prevMapPageBtn"
@@ -201,7 +171,6 @@ const isAdmin =
 
 if (!isAdmin) {
     manageMapsBtn.style.display = "none";
-    mapManagerActions.style.display = "none";
 }
 
 manageMapsBtn.addEventListener("click", () => {
@@ -273,98 +242,6 @@ newPlantBtn.addEventListener(
 
         alert(
             "Planta criada com sucesso!"
-        );
-
-    }
-);
-
-// addMapBtn.addEventListener("click", async () => {
-
-//     const plantName = 
-//         prompt("Sigla da nova planta:");
-
-//     if(!plantName) {
-//         return;
-//     }
-
-//     const label = 
-//         prompt("Nome completo da planta:")
-
-//     if (!label) {
-//         return;
-//     }
-
-//     const response =
-//         await fetch("/api/maps", {
-//             method: "POST",
-//             headers: {
-//                 "Content-Type": "application/json"
-//             },
-//             body: JSON.stringify({
-//                 name: plantName.toUpperCase(),
-//                 label, 
-//                 pages: []
-//             })
-//         });
-
-//         const data =
-//             await response.json();
-
-//         if (!response.ok) {
-
-//             alert(
-//                 data.erro ||
-//                 "Erro ao criar planta."
-//             );
-
-//             return;
-
-//         }
-    
-//     await loadMaps();
-
-//     alert("Planta criada com sucesso!");
-
-// });
-
-renameMapBtn.addEventListener(
-    "click",
-    async () => {
-
-        const map =
-            maps.find(
-                item => item.name === currentPlant
-            );
-
-        if (!map) {
-            return;
-        }
-
-        const newLabel =
-            prompt(
-                "Novo nome da planta:",
-                map.label
-            );
-
-        if (!newLabel) {
-            return;
-        }
-
-        map.label =
-            newLabel;
-
-        await updateMap(
-            map._id,
-            map
-        );
-
-        await loadMaps();
-
-        plantSelect.value =
-            currentPlant;
-
-        alert(
-            "Planta renomeada com sucesso!"
         );
 
     }
@@ -491,121 +368,9 @@ mapUploadInput.addEventListener(
     }
 );
 
-deletePageBtn.addEventListener("click", async () => {
-
-    const map =
-        maps.find(
-            item => item.name === currentPlant
-        );
-
-    if (!map) {
-        alert("Planta não encontrada.");
-        return;
-    }
-
-    if (map.pages.length <= 1) {
-
-        alert(
-            "A planta precisa ter pelo menos uma página."
-        );
-
-        return;
-
-    }
-
-    const pagePath =
-        map.pages[currentMapPage];
-
-    const confirmDelete =
-        confirm(
-            `Excluir a página ${currentMapPage + 1}?\n\n${pagePath}`
-        );
-
-    if (!confirmDelete) {
-        return;
-    }
-
-    map.pages.splice(
-        currentMapPage,
-        1
-    );
-
-    await updateMap(
-        map._id,
-        map
-    );
-
-    await loadMaps();
-
-    if (currentMapPage >= map.pages.length) {
-        currentMapPage = 
-            map.pages.length - 1;
-    }
-
-    updatePlantImage();
-
-    renderPins();
-
-    alert("Página exlcuída com sucesso!");
-
-});
-
-deleteMapBtn.addEventListener("click", async () => {
-
-    const map =
-        maps.find(
-            item => item.name === currentPlant
-        );
-
-    if (!map) {
-        alert("Planta não encontrada.");
-        return;
-    }
-
-    const confirmDelete =
-        confirm(
-            `Deseja realmente excluir a planta ${map.label}?`
-        );
-
-    if (!confirmDelete) {
-        return;
-    }
-
-    const response =
-        await fetch(`/api/maps/${map._id}`, {
-            method: "DELETE"
-        });
-
-    if (!response.ok) {
-        alert("Erro ao excluir planta.");
-        return;
-    }
-
-    await loadMaps();
-
-    currentPlant =
-        maps[0]?.name || "";
-
-    plantSelect.value =
-        currentPlant;
-
-    currentMapPage = 0;
-
-    updatePlantImage();
-
-    renderPins();
-
-    alert("Planta excluída com sucesso!");
-
-});
-
 let isMultiDeleteMode = false;
 
 function closeAllMenus() {
-
-    mapManagerActions.classList.add(
-        "hidden"
-    );
 
     quickLinkForm.classList.add(
         "hidden"
@@ -639,26 +404,13 @@ function closeSidebarModes() {
 
     disableCaptureMode();
 
-    mapManagerActions.classList.add(
-        "hidden"
-    );
-
     const confirmBtn =
         document.getElementById(
             "confirmDeleteBtn"
         );
 
-    const cancelBtn =
-        document.getElementById(
-            "cancelDeleteBtn"
-        );
-
     if (confirmBtn) {
         confirmBtn.remove();
-    }
-
-    if (cancelBtn) {
-        cancelBtn.remove();
     }
 
     selectedPins.clear();
@@ -667,9 +419,10 @@ function closeSidebarModes() {
 
     isMultiDeleteMode = false;
 
-    toggleHelper.disabled = false;
-
     renderPins();
+
+    deletePrinterSidebarBtn.textContent =
+        "Excluir Impressoras";
 
 }
 
@@ -763,8 +516,11 @@ function renderMapPagination() {
         const btn =
             document.createElement("button");
 
+        btn.classList.add("btn-effect");
+
         btn.textContent =
             index + 1;
+            
 
         if (index === currentMapPage) {
 
@@ -802,17 +558,18 @@ prevMapPageBtn.addEventListener(
     "click",
     () => {
 
-        if (currentMapPage > 0) {
+        const pages =
+            getCurrentMapPages();
 
-            currentMapPage--;
+        currentMapPage =
+            (currentMapPage - 1 + pages.length)
+            % pages.length;
 
-            selectedPins.clear();
+        selectedPins.clear();
 
-            updatePlantImage();
+        updatePlantImage();
 
-            renderPins();
-
-        }
+        renderPins();
 
     }
 );
@@ -824,20 +581,15 @@ nextMapPageBtn.addEventListener(
         const pages =
             getCurrentMapPages();
 
-        if (
-            currentMapPage <
-            pages.length - 1
-        ) {
+        currentMapPage =
+            (currentMapPage + 1)
+            % pages.length;
 
-            currentMapPage++;
+        selectedPins.clear();
 
-            selectedPins.clear();
+        updatePlantImage();
 
-            updatePlantImage();
-
-            renderPins();
-
-        }
+        renderPins();
 
     }
 );
@@ -1126,7 +878,7 @@ function renderMapPages(map) {
         <div>
             Página ${index + 1}
             <br>
-            <small>${page}</small>
+            <small>${page.split("/").pop()}</small>
         </div>
 
         <button class="delete-page-btn">
@@ -1771,6 +1523,33 @@ window.addEventListener('click', (e) => {
     }
 });
 
+window.addEventListener("click", (e) => {
+
+    if (e.target === mapAdminModal) {
+
+        mapAdminModal.style.display =
+            "none";
+
+    }
+
+    if (e.target === mapPagesModal) {
+
+        mapPagesModal.style.display =
+            "none";
+
+        if (selectedMapAdmin) {
+
+            renderMapAdmin();
+
+            mapAdminModal.style.display =
+                "flex";
+
+        }
+
+    }
+
+});
+
 // --- Double Tap para Touch ---
 let lastTap = 0;
 
@@ -1884,7 +1663,6 @@ document.getElementById("deletePrinterBtn").addEventListener("click", deletePrin
 function enableMultiDelete() {
     captureMode = false;
     toggleHelper.textContent = 'Adicionar impressoras';
-    toggleHelper.disabled = true;
 
     selectedPins.clear();
     renderPins(true);
@@ -1894,19 +1672,23 @@ function enableMultiDelete() {
 
     const confirmBtn = document.createElement("button");
     confirmBtn.id = "confirmDeleteBtn";
-    confirmBtn.textContent = "Confirmar exclusão";
-    confirmBtn.style.background = "red";
-    confirmBtn.style.color = "white";
-    confirmBtn.style.marginTop = "10px";
-    sidebar.appendChild(confirmBtn);
 
-    const cancelBtn = document.createElement("button");
-    cancelBtn.id = "cancelDeleteBtn";
-    cancelBtn.textContent = "Cancelar exclusão";
-    cancelBtn.style.background = "red";
-    cancelBtn.style.color = "white";
-    cancelBtn.style.marginTop = "5px";
-    sidebar.appendChild(cancelBtn);
+    confirmBtn.textContent = "Confirmar exclusão";
+
+    const divider =
+    document.querySelector(
+        ".sidebar-divider"
+    );
+
+    confirmBtn.classList.add(
+        "danger-btn",
+        "btn-effect"
+    );
+
+    sidebar.insertBefore(
+        confirmBtn,
+        divider
+    );
 
     confirmBtn.addEventListener("click", async () => {
         if (selectedPins.size === 0) {
@@ -1941,28 +1723,31 @@ function enableMultiDelete() {
         await loadPrinters();
 
         confirmBtn.remove();
-        cancelBtn.remove();
     });
 
-    cancelBtn.addEventListener("click", () => {
-        selectedPins.clear();
-        setPinsFloating(false);
-        captureMode = false;
-        toggleHelper.textContent = 'Adicionar impressoras';
-        toggleHelper.disabled = false;
-        renderPins();
-        confirmBtn.remove();
-        cancelBtn.remove();
-    });
 }
 
 deletePrinterSidebarBtn.addEventListener(
     "click",
     () => {
 
+        if (isMultiDeleteMode) {
+
+            closeSidebarModes();
+
+            deletePrinterSidebarBtn.textContent =
+                "Excluir Impressoras";
+
+            return;
+
+        }
+
         closeSidebarModes();
 
         enableMultiDelete();
+
+        deletePrinterSidebarBtn.textContent =
+            "Cancelar Exclusão";
 
     }
 );
@@ -2016,7 +1801,8 @@ document.addEventListener("click", (e) => {
     ) {
 
         closeAllMenus();
-        disableCaptureMode();
+
+        closeSidebarModes();
     }
 
 });

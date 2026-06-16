@@ -35,6 +35,12 @@ router.post(
     upload.single("map"),
     (req, res) => {
 
+        if (!req.file) {
+            return res.status(400).json({
+                erro: "Nenhum arquivo enviado."
+            });
+        }
+
         res.json({
             path: `img/${req.file.filename}`
         });

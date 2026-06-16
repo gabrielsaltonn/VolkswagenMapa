@@ -109,21 +109,25 @@
             </div>
 
             <div class="map-pagination" id="mapPagination">
-                <button id="prevMapPageBtn" type="button">◀</button>
+
+                <button id="prevMapPageBtn" class="btn-effect" type="button">◀</button>
 
                 <div id="mapPageNumbers"></div>
 
-                <button id="nextMapPageBtn" type="button">▶</button>
+                <button id="nextMapPageBtn" class="btn-effect" type="button">▶</button>
+
             </div>
 
         </div>
- 
-        <!-- Botões ao lado direito do mapa -->
+
+            <!-- Botões ao lado direito do mapa -->
         <div class="sidebar-buttons">
+
             <div class="contadorImpressoras" id="contadorImpressoras" aria-label="Informativo da quantidade de impressoras adicionadas à planta">
                 <span id="printerCounter">0 Impressoras</span>
-                 <span id="bkpCounter"> | 0 Backups ativos</span>
+                <span id="bkpCounter"> | 0 Backups ativos</span>
             </div>
+
             <button id="toggleHelper" type="button" title="Dê dois cliques no local para adicionar a impressora">
                 Adicionar impressoras
             </button>
@@ -138,38 +142,9 @@
                 Gerenciar Mapas
             </button>
 
-            <div id="mapManagerActions" class="map-manager-actions hidden">
-
-                <div class="map-actions-row">
-
-                    <button id="addMapBtn" type="button">
-                        Adicionar<br>Planta
-                    </button>
-
-                    <button id="renameMapBtn" type="button">
-                        Renomear<br>Planta
-                    </button>
-
-                    <button id="deleteMapBtn" type="button">
-                        Excluir<br>Planta
-                    </button>
-
-                </div>
-
-                <div class="map-actions-row">
-                    <button id="addPageBtn" type="button">
-                        Adicionar<br>Mapa
-                    </button>
-
-                    <button id="deletePageBtn" type="button">
-                        Excluir<br>Mapa
-                    </button>
-                </div>
-
-            </div>
-
         </div>
-    </div>
+
+    </div> 
    
     <!-- Modal com informações da impressora -->
     <div class="modal" id="modal" role="dialog" aria-modal="true">

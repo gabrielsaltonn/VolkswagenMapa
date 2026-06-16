@@ -6,7 +6,7 @@ import printerRoutes from "./routes/printers.js";
 import quickLinkRoutes from "./routes/quickLinks.js";
 import authRoutes from "./routes/auth.js";
 import mapRoutes from "./routes/maps.js";
-import uploadRoutes from "./routes/upload.js"
+import uploadRoutes from "./routes/upload.js";
 
 dotenv.config();
 
@@ -46,6 +46,8 @@ mongoose
         );
     });
 
-app.listen(8081, () => {
-    console.log("Server is running on port 8081");
+const PORT = process.env.PORT || 8081;
+
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
 });
