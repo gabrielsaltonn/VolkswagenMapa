@@ -182,6 +182,137 @@ manageMapsBtn.addEventListener("click", () => {
 
 });
 
+const addPageConfirmModal =
+    document.getElementById(
+        "addPageConfirmModal"
+    );
+
+const closeAddPageConfirmModal =
+    document.getElementById(
+        "closeAddPageConfirmModal"
+    );
+
+const cancelAddPageBtn =
+    document.getElementById(
+        "cancelAddPageBtn"
+    );
+
+const confirmAddPageBtn =
+    document.getElementById(
+        "confirmAddPageBtn"
+    );
+
+const deleteMapModal =
+    document.getElementById(
+        "deleteMapModal"
+    );
+
+const deleteMapText =
+    document.getElementById(
+        "deleteMapText"
+    );
+
+const closeDeleteMapModal =
+    document.getElementById(
+        "closeDeleteMapModal"
+    );
+
+const cancelDeleteMapBtn =
+    document.getElementById(
+        "cancelDeleteMapBtn"
+    );
+
+const confirmDeleteMapBtn =
+    document.getElementById(
+        "confirmDeleteMapBtn"
+    );
+
+const editMapModal =
+    document.getElementById(
+        "editMapModal"
+    );
+
+const closeEditMapModal =
+    document.getElementById(
+        "closeEditMapModal"
+    );
+
+const cancelEditMapBtn =
+    document.getElementById(
+        "cancelEditMapBtn"
+    );
+
+const confirmEditMapBtn =
+    document.getElementById(
+        "confirmEditMapBtn"
+    );
+
+const editMapInput =
+    document.getElementById(
+        "editMapInput"
+    );
+
+confirmDeleteMapBtn.addEventListener(
+    "click",
+    async () => {
+
+        if (!mapToDelete) {
+            return;
+        }
+
+        await fetch(
+            `/api/maps/${mapToDelete._id}`,
+            {
+                method: "DELETE"
+            }
+        );
+
+        deleteMapModal.style.display =
+            "none";
+
+        mapToDelete = null;
+
+        await loadMaps();
+
+        renderMapAdmin();
+
+    }
+);
+
+closeDeleteMapModal.addEventListener(
+    "click",
+    () => {
+
+        deleteMapModal.style.display =
+            "none";
+
+    }
+);
+
+cancelDeleteMapBtn.addEventListener(
+    "click",
+    () => {
+
+        deleteMapModal.style.display =
+            "none";
+
+    }
+);
+
+deleteMapModal.addEventListener(
+    "click",
+    (e) => {
+
+        if (e.target === deleteMapModal) {
+
+            deleteMapModal.style.display =
+                "none";
+
+        }
+
+    }
+);
+
 newPlantBtn.addEventListener(
     "click",
     async () => {
@@ -266,11 +397,57 @@ addPageModalBtn.addEventListener(
     "click",
     () => {
 
-        alert(
-            "Selecione um arquivo PNG do mapa."
-        );
+        addPageConfirmModal.style.display =
+            "flex";
+
+    }
+);
+
+closeAddPageConfirmModal.addEventListener(
+    "click",
+    () => {
+
+        addPageConfirmModal.style.display =
+            "none";
+
+    }
+);
+
+cancelAddPageBtn.addEventListener(
+    "click",
+    () => {
+
+        addPageConfirmModal.style.display =
+            "none";
+
+    }
+);
+
+confirmAddPageBtn.addEventListener(
+    "click",
+    () => {
+
+        addPageConfirmModal.style.display =
+            "none";
 
         mapUploadInput.click();
+
+    }
+);
+
+addPageConfirmModal.addEventListener(
+    "click",
+    (e) => {
+
+        if (
+            e.target ===
+            addPageConfirmModal
+        ) {
+
+            addPageConfirmModal.style.display =
+                "none";
+
+        }
 
     }
 );
@@ -668,6 +845,79 @@ let maps = [];
 
 let selectedMapAdmin = null;
 
+let mapToDelete = null;
+
+let mapToEdit = null;
+
+closeEditMapModal.addEventListener(
+    "click",
+    () => {
+
+        editMapModal.style.display =
+            "none";
+
+    }
+);
+
+cancelEditMapBtn.addEventListener(
+    "click",
+    () => {
+
+        editMapModal.style.display =
+            "none";
+
+    }
+);
+
+editMapModal.addEventListener(
+    "click",
+    (e) => {
+
+        if (e.target === editMapModal) {
+
+            editMapModal.style.display =
+                "none";
+
+        }
+
+    }
+);
+
+confirmEditMapBtn.addEventListener(
+    "click",
+    async () => {
+
+        if (!mapToEdit) {
+            return;
+        }
+
+        const newLabel =
+            editMapInput.value.trim();
+
+        if (!newLabel) {
+            return;
+        }
+
+        mapToEdit.label =
+            newLabel;
+
+        await updateMap(
+            mapToEdit._id,
+            mapToEdit
+        );
+
+        editMapModal.style.display =
+            "none";
+
+        mapToEdit = null;
+
+        await loadMaps();
+
+        renderMapAdmin();
+
+    }
+);
+
 async function updateMap(id, mapData) {
 
     const response =
@@ -792,22 +1042,13 @@ function renderMapAdmin() {
             "click",
             async () => {
 
-                const newLabel =
-                    prompt(
-                        "Novo nome da planta:",
-                        map.label
-                    );
-
-                if (!newLabel) {
-                    return;
-                }
-
-                map.label = newLabel;
-
-                await updateMap(map._id, map);
-                await loadMaps();
-
-                renderMapAdmin();
+                mapTpEdit = map;
+            
+                editMapInput.value =
+                    map.label;
+                
+                editMapModal.style.display = 
+                    "flex";
 
             }
         );
@@ -816,25 +1057,17 @@ function renderMapAdmin() {
             "click",
             async () => {
 
-                const confirmDelete =
-                    confirm(
-                        `Excluir ${map.label}?`
-                    );
+                mapToDelete = map;
 
-                if (!confirmDelete) {
-                    return;
-                }
+                deleteMapText.innerHTML = `
+                    Deseja realmente excluir
+                    <strong>${map.label}</strong>
+                    <br><br>
+                    Todas as páginas desta planta serão removidas.
+                `;
 
-                await fetch(
-                    `/api/maps/${map._id}`,
-                    {
-                        method: "DELETE"
-                    }
-                );
-
-                await loadMaps();
-
-                renderMapAdmin();
+                deleteMapModal.style.display =
+                    "flex";
 
             }
         );
