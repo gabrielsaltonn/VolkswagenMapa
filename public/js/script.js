@@ -2266,11 +2266,52 @@ const quickLinksSidebar =
 const closeQuickLinks =
     document.getElementById("closeQuickLinks");
 
+const collapsedSidebar =
+    document.getElementById(
+        "collapsedSidebar"
+    );
+
+const collapsedLogoBtn =
+    document.getElementById(
+        "collapsedLogoBtn"
+    );
+
+const collapsedQuickLinksList =
+    document.getElementById(
+        "collapsedQuickLinksList"
+    );
+
+const collapsedAddQuickLinkBtn =
+    document.getElementById(
+        "collapsedAddQuickLinkBtn"
+    );
+
+const collapsedUsersBtn =
+    document.getElementById(
+        "collapsedUsersBtn"
+    );
+
+const collapsedLogoutBtn =
+    document.getElementById(
+        "collapsedLogoutBtn"
+    );
+
 menuBtn.addEventListener("click", () => {
 
     quickLinksSidebar.classList.add("open");
 
 });
+
+collapsedLogoBtn.addEventListener(
+    "click",
+    () => {
+
+        quickLinksSidebar.classList.add(
+            "open"
+        );
+
+    }
+);
 
 closeQuickLinks.addEventListener("click", () => {
 
@@ -2438,7 +2479,13 @@ function saveQuickLinks() {
 
 function renderQuickLinks() {
 
-    quickLinksList.innerHTML = "";
+    quickLinksList.innerHTML =
+        "";
+
+    collapsedQuickLinksList.innerHTML =
+        "";
+
+    renderCollapsedQuickLinks();
 
     if (quickLinks.length === 0) {
 
@@ -2451,9 +2498,63 @@ function renderQuickLinks() {
         `;
 
         return;
+
     }
 
     loadQuickLinks();
+
+}
+
+function renderCollapsedQuickLinks() {
+
+    const sortedLinks =
+        [...quickLinks].sort(
+            (a, b) => {
+
+                if (a.pinned === b.pinned) {
+                    return 0;
+                }
+
+                return a.pinned ? -1 : 1;
+
+            }
+        );
+
+    sortedLinks.forEach(link => {
+
+        const item =
+            document.createElement("a");
+
+        item.href =
+            link.url;
+
+        item.target =
+            "_blank";
+
+        item.className =
+            "collapsed-sidebar-btn collapsed-link-btn";
+
+        item.title =
+            link.name;
+
+        const domain =
+            new URL(link.url).hostname;
+
+        const faviconUrl =
+            `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+
+        item.innerHTML =
+            `
+                <img
+                    src="${faviconUrl}"
+                    alt="${link.name}">
+            `;
+
+        collapsedQuickLinksList.appendChild(
+            item
+        );
+
+    });
 
 }
 
@@ -2558,6 +2659,25 @@ addQuickLinkBtn.addEventListener("click", () => {
     quickLinkForm.classList.toggle("hidden");
 
 });
+
+collapsedAddQuickLinkBtn.addEventListener(
+    "click",
+    (e) => {
+
+        e.stopPropagation();
+
+        quickLinksSidebar.classList.add(
+            "open"
+        );
+
+        quickLinkForm.classList.remove(
+            "hidden"
+        );
+
+        quickLinkName.focus();
+
+    }
+);
 
 function loadQuickLinks() {
 
@@ -2681,17 +2801,99 @@ if (loggedUser.role === "admin") {
 
 }
 
+collapsedUsersBtn.addEventListener(
+    "click",
+    () => {
+
+        if (loggedUser.role === "admin") {
+
+            window.location.href =
+                "admin.html";
+
+        } else {
+
+            window.location.href =
+                "users.html";
+
+        }
+
+    }
+);
+
 const logoutBtn =
     document.getElementById("logoutBtn");
 
-logoutBtn.addEventListener("click", () => {
+function logoutUser() {
 
-    localStorage.removeItem("user");
+    localStorage.removeItem(
+        "user"
+    );
 
     window.location.href =
         "login.html";
 
-});
+}
+
+function confirmLogout() {
+
+    showMessageModal(
+        "Sair do sistema",
+        "Deseja realmente sair?",
+        () => {
+
+            logoutUser();
+
+        },
+        true
+    );
+
+}
+
+logoutBtn.addEventListener(
+    "click",
+    confirmLogout
+);
+
+collapsedLogoutBtn.addEventListener(
+    "click",
+    confirmLogout
+);
+
+function logoutUser() {
+
+    localStorage.removeItem(
+        "user"
+    );
+
+    window.location.href =
+        "login.html";
+
+}
+
+function confirmLogout() {
+
+    showMessageModal(
+        "Sair do sistema",
+        "Deseja realmente sair?",
+        () => {
+
+            logoutUser();
+
+        },
+        true
+    );
+
+}
+
+logoutBtn.addEventListener(
+    "click",
+    confirmLogout
+);
+
+collapsedLogoutBtn.addEventListener(
+    "click",
+    confirmLogout
+);
 
 updatePlantImage();
 
