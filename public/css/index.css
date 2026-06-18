@@ -439,7 +439,9 @@
     background: var(--danger-hover);
 }
 
-#editMapInput {
+#editMapInput,
+#newPlantNameInput,
+#newPlantLabelInput {
     width: 100%;
     box-sizing: border-box;
     padding: 12px;

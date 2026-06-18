@@ -252,6 +252,66 @@ const editMapInput =
         "editMapInput"
     );
 
+const appMessageModal =
+    document.getElementById(
+        "appMessageModal"
+    );
+
+const appMessageTitle =
+    document.getElementById(
+        "appMessageTitle"
+    );
+
+const appMessageText =
+    document.getElementById(
+        "appMessageText"
+    );
+
+const closeAppMessageModal =
+    document.getElementById(
+        "closeAppMessageModal"
+    );
+
+const cancelAppMessageBtn =
+    document.getElementById(
+        "cancelAppMessageBtn"
+    );
+
+const confirmAppMessageBtn =
+    document.getElementById(
+        "confirmAppMessageBtn"
+    );
+
+const newPlantModal =
+    document.getElementById(
+        "newPlantModal"
+    );
+
+const closeNewPlantModal =
+    document.getElementById(
+        "closeNewPlantModal"
+    );
+
+const cancelNewPlantBtn =
+    document.getElementById(
+        "cancelNewPlantBtn"
+    );
+
+const confirmNewPlantBtn =
+    document.getElementById(
+        "confirmNewPlantBtn"
+    );
+
+const newPlantNameInput =
+    document.getElementById(
+        "newPlantNameInput"
+    );
+
+const newPlantLabelInput =
+    document.getElementById(
+        "newPlantLabelInput"
+    );
+
 confirmDeleteMapBtn.addEventListener(
     "click",
     async () => {
@@ -315,24 +375,76 @@ deleteMapModal.addEventListener(
 
 newPlantBtn.addEventListener(
     "click",
+    () => {
+
+        newPlantNameInput.value =
+            "";
+
+        newPlantLabelInput.value =
+            "";
+
+        newPlantModal.style.display =
+            "flex";
+
+    }
+);
+
+closeNewPlantModal.addEventListener(
+    "click",
+    () => {
+
+        newPlantModal.style.display =
+            "none";
+
+    }
+);
+
+cancelNewPlantBtn.addEventListener(
+    "click",
+    () => {
+
+        newPlantModal.style.display =
+            "none";
+
+    }
+);
+
+newPlantModal.addEventListener(
+    "click",
+    (e) => {
+
+        if (e.target === newPlantModal) {
+
+            newPlantModal.style.display =
+                "none";
+
+        }
+
+    }
+);
+
+confirmNewPlantBtn.addEventListener(
+    "click",
     async () => {
 
         const plantName =
-            prompt(
-                "Sigla da nova planta:"
-            );
-
-        if (!plantName) {
-            return;
-        }
+            newPlantNameInput.value
+                .trim()
+                .toUpperCase();
 
         const label =
-            prompt(
-                "Nome completo da planta:"
+            newPlantLabelInput.value
+                .trim();
+
+        if (!plantName || !label) {
+
+            showMessageModal(
+                "Campos obrigatórios",
+                "Preencha a sigla e o nome completo da planta."
             );
 
-        if (!label) {
             return;
+
         }
 
         const response =
@@ -345,8 +457,7 @@ newPlantBtn.addEventListener(
                             "application/json"
                     },
                     body: JSON.stringify({
-                        name:
-                            plantName.toUpperCase(),
+                        name: plantName,
                         label,
                         pages: []
                     })
@@ -358,7 +469,8 @@ newPlantBtn.addEventListener(
 
         if (!response.ok) {
 
-            alert(
+            showMessageModal(
+                "Erro",
                 data.erro ||
                 "Erro ao criar planta."
             );
@@ -367,11 +479,15 @@ newPlantBtn.addEventListener(
 
         }
 
+        newPlantModal.style.display =
+            "none";
+
         await loadMaps();
 
         renderMapAdmin();
 
-        alert(
+        showMessageModal(
+            "Sucesso",
             "Planta criada com sucesso!"
         );
 
@@ -493,14 +609,18 @@ mapUploadInput.addEventListener(
         );
         
         if (!map) {
-            alert("Planta não encontrada.");
+            showMessageModal(
+                "Planta não encontrada",
+                "Não foi possível encontrar a planta selecionada."
+            );
             return;
         }
 
         if (map.pages.includes(data.path)) {
 
-            alert(
-                "Está página já está cadastrada."
+           showMessageModal(
+                "Página já cadastrada",
+                "Esta página já está cadastrada nesta planta."
             );
 
             return;
@@ -540,7 +660,10 @@ mapUploadInput.addEventListener(
 
         }
 
-        alert("Mapa adicionado com sucesso!");
+        showMessageModal(
+            "Mapa adicionado",
+            "A nova página foi adicionada com sucesso."
+        );
 
     }
 );
@@ -849,6 +972,9 @@ let mapToDelete = null;
 
 let mapToEdit = null;
 
+let appMessageCallback =
+    null;
+
 closeEditMapModal.addEventListener(
     "click",
     () => {
@@ -1101,86 +1227,172 @@ function renderMapPages(map) {
 
     map.pages.forEach((page, index) => {
 
-    const div =
-        document.createElement("div");
+        const div =
+            document.createElement("div");
 
-    div.className =
-        "map-admin-item";
+        div.className =
+            "map-admin-item";
 
-    div.innerHTML = `
-        <div>
-            Página ${index + 1}
-            <br>
-            <small>${page.split("/").pop()}</small>
-        </div>
+        div.innerHTML = `
+            <div>
+                Página ${index + 1}
+                <br>
+                <small>${page.split("/").pop()}</small>
+            </div>
 
-        <button class="delete-page-btn">
-            🗑️
-        </button>
-    `;
+            <button class="delete-page-btn">
+                🗑️
+            </button>
+        `;
 
-    div.querySelector(
-        ".delete-page-btn"
-    ).addEventListener(
-        "click",
-        async () => {
+        div.querySelector(
+            ".delete-page-btn"
+        ).addEventListener(
+            "click",
+            () => {
 
-            const confirmDelete =
-                confirm(
-                    `Excluir Página ${index + 1}?`
+                showMessageModal(
+                    "Excluir página",
+                    `Deseja realmente excluir a Página ${index + 1}?`,
+                    async () => {
+
+                        const response =
+                            await fetch(
+                                `/api/maps/${map._id}/pages/${index}`,
+                                {
+                                    method: "DELETE"
+                                }
+                            );
+
+                        const data =
+                            await response.json();
+
+                        if (!response.ok) {
+
+                            showMessageModal(
+                                "Erro",
+                                data.erro ||
+                                "Erro ao excluir página."
+                            );
+
+                            return;
+
+                        }
+
+                        await loadMaps();
+
+                        const updatedMap =
+                            maps.find(
+                                m => m._id === map._id
+                            );
+
+                        if (updatedMap) {
+
+                            renderMapPages(
+                                updatedMap
+                            );
+
+                        }
+
+                    },
+                    true
                 );
 
-            if (!confirmDelete) {
-                return;
             }
+        );
 
-            const response =
-                await fetch(
-                    `/api/maps/${map._id}/pages/${index}`,
-                    {
-                        method: "DELETE"
-                    }
-                );
+        pagesAdminList.appendChild(div);
 
-            const data =
-                await response.json();
+    });
 
-            if (!response.ok) {
-
-                alert(
-                    data.erro ||
-                    "Erro ao excluir página."
-                );
-
-                return;
-
-            }
-
-            await loadMaps();
-
-            const updatedMap =
-                maps.find(
-                    m => m._id === map._id
-                );
-
-            if (updatedMap) {
-
-                renderMapPages(
-                    updatedMap
-                );
-
-            }
-
-        }
-    );
-
-    pagesAdminList.appendChild(div);
-
-});
     mapPagesModal.style.display =
         "flex";
 
 }
+
+function showMessageModal(
+    title,
+    message,
+    callback = null,
+    showCancel = false
+) {
+
+    appMessageTitle.textContent =
+        title;
+
+    appMessageText.innerHTML =
+        message;
+
+    appMessageCallback =
+        callback;
+
+    cancelAppMessageBtn.style.display =
+        showCancel
+            ? "inline-block"
+            : "none";
+
+    appMessageModal.style.display =
+        "flex";
+
+}
+
+closeAppMessageModal.addEventListener(
+    "click",
+    () => {
+
+        appMessageModal.style.display =
+            "none";
+
+    }
+);
+
+cancelAppMessageBtn.addEventListener(
+    "click",
+    () => {
+
+        appMessageModal.style.display =
+            "none";
+
+    }
+);
+
+appMessageModal.addEventListener(
+    "click",
+    (e) => {
+
+        if (
+            e.target === appMessageModal
+        ) {
+
+            appMessageModal.style.display =
+                "none";
+
+        }
+
+    }
+);
+
+confirmAppMessageBtn.addEventListener(
+    "click",
+    async () => {
+
+        appMessageModal.style.display =
+            "none";
+
+        if (appMessageCallback) {
+
+            const callback =
+                appMessageCallback;
+
+            appMessageCallback =
+                null;
+
+            await callback();
+
+        }
+
+    }
+);
 
 async function loadPrinters() {
 
@@ -1245,9 +1457,10 @@ async function createPrinter(printerData) {
         const newPrinter = await response.json();
 
         if (!response.ok) {
-            alert(
-                newPrinter.erro ||
-                "Erro ao criar impressora."
+
+            showMessageModal(
+                "Erro",
+                "Não foi possível criar a impressora."
             );
 
             return null;
@@ -1281,18 +1494,32 @@ async function deletePrinterById(id) {
 
     try {
 
-        await fetch(`/api/printers/${id}`, {
-            method: "DELETE",
+        const response =
+            await fetch(`/api/printers/${id}`, {
+                method: "DELETE",
 
-            headers: {
-                "Content-Type": "application/json"
-            },
+                headers: {
+                    "Content-Type": "application/json"
+                },
 
-            body: JSON.stringify({
-                userRole,
-                userPlant
-            })
-        });
+                body: JSON.stringify({
+                    userRole,
+                    userPlant
+                })
+            });
+
+        if (!response.ok) {
+
+            console.error(
+                "Erro ao excluir impressora:",
+                response.status
+            );
+
+            return false;
+
+        }
+
+        return true;
 
     } catch (error) {
 
@@ -1301,7 +1528,10 @@ async function deletePrinterById(id) {
             error
         );
 
+        return false;
+
     }
+
 }
 
 searchInput.addEventListener("input", (e) => {
@@ -1923,39 +2153,82 @@ function enableMultiDelete() {
         divider
     );
 
-    confirmBtn.addEventListener("click", async () => {
+    confirmBtn.addEventListener("click", async (e) => {
+
+        e.stopPropagation();
+
         if (selectedPins.size === 0) {
-            alert("Nenhuma impressora selecionada para exclusão.");
+
+            showMessageModal(
+                "Nenhuma impressora selecionada",
+                "Selecione pelo menos uma impressora para excluir."
+            );
+
             return;
+
         }
 
-        const serials = Array.from(selectedPins).map(index => {
-            const printer = printers[index];
-            return printer.serial || "sem número de série";
-        });
+        const pinsToDelete =
+            [...selectedPins];
 
-        const message = selectedPins.size === 1
-            ? `Deseja realmente apagar a impressora com S/N ${serials[0]} do mapa?`
-            : `Deseja realmente apagar as impressoras com os seguintes S/N do mapa?\n- ${serials.join("\n- ")}`;
+        const serials =
+            pinsToDelete.map(index => {
 
-        if (!confirm(message)) {
-            return;
-        }
+                const printer =
+                    printers[index];
 
-        for (const index of selectedPins) {
-            const printer = printers[index];
-            await deletePrinterById(printer._id);
-        }
+                return printer.serial ||
+                    "sem número de série";
 
-        selectedPins.clear();
-        setPinsFloating(false);
-        captureMode = false;
-        toggleHelper.textContent = 'Adicionar impressoras';
-        toggleHelper.disabled = false;
+            });
 
-        await loadPrinters();
+        const message =
+            pinsToDelete.length === 1
+                ? `Deseja realmente apagar a impressora com S/N ${serials[0]} do mapa?`
+                : `Deseja realmente apagar as impressoras com os seguintes S/N do mapa?<br>- ${serials.join("<br>- ")}`;
 
-        confirmBtn.remove();
+        showMessageModal(
+            "Confirmar exclusão",
+            message,
+            async () => {
+
+                for (const index of pinsToDelete) {
+
+                    const printer =
+                        printers[index];
+
+                    if (!printer) {
+                        continue;
+                    }
+
+                    await deletePrinterById(
+                        printer._id
+                    );
+
+                }
+
+                selectedPins.clear();
+
+                isMultiDeleteMode = false;
+
+                setPinsFloating(false);
+
+                captureMode = false;
+
+                toggleHelper.textContent =
+                    "Adicionar impressoras";
+
+                await loadPrinters();
+
+                confirmBtn.remove();
+
+                deletePrinterSidebarBtn.textContent =
+                    "Excluir Impressoras";
+
+            },
+            true
+        );
+
     });
 
 }
@@ -2321,7 +2594,12 @@ saveQuickLinkBtn.addEventListener("click", async () => {
     let url = quickLinkUrl.value.trim();
 
     if (!name || !url) {
-        alert("Preencha nome e URL.");
+
+        showMessageModal(
+            "Campos obrigatórios",
+            "Preencha o nome e a URL do atalho."
+        );
+
         return;
     }
 

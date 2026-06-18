@@ -5,9 +5,138 @@ if (!loggedUser) {
     window.location.href = "login.html";
 }
 
+const adminMessageModal =
+    document.getElementById(
+        "adminMessageModal"
+    );
+
+const adminMessageTitle =
+    document.getElementById(
+        "adminMessageTitle"
+    );
+
+const adminMessageText =
+    document.getElementById(
+        "adminMessageText"
+    );
+
+const closeAdminMessageModal =
+    document.getElementById(
+        "closeAdminMessageModal"
+    );
+
+const cancelAdminMessageBtn =
+    document.getElementById(
+        "cancelAdminMessageBtn"
+    );
+
+const confirmAdminMessageBtn =
+    document.getElementById(
+        "confirmAdminMessageBtn"
+    );
+
+let adminMessageCallback =
+    null;
+
+function showAdminMessageModal(
+    title,
+    message,
+    callback = null,
+    showCancel = false
+) {
+
+    adminMessageTitle.textContent =
+        title;
+
+    adminMessageText.innerHTML =
+        message;
+
+    adminMessageCallback =
+        callback;
+
+    cancelAdminMessageBtn.style.display =
+        showCancel
+            ? "inline-block"
+            : "none";
+
+    adminMessageModal.style.display =
+        "flex";
+
+}
+
+closeAdminMessageModal.addEventListener(
+    "click",
+    () => {
+
+        adminMessageModal.style.display =
+            "none";
+
+    }
+);
+
+cancelAdminMessageBtn.addEventListener(
+    "click",
+    () => {
+
+        adminMessageModal.style.display =
+            "none";
+
+    }
+);
+
+adminMessageModal.addEventListener(
+    "click",
+    (e) => {
+
+        if (e.target === adminMessageModal) {
+
+            adminMessageModal.style.display =
+                "none";
+
+        }
+
+    }
+);
+
+confirmAdminMessageBtn.addEventListener(
+    "click",
+    async () => {
+
+        adminMessageModal.style.display =
+            "none";
+
+        if (adminMessageCallback) {
+
+            const callback =
+                adminMessageCallback;
+
+            adminMessageCallback =
+                null;
+
+            await callback();
+
+        }
+
+    }
+);
+
 if (loggedUser.role !== "admin") {
-    alert("Acesso negado.");
-    window.location.href = "index.html";
+
+    showAdminMessageModal(
+        "Acesso negado",
+        "Você não tem permissão para acessar esta página.",
+        () => {
+
+            window.location.href =
+                "index.html";
+
+        }
+    );
+
+    throw new Error(
+        "Acesso negado"
+    );
+
 }
 
 const backToMapBtn =
@@ -358,54 +487,60 @@ saveUserBtn.addEventListener("click", async () => {
     await loadAllUsers();
 });
 
-deleteUserBtn.addEventListener("click", async () => {
+deleteUserBtn.addEventListener(
+    "click",
+    async () => {
 
-    if (!selectedUser) {
-        return;
-    }
+        if (!selectedUser) {
+            return;
+        }
 
-    const confirmDelete =
-        confirm(
-            `Deseja realmente excluir o usuário ${selectedUser.username}?`
-        );
+        showAdminMessageModal(
+            "Excluir usuário",
+            `Deseja realmente excluir o usuário <strong>${selectedUser.username}</strong>?`,
+            async () => {
 
-    if (!confirmDelete) {
-        return;
-    }
+                const response =
+                    await fetch(`/api/auth/users/${selectedUser._id}`, {
+                        method: "DELETE",
 
-    const response =
-        await fetch(`/api/auth/users/${selectedUser._id}`, {
-            method: "DELETE",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
 
-            headers: {
-                "Content-Type": "application/json"
+                        body: JSON.stringify({
+                            loggedUsername: loggedUser.username
+                        })
+                    });
+
+                const data =
+                    await response.json();
+
+                if (!response.ok) {
+
+                    showAdminMessageModal(
+                        "Erro",
+                        data.erro ||
+                        "Erro ao excluir usuário."
+                    );
+
+                    return;
+
+                }
+
+                userModal.style.display =
+                    "none";
+
+                await loadPendingUsers();
+
+                await loadAllUsers();
+
             },
-
-            body: JSON.stringify({
-                loggedUsername: loggedUser.username
-            })
-        });
-
-    const data =
-        await response.json();
-
-    if (!response.ok) {
-
-        alert(
-            data.erro ||
-            "Erro ao excluir usuário."
+            true
         );
 
-        return;
-
     }
-
-    userModal.style.display = "none";
-
-    await loadPendingUsers();
-    await loadAllUsers();
-
-});
+);
 
 approveUserBtn.addEventListener(
     "click",
