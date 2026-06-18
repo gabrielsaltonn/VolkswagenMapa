@@ -2646,13 +2646,40 @@ saveQuickLinkBtn.addEventListener("click", async () => {
 const adminPanelBtn =
     document.getElementById("adminPanelBtn");
 
-if (loggedUser.role !== "admin") {
-    adminPanelBtn.style.display = "none";
-}
+if (loggedUser.role === "admin") {
 
-adminPanelBtn.addEventListener("click", () => {
-    window.location.href = "admin.html";
-});
+    adminPanelBtn.textContent =
+        "Gerenciar Usuários";
+
+    adminPanelBtn.addEventListener(
+        "click",
+        () => {
+
+            window.location.href =
+                "admin.html";
+
+        }
+    );
+
+} else {
+
+    adminPanelBtn.textContent =
+        "Usuários";
+
+    adminPanelBtn.style.display =
+        "block";
+
+    adminPanelBtn.addEventListener(
+        "click",
+        () => {
+
+            window.location.href =
+                "users.html";
+
+        }
+    );
+
+}
 
 const logoutBtn =
     document.getElementById("logoutBtn");

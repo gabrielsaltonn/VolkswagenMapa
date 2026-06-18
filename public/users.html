@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>Usuários - Mapa de Impressoras</title>
+
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+
+<body>
+
+    <header>
+
+        <button
+            id="backToMapBtn"
+            class="menu-btn btn-effect">
+            Voltar
+        </button>
+
+        <h1>
+            Usuários
+        </h1>
+
+        <div class="admin-header-right">
+
+            <input
+                id="userSearch"
+                class="admin-search"
+                type="search"
+                placeholder="Buscar usuário..."
+                aria-label="Buscar usuário">
+
+        </div>
+
+    </header>
+
+    <div class="admin-counter">
+
+        <span id="usersCounter">
+            Usuários: 0
+        </span>
+
+    </div>
+
+    <main class="admin-container">
+
+        <section class="admin-section">
+
+            <h2>
+                Usuários cadastrados
+            </h2>
+
+            <div
+                id="usersList"
+                class="admin-users-list">
+            </div>
+
+        </section>
+
+    </main>
+
+    <div
+        id="userViewModal"
+        class="modal"
+        role="dialog"
+        aria-modal="true">
+
+        <div class="card">
+
+            <button
+                id="closeUserViewModal"
+                class="close"
+                type="button">
+                &times;
+            </button>
+
+            <h2 id="userViewName">
+                Usuário
+            </h2>
+
+            <label>
+                Role
+
+                <div
+                    id="userViewRole"
+                    class="user-status-box">
+                </div>
+            </label>
+
+            <label>
+                Planta
+
+                <div
+                    id="userViewPlant"
+                    class="user-status-box">
+                </div>
+            </label>
+
+            <label>
+                Status
+
+                <div
+                    id="userViewStatus"
+                    class="user-status-box">
+                </div>
+            </label>
+
+        </div>
+
+    </div>
+
+    <footer class="app-footer">
+        © Desenvolvido por
+        <a
+            href="https://www.linkedin.com/in/gabriel-salton-5686b1219"
+            target="_blank"
+            rel="noopener noreferrer">
+            Gabriel Salton
+        </a>
+    </footer>
+
+    <script src="js/users.js"></script>
+
+</body>
+
+</html>
