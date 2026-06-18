@@ -2537,6 +2537,9 @@ function renderCollapsedQuickLinks() {
         item.title =
             link.name;
 
+        item.dataset.label = 
+            link.name;
+
         const domain =
             new URL(link.url).hostname;
 

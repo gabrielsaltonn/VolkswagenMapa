@@ -507,6 +507,7 @@
     gap: 10px;
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 4px 0;
 }
 
@@ -541,6 +542,71 @@
 
 body {
     padding-left: 72px;
+}
+
+.collapsed-sidebar-btn {
+    position: relative;
+}
+
+.collapsed-sidebar-btn::after {
+    content: attr(data-label);
+    position: absolute;
+    left: 60px;
+    top: 50%;
+    transform: translateY(-50%) translateX(-6px);
+    background: rgba(15, 23, 42, 0.96);
+    color: white;
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    box-shadow: var(--shadow-md);
+    z-index: 2000;
+}
+
+.collapsed-sidebar-btn::before {
+    content: "";
+    position: absolute;
+    left: 54px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 6px solid transparent;
+    border-right-color: rgba(15, 23, 42, 0.96);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 2001;
+}
+
+.collapsed-sidebar-btn:hover::after {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+}
+
+.collapsed-sidebar-btn:hover::before {
+    opacity: 1;
+}
+
+#collapsedAddQuickLinkBtn {
+    margin-top: 8px;
+}
+
+#collapsedAddQuickLinkBtn::before {
+    content: "";
+    position: absolute;
+    top: -12px;
+    width: 34px;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.28);
+    border: none;
+    opacity: 1;
+    transform: none;
+    left: 50%;
+    translate: -50% 0;
 }
 
 @media (max-width: 900px) {
