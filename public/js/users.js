@@ -74,9 +74,27 @@ backToMapBtn.addEventListener(
     }
 );
 
-function getInitials(name) {
+function getDisplayName(username) {
+
+    const name =
+        username.includes("@")
+            ? username.split("@")[0]
+            : username;
 
     return name
+        .split(".")
+        .filter(part => part)
+        .map(part =>
+            part.charAt(0).toUpperCase() +
+            part.slice(1)
+        )
+        .join(" ");
+
+}
+
+function getInitials(username) {
+
+    return getDisplayName(username)
         .split(" ")
         .map(part => part[0])
         .join("")
@@ -88,7 +106,7 @@ function getInitials(name) {
 function showUserViewModal(user) {
 
     userViewName.textContent =
-        user.username;
+        getDisplayName(user.username);
 
     userViewRole.textContent =
         user.role;
@@ -158,7 +176,7 @@ function renderUsers() {
                 </div>
 
                 <div class="admin-user-name">
-                    ${user.username}
+                    ${getDisplayName(user.username)}
                 </div>
             `;
 

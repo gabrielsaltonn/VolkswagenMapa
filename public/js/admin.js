@@ -267,7 +267,7 @@ async function loadPendingUsers() {
                 </div>
 
                 <div class="admin-user-name">
-                    ${user.username}
+                    ${getDisplayName(user.username)}
                 </div>
             `;
 
@@ -287,9 +287,27 @@ async function loadPendingUsers() {
 
 }
 
-function getInitials(name) {
+function getDisplayName(username) {
+
+    const name =
+        username.includes("@")
+            ? username.split("@")[0]
+            : username;
 
     return name
+        .split(".")
+        .filter(part => part)
+        .map(part =>
+            part.charAt(0).toUpperCase() +
+            part.slice(1)
+        )
+        .join(" ");
+
+}
+
+function getInitials(username) {
+
+    return getDisplayName(username)
         .split(" ")
         .map(part => part[0])
         .join("")
@@ -303,7 +321,7 @@ function showUserModal(user) {
     selectedUser = user;
 
     userModalName.textContent =
-        user.username;
+        getDisplayName(user.username);
 
     userRole.value =
         user.role;
@@ -408,7 +426,7 @@ async function loadAllUsers() {
                 </div>
 
                 <div class="admin-user-name">
-                    ${user.username}
+                    ${getDisplayName(user.username)}
                 </div>
             `;
 
