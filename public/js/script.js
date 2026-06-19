@@ -781,6 +781,45 @@ const mNotes = document.getElementById('mNotes');
 const mBackup = document.getElementById('mBckp');
 const savePrinterBtn = document.getElementById('salvarImpressora');
 
+const savePrinterMessage =
+    document.getElementById(
+        "savePrinterMessage"
+    );
+
+let savePrinterMessageTimer = null;
+
+function showSavePrinterMessage(
+    message,
+    isError = false
+) {
+
+    clearTimeout(
+        savePrinterMessageTimer
+    );
+
+    savePrinterMessage.textContent =
+        message;
+
+    savePrinterMessage.classList.toggle(
+        "error",
+        isError
+    );
+
+    savePrinterMessage.classList.add(
+        "visible"
+    );
+
+    savePrinterMessageTimer =
+        setTimeout(() => {
+
+            savePrinterMessage.classList.remove(
+                "visible"
+            );
+
+        }, 1800);
+
+}
+
 function atualizarLinkIP(ip) {
 
     ip = (ip || "").trim();
@@ -1762,6 +1801,14 @@ function showModal(printer, index) {
     currentPrinterIndex = index;
     currentPhotoIndex = 0;
 
+    savePrinterMessage.textContent =
+    "";
+
+    savePrinterMessage.classList.remove(
+        "visible",
+        "error"
+    );
+
     const canEdit =
     canEditPlant(currentPlant);
 
@@ -1948,19 +1995,61 @@ removePhotoBtn.addEventListener("click", async () => {
 
 // Salvar impressora
 savePrinterBtn.addEventListener("click", async (e) => {
+
     e.preventDefault();
-    const printer = printers[currentPrinterIndex];
-    printer.model = mModel.value;
-    printer.serial = mSerial.value;
-    printer.ip = mIP.value;
-    printer.loc = mLoc.value;
-    printer.col = mCol.value;
-    printer.notes = mNotes.value;
-    printer.backup = mBackup.checked;
 
-    await syncPrinter(printer);
+    const printer =
+        printers[currentPrinterIndex];
 
-modal.style.display = "none";
+    printer.model =
+        mModel.value;
+
+    printer.serial =
+        mSerial.value;
+
+    printer.ip =
+        mIP.value.trim();
+
+    printer.loc =
+        mLoc.value;
+
+    printer.col =
+        mCol.value;
+
+    printer.notes =
+        mNotes.value;
+
+    printer.backup =
+        mBackup.checked;
+
+    try {
+
+        await syncPrinter(
+            printer
+        );
+
+        atualizarLinkIP(
+            printer.ip
+        );
+
+        showSavePrinterMessage(
+            "Dados salvos"
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao salvar impressora:",
+            error
+        );
+
+        showSavePrinterMessage(
+            "Erro ao salvar",
+            true
+        );
+
+    }
+
 });
 
 // Fechar modal

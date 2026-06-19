@@ -782,6 +782,32 @@ body.quick-sidebar-open .collapsed-sidebar {
     flex-shrink: 0;
 }
 
+.save-printer-message {
+    display: block;
+    min-height: 20px;
+    margin-top: 8px;
+
+    color: #16a34a;
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-align: center;
+
+    opacity: 0;
+    transform: translateY(-4px);
+    transition:
+        opacity 0.2s ease,
+        transform 0.2s ease;
+}
+
+.save-printer-message.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.save-printer-message.error {
+    color: var(--danger);
+}
+
 @media (max-width: 900px) {
     .map-container {
         flex-direction: column;
