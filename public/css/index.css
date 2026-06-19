@@ -730,6 +730,58 @@ body.quick-sidebar-open .collapsed-sidebar {
     color: #0f172a !important;
 }
 
+/* Scroll dos atalhos na sidebar grande */
+#quickLinksSidebar {
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+#quickLinksSidebar .quick-links-list {
+    max-height: min(448px, calc(100vh - 330px));
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 6px;
+    margin-right: -4px;
+}
+
+#quickLinksSidebar .quick-link-container {
+    flex-shrink: 0;
+}
+
+#quickLinksSidebar .quick-links-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+#quickLinksSidebar .quick-links-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.28);
+    border-radius: 999px;
+}
+
+#quickLinksSidebar .quick-links-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* Scroll dos atalhos na mini sidebar */
+.collapsed-quick-links-list {
+    max-height: min(580px, calc(100vh - 250px));
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex: 0 1 auto;
+}
+
+.collapsed-link-btn {
+    flex-shrink: 0;
+}
+
+.collapsed-logo-btn,
+#collapsedAddQuickLinkBtn,
+#collapsedUsersBtn,
+#collapsedLogoutBtn {
+    flex-shrink: 0;
+}
+
 @media (max-width: 900px) {
     .map-container {
         flex-direction: column;
