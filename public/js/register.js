@@ -20,15 +20,28 @@ registerForm.addEventListener(
             document.getElementById("registerPassword")
                 .value;
 
-        if (!username || !password) {
+        const confirmPassword =
+            document.getElementById("confirmRegisterPassword")
+                .value;
+
+        if (!username || !password || !confirmPassword) {
 
             registerMessage.textContent =
-                "Preencha usuário e senha.";
+                "Preencha usuário, senha e confirmação de senha.";
 
             return;
 
         }
 
+        if (password !== confirmPassword) {
+
+            registerMessage.textContent =
+                "As senhas não conferem.";
+
+            return;
+
+        }        
+        
         if (!username.endsWith("@simpress.com.br")) {
 
             registerMessage.textContent =
