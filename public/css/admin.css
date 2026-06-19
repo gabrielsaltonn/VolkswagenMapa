@@ -320,3 +320,8 @@
     background: #dc2626;
     color: white;
 }
+
+#backToMapBtn {
+    position: relative;
+    left: -70px;
+}

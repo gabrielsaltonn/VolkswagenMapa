@@ -1,11 +1,37 @@
 header {
-    padding: 12px 20px;
+    min-height: 72px;
+    padding: 0 110px;
     background-color: var(--bg-light);
     position: relative;
+
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 24px;
+
+    box-sizing: border-box;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+    z-index: 900;
 }
+
+header h1 {
+    margin: 0;
+    flex: 1;
+    text-align: center;
+    line-height: 1.1;
+    font-size: clamp(1.6rem, 2.4vw, 2.15rem);
+}
+
+header #search,
+header .admin-search {
+    height: 38px;
+    min-width: 260px;
+    max-width: 320px;
+    padding: 0 18px;
+    border-radius: 999px;
+    box-sizing: border-box;
+}
+
 
 .logo1 {
     height: 50px;
