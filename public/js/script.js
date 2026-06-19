@@ -2296,9 +2296,33 @@ const collapsedLogoutBtn =
         "collapsedLogoutBtn"
     );
 
+function openQuickLinksSidebar() {
+
+    quickLinksSidebar.classList.add(
+        "open"
+    );
+
+    document.body.classList.add(
+        "quick-sidebar-open"
+    );
+
+}
+
+function closeQuickLinksSidebar() {
+
+    quickLinksSidebar.classList.remove(
+        "open"
+    );
+
+    document.body.classList.remove(
+        "quick-sidebar-open"
+    );
+
+}
+
 menuBtn.addEventListener("click", () => {
 
-    quickLinksSidebar.classList.add("open");
+    openQuickLinksSidebar();
 
 });
 
@@ -2306,18 +2330,19 @@ collapsedLogoBtn.addEventListener(
     "click",
     () => {
 
-        quickLinksSidebar.classList.add(
-            "open"
-        );
+        openQuickLinksSidebar();
 
     }
 );
 
-closeQuickLinks.addEventListener("click", () => {
+closeQuickLinks.addEventListener(
+    "click",
+    () => {
 
-    quickLinksSidebar.classList.remove("open");
+        closeQuickLinksSidebar();
 
-});
+    }
+);
 
 document.addEventListener("click", (e) => {
 
@@ -2335,8 +2360,8 @@ document.addEventListener("click", (e) => {
 
     if (!clicouNoBotao && !clicouNaSidebar) {
 
-        quickLinksSidebar.classList.remove(
-            "open"
+        closeQuickLinksSidebar(
+
         );
 
     }
@@ -2669,9 +2694,7 @@ collapsedAddQuickLinkBtn.addEventListener(
 
         e.stopPropagation();
 
-        quickLinksSidebar.classList.add(
-            "open"
-        );
+        openQuickLinksSidebar();
 
         quickLinkForm.classList.remove(
             "hidden"
@@ -2861,17 +2884,6 @@ collapsedLogoutBtn.addEventListener(
     "click",
     confirmLogout
 );
-
-function logoutUser() {
-
-    localStorage.removeItem(
-        "user"
-    );
-
-    window.location.href =
-        "login.html";
-
-}
 
 function confirmLogout() {
 

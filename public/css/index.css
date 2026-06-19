@@ -609,6 +609,127 @@ body {
     translate: -50% 0;
 }
 
+.collapsed-sidebar {
+    transition:
+        transform 0.32s ease,
+        opacity 0.24s ease,
+        box-shadow 0.28s ease,
+        border-radius 0.28s ease;
+}
+
+body.quick-sidebar-open .collapsed-sidebar {
+    transform: translateX(220px) scale(0.96);
+    opacity: 0;
+    pointer-events: none;
+    border-radius: 0 18px 18px 0;
+    box-shadow: 8px 0 24px rgba(0, 0, 0, 0.28);
+}
+
+#quickLinksSidebar {
+    background: rgba(15, 23, 42, 0.97);
+    color: white;
+    box-shadow: 8px 0 28px rgba(0, 0, 0, 0.35);
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+#quickLinksSidebar .user-card,
+#quickLinksSidebar .quick-link-container,
+#quickLinksSidebar #quickLinkForm {
+    background: rgba(255, 255, 255, 0.08);
+    color: white;
+    border-radius: var(--radius-md);
+}
+
+#quickLinksSidebar h2,
+#quickLinksSidebar strong,
+#quickLinksSidebar span,
+#quickLinksSidebar p,
+#quickLinksSidebar label {
+    color: white;
+}
+
+#quickLinksSidebar .quick-link-item {
+    color: white;
+    background: transparent;
+}
+
+#quickLinksSidebar .quick-link-item:hover {
+    background: rgba(255, 255, 255, 0.10);
+}
+
+#quickLinksSidebar input {
+    background: rgba(255, 255, 255, 0.92);
+    color: #111827;
+}
+
+#quickLinksSidebar button:not(.close):not(.quick-link-pin):not(.quick-link-edit):not(.quick-link-delete) {
+    background: rgba(255, 255, 255, 0.12);
+    color: white;
+}
+
+#quickLinksSidebar button:not(.close):not(.quick-link-pin):not(.quick-link-edit):not(.quick-link-delete):hover {
+    background: rgba(255, 255, 255, 0.22);
+}
+
+#quickLinksSidebar #logoutBtn {
+    background: #dc2626;
+}
+
+#quickLinksSidebar #logoutBtn:hover {
+    background: #b91c1c;
+}
+
+#quickLinksSidebar .user-card {
+    background: rgba(255, 255, 255, 0.92);
+    color: #0f172a;
+}
+
+#quickLinksSidebar .user-card,
+#quickLinksSidebar .user-card * {
+    color: #0f172a;
+}
+
+#quickLinksSidebar .quick-link-pin,
+#quickLinksSidebar .quick-link-delete {
+    color: #ffffff !important;
+    background: transparent;
+    opacity: 1;
+    font-size: 1rem;
+    text-shadow: 0 0 4px rgba(255, 255, 255, 0.45);
+}
+
+#quickLinksSidebar .quick-link-pin:hover,
+#quickLinksSidebar .quick-link-delete:hover {
+    color: white;
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+#quickLinksSidebar .quick-link-edit {
+    background: transparent;
+    opacity: 1;
+}
+
+#quickLinksSidebar .quick-link-container {
+    align-items: center;
+}
+
+#quickLinksSidebar #loggedUserName,
+#quickLinksSidebar #loggedUserRole,
+#quickLinksSidebar #loggedUserPlant {
+    color: #0f172a !important;
+    font-weight: 700;
+}
+
+#quickLinksSidebar #loggedUserRole,
+#quickLinksSidebar #loggedUserPlant {
+    opacity: 0.85;
+}
+
+#quickLinksSidebar [id*="loggedUser"] {
+    color: #0f172a !important;
+}
+
 @media (max-width: 900px) {
     .map-container {
         flex-direction: column;
