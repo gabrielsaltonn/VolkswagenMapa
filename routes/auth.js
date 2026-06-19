@@ -8,10 +8,34 @@ router.post("/register", async (req, res) => {
 
     try {
 
-        const { username, password } = req.body;
+        const username =
+            req.body.username
+                ?.trim()
+                .toLowerCase();
+
+        const password =
+            req.body.password;
+
+        if (!username || !password) {
+
+            return res.status(400).json({
+                mensagem: "Usuário e senha são obrigatórios"
+            });
+
+        }
+
+        if (!username.endsWith("@simpress.com.br")) {
+
+            return res.status(400).json({
+                mensagem: "Use seu e-mail corporativo @simpress.com.br"
+            });
+
+        }
 
         const existingUser =
-            await User.findOne({ username });
+            await User.findOne({
+                username
+            });
 
         if (existingUser) {
 
@@ -22,9 +46,12 @@ router.post("/register", async (req, res) => {
         }
 
         const hashedPassword =
-            await bcrypt.hash(password, 10);
+            await bcrypt.hash(
+                password,
+                10
+            );
 
-        const user =
+        const newUser =
             await User.create({
                 username,
                 password: hashedPassword,
@@ -35,7 +62,7 @@ router.post("/register", async (req, res) => {
 
         res.status(201).json({
             mensagem: "Usuário criado",
-            user
+            user: newUser
         });
 
     } catch (error) {
@@ -52,10 +79,26 @@ router.post("/login", async (req, res) => {
 
     try {
 
-        const { username, password } = req.body;
+        const username =
+            req.body.username
+                ?.trim()
+                .toLowerCase();
+
+        const password =
+            req.body.password;
+
+        if (!username || !password) {
+
+            return res.status(400).json({
+                mensagem: "Usuário e senha são obrigatórios"
+            });
+
+        }
 
         const user =
-            await User.findOne({ username });
+            await User.findOne({
+                username
+            });
 
         if (!user) {
 

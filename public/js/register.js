@@ -11,10 +11,32 @@ registerForm.addEventListener(
         e.preventDefault();
 
         const username =
-            document.getElementById("registerUser").value;
+            document.getElementById("registerUser")
+                .value
+                .trim()
+                .toLowerCase();
 
         const password =
-            document.getElementById("registerPassword").value;
+            document.getElementById("registerPassword")
+                .value;
+
+        if (!username || !password) {
+
+            registerMessage.textContent =
+                "Preencha usuário e senha.";
+
+            return;
+
+        }
+
+        if (!username.endsWith("@simpress.com.br")) {
+
+            registerMessage.textContent =
+                "Use seu e-mail corporativo @simpress.com.br.";
+
+            return;
+
+        }
 
         try {
 
@@ -40,7 +62,9 @@ registerForm.addEventListener(
                 await response.json();
 
             registerMessage.textContent =
-                data.mensagem;
+                data.mensagem ||
+                data.erro ||
+                "Erro ao cadastrar usuário.";
 
         } catch (error) {
 

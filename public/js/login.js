@@ -9,10 +9,14 @@ loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const username =
-        document.getElementById("loginUser").value;
+        document.getElementById("loginUser")
+            .value
+            .trim()
+            .toLowerCase();
 
     const password =
-        document.getElementById("loginPassword").value;
+        document.getElementById("loginPassword")
+            .value;
 
     try {
 
@@ -34,7 +38,9 @@ loginForm.addEventListener("submit", async (e) => {
             await response.json();
 
         loginMessage.textContent =
-            data.mensagem;
+            data.mensagem ||
+            data.erro ||
+            "Erro ao fazer login.";
 
         if (response.ok) {
 
@@ -43,7 +49,8 @@ loginForm.addEventListener("submit", async (e) => {
                 JSON.stringify(data.user)
             );
 
-            window.location.href = "index.html";
+            window.location.href =
+                "index.html";
 
         }
 
