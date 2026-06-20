@@ -205,9 +205,48 @@
             <!--Adicionar fotos-->
             <div class="seçãoDeFotos">
                 <div class="efeitoCarrossel">
-                    <button class="mFoto Esquerda" id="fotoAnterior">&#10094;</button>
+
+                    <button class="mFoto Esquerda" id="fotoAnterior">
+                        &#10094;
+                    </button>
+
                     <img id="previewFoto" src="" alt="">
-                    <button class="mFoto Direita" id="proxFoto">&#10095;</button>
+
+                    <button class="mFoto Direita" id="proxFoto">
+                        &#10095;
+                    </button>
+
+                    <div class="photo-menu-box">
+
+                        <button
+                            type="button"
+                            id="photoMenuBtn"
+                            class="photo-menu-btn"
+                            aria-label="Opções da foto">
+                            ⋮
+                        </button>
+
+                        <div 
+                            id="photoMenu"
+                            class="photo-menu hidden">
+                        
+                            <button 
+                                type="button"
+                                id="viewPhotoBtn">
+                                Visualisar
+                            </button>
+
+                            <button
+                                type="button"
+                                id="deletePhotoMenuBtn"
+                                class="danger-option">
+                                Deletar foto
+                            </button>
+
+                        </div>
+
+                    </div>
+
                 </div>
 
                 <div id="contadorFotos"></div>
@@ -242,7 +281,8 @@
 
                         <button
                             type="button"
-                            id="removerFoto">
+                            id="removerFoto"
+                            hidden>
                             Remover Foto
                         </button>
 
@@ -283,6 +323,30 @@
            
             <button class="Delete" id="deletePrinterBtn"> Excluir Impressora</button>
         </div>  
+    </div>
+
+    <div
+        id="photoViewerModal"
+        class="modal photo-viewer-modal"
+        role="dialog"
+        aria-modal="true">
+
+        <div class="photo-viewer-card">
+
+            <button
+                type="button"
+                id="closePhotoViewerBtn"
+                class="close photo-viewer-close">
+                &times;
+            </button>
+
+            <img
+                id="photoViewerImage"
+                src=""
+                alt="Foto da impressora">
+
+        </div>
+
     </div>
 
     <input

@@ -971,19 +971,60 @@ function updatePlantImage() {
 }
 
 // Fotos
-const photoPreview = document.getElementById('previewFoto');
-const prevPhotoBtn = document.getElementById('fotoAnterior');
-const nextPhotoBtn = document.getElementById('proxFoto');
-const addPhotoBtn = document.getElementById('addFotoBtn');
-const takePhotoBtn = document.getElementById('tirarFotoBtn');
+const photoPreview = 
+    document.getElementById('previewFoto');
 
-const carousel = document.querySelector(".efeitoCarrossel");
-const removePhotoBtn = document.getElementById('removerFoto');
+const prevPhotoBtn = 
+    document.getElementById('fotoAnterior');
+const nextPhotoBtn = 
+    document.getElementById('proxFoto');
 
-const photoInput = document.getElementById('adFoto');
-const cameraInput = document.getElementById('cameraFoto');
+const addPhotoBtn = 
+    document.getElementById('addFotoBtn');
 
-const contadorFotos = document.getElementById("contadorFotos");
+const takePhotoBtn = 
+    document.getElementById('tirarFotoBtn');
+
+const carousel =
+    document.querySelector(".efeitoCarrossel");
+
+const removePhotoBtn = 
+    document.getElementById('removerFoto');
+
+const photoInput = 
+    document.getElementById('adFoto');
+
+const cameraInput = 
+    document.getElementById('cameraFoto');
+
+const contadorFotos = 
+    document.getElementById("contadorFotos");
+
+const photoMenuBtn =
+    document.getElementById("photoMenuBtn");
+
+const photoMenu =
+    document.getElementById("photoMenu");
+
+const viewPhotoBtn =
+    document.getElementById("viewPhotoBtn");
+
+const deletePhotoMenuBtn =
+    document.getElementById("deletePhotoMenuBtn");
+
+const photoViewerModal =
+    document.getElementById("photoViewerModal");
+
+const photoViewerImage =
+    document.getElementById("photoViewerImage");
+
+const closePhotoViewerBtn =
+    document.getElementById("closePhotoViewerBtn");
+
+const MAX_PHOTOS_PER_PRINTER = 4;
+const MAX_PHOTO_WIDTH = 900;
+const MAX_PHOTO_HEIGHT = 900;
+const PHOTO_QUALITY = 0.6;
 
 takePhotoBtn.addEventListener("click", () => {
     cameraInput.click();
@@ -991,6 +1032,82 @@ takePhotoBtn.addEventListener("click", () => {
 
 addPhotoBtn.addEventListener("click", () => {
     photoInput.click();
+});
+
+photoMenuBtn.addEventListener("click", (e) => {
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    photoMenu.classList.toggle("hidden");
+
+});
+
+viewPhotoBtn.addEventListener("click", () => {
+
+    const printer =
+        printers[currentPrinterIndex];
+
+    if (
+        !printer ||
+        !printer.photos ||
+        printer.photos.length === 0
+    ) {
+        return;
+    }
+
+    const photo =
+        printer.photos[currentPhotoIndex];
+
+    photoViewerImage.src =
+        photo;
+
+    photoViewerModal.style.display =
+        "flex";
+
+    photoMenu.classList.add("hidden");
+
+});
+
+function closePhotoViewer() {
+
+    photoViewerModal.style.display =
+        "none";
+
+    photoViewerImage.removeAttribute(
+        "src"
+    );
+
+}
+
+closePhotoViewerBtn.addEventListener(
+    "click",
+    closePhotoViewer
+);
+
+photoViewerModal.addEventListener(
+    "click",
+    (e) => {
+
+        if (e.target === photoViewerModal) {
+            closePhotoViewer();
+        }
+
+    }
+);
+
+deletePhotoMenuBtn.addEventListener("click", () => {
+
+    photoMenu.classList.add("hidden");
+
+    removePhotoBtn.click();
+
+});
+
+document.addEventListener("click", () => {
+
+    photoMenu.classList.add("hidden");
+
 });
 
 // Dados
@@ -1858,7 +1975,6 @@ function showModal(printer, index) {
     if (printer.photos.length > 0) {
 
         carousel.style.display = "inline-block";
-        removePhotoBtn.style.display = "inline-block";
 
         prevPhotoBtn.style.display =
             printer.photos.length > 1 ? "block" : "none";
@@ -1872,7 +1988,6 @@ function showModal(printer, index) {
     } else {
 
         carousel.style.display = "none";
-        removePhotoBtn.style.display = "none";
 
     }
 
@@ -1900,11 +2015,6 @@ function showModal(printer, index) {
 
     addPhotoBtn.style.display =
         canEdit ? "inline-block" : "none";
-
-    removePhotoBtn.style.display =
-        canEdit && printer.photos.length > 0
-            ? "inline-block"
-            : "none";
 
     atualizarLinkIP(printer.ip);
     modal.style.display = "flex";
@@ -1945,15 +2055,109 @@ nextPhotoBtn.addEventListener("click", () => {
 
 // Adicionar foto
 // Ler arquivo como base64
-function readPhotoAsDataURL(file) {
+// Mensagem temporária no contador de fotos
+let photoFeedbackTimer = null;
+
+function showPhotoFeedback(message) {
+
+    clearTimeout(photoFeedbackTimer);
+
+    contadorFotos.textContent =
+        message;
+
+    contadorFotos.style.color =
+        "var(--danger)";
+
+    photoFeedbackTimer =
+        setTimeout(() => {
+
+            contadorFotos.style.color =
+                "var(--primary)";
+
+            atualizarContadorFotos();
+
+        }, 2500);
+
+}
+
+// Compactar foto antes de salvar
+function compressPhoto(file) {
 
     return new Promise((resolve, reject) => {
+
+        if (!file.type.startsWith("image/")) {
+            reject(new Error("Arquivo inválido."));
+            return;
+        }
 
         const reader =
             new FileReader();
 
         reader.onload = () => {
-            resolve(reader.result);
+
+            const image =
+                new Image();
+
+            image.onload = () => {
+
+                const originalWidth =
+                    image.width;
+
+                const originalHeight =
+                    image.height;
+
+                const scale =
+                    Math.min(
+                        MAX_PHOTO_WIDTH / originalWidth,
+                        MAX_PHOTO_HEIGHT / originalHeight,
+                        1
+                    );
+
+                const targetWidth =
+                    Math.round(originalWidth * scale);
+
+                const targetHeight =
+                    Math.round(originalHeight * scale);
+
+                const canvas =
+                    document.createElement("canvas");
+
+                canvas.width =
+                    targetWidth;
+
+                canvas.height =
+                    targetHeight;
+
+                const context =
+                    canvas.getContext("2d");
+
+                context.drawImage(
+                    image,
+                    0,
+                    0,
+                    targetWidth,
+                    targetHeight
+                );
+
+                const compressedPhoto =
+                    canvas.toDataURL(
+                        "image/jpeg",
+                        PHOTO_QUALITY
+                    );
+
+                resolve(compressedPhoto);
+
+            };
+
+            image.onerror = () => {
+                reject(
+                    new Error("Não foi possível carregar a imagem.")
+                );
+            };
+
+            image.src =
+                reader.result;
+
         };
 
         reader.onerror = () => {
@@ -1991,21 +2195,43 @@ async function handlePhotoInputChange(e) {
         printer.photos = [];
     }
 
+    const availableSlots =
+        MAX_PHOTOS_PER_PRINTER - printer.photos.length;
+
+    if (availableSlots <= 0) {
+
+        showPhotoFeedback(
+            `Limite de ${MAX_PHOTOS_PER_PRINTER} fotos atingido.`
+        );
+
+        input.value = "";
+        return;
+
+    }
+
+    const selectedFiles =
+        files.slice(0, availableSlots);
+
+    if (files.length > availableSlots) {
+
+        showPhotoFeedback(
+            `Só é possível adicionar mais ${availableSlots} foto(s).`
+        );
+
+    }
+
     try {
 
         const newPhotos =
             await Promise.all(
-                files.map(file =>
-                    readPhotoAsDataURL(file)
+                selectedFiles.map(file =>
+                    compressPhoto(file)
                 )
             );
 
         printer.photos.push(...newPhotos);
 
         carousel.style.display =
-            "inline-block";
-
-        removePhotoBtn.style.display =
             "inline-block";
 
         prevPhotoBtn.style.display =
@@ -2031,8 +2257,12 @@ async function handlePhotoInputChange(e) {
     } catch (error) {
 
         console.error(
-            "Erro ao carregar foto:",
+            "Erro ao processar foto:",
             error
+        );
+
+        showPhotoFeedback(
+            "Erro ao carregar foto."
         );
 
     } finally {
@@ -2066,7 +2296,6 @@ removePhotoBtn.addEventListener("click", async () => {
     if (printer.photos.length === 0) {
 
         carousel.style.display = "none";
-        removePhotoBtn.style.display = "none";
 
     } else {
 

@@ -449,14 +449,38 @@ textarea {
     }
 
     #modal .close {
-        top: 10px !important;
-        right: 12px !important;
+        position: absolute !important;
+        top: 12px !important;
+        right: 14px !important;
 
-        width: 38px !important;
-        height: 38px !important;
+        width: 32px !important;
+        height: 32px !important;
 
-        font-size: 1.5rem !important;
-        z-index: 5 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+
+        border: none !important;
+        border-radius: 10px !important;
+
+        background: var(--primary) !important;
+        color: white !important;
+
+        font-size: 1.2rem !important;
+        font-weight: 800 !important;
+        line-height: 1 !important;
+
+        box-shadow: 0 6px 16px rgba(15, 23, 42, 0.22) !important;
+
+        z-index: 20 !important;
+    }
+
+    #modal .card {
+        position: relative !important;
+        padding-top: 42px !important;
     }
 
     .seçãoDeFotos {
