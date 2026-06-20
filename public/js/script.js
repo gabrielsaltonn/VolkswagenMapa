@@ -2115,46 +2115,194 @@ window.addEventListener("click", (e) => {
 });
 
 // --- Double Tap para Touch ---
-let lastTap = 0;
+// --- Double Tap seguro para Touch ---
+let lastTapTime = 0;
+let lastTapX = 0;
+let lastTapY = 0;
 
-panzoomArea.addEventListener("touchend", async (e) => { 
-    const currentTime = Date.now();
-    const tapLength = currentTime - lastTap;
+let touchStartX = 0;
+let touchStartY = 0;
+let touchMoved = false;
 
-    if (tapLength < 300 && tapLength > 0) {
-        if (!captureMode) return;
+let isCreatingPrinter = false;
 
-        const touch = e.changedTouches[0];
-        const rect = panzoomArea.getBoundingClientRect();
+const TAP_MAX_MOVE = 12;
+const DOUBLE_TAP_DELAY = 300;
+const DOUBLE_TAP_DISTANCE = 32;
 
-        const x = ((touch.clientX - rect.left) / rect.width) * 100;
-        const y = ((touch.clientY - rect.top) / rect.height) * 100;
+panzoomArea.addEventListener(
+    "touchstart",
+    (e) => {
 
-        await createPrinter({
-    model: "",
-    serial: "",
-    ip: "",
-    loc: "",
-    col: "",
-    notes: "",
-    backup: false,
-    photos: [],
-    plant: currentPlant,
-    page: currentMapPage + 1,
-    x,
-    y,
+        if (!captureMode) {
+            return;
+        }
 
-    userRole,
-    userPlant
-});
+        if (e.touches.length !== 1) {
+            touchMoved = true;
+            return;
+        }
 
-await loadPrinters();
+        const touch =
+            e.touches[0];
 
-    }
+        touchStartX =
+            touch.clientX;
 
-    lastTap = currentTime;
+        touchStartY =
+            touch.clientY;
 
-});
+        touchMoved =
+            false;
+
+    },
+    { passive: true }
+);
+
+panzoomArea.addEventListener(
+    "touchmove",
+    (e) => {
+
+        if (!captureMode) {
+            return;
+        }
+
+        if (e.touches.length !== 1) {
+            touchMoved = true;
+            return;
+        }
+
+        const touch =
+            e.touches[0];
+
+        const moveX =
+            Math.abs(
+                touch.clientX - touchStartX
+            );
+
+        const moveY =
+            Math.abs(
+                touch.clientY - touchStartY
+            );
+
+        if (
+            moveX > TAP_MAX_MOVE ||
+            moveY > TAP_MAX_MOVE
+        ) {
+
+            touchMoved =
+                true;
+
+        }
+
+    },
+    { passive: true }
+);
+
+panzoomArea.addEventListener(
+    "touchend",
+    async (e) => {
+
+        if (!captureMode) {
+            return;
+        }
+
+        if (touchMoved) {
+            return;
+        }
+
+        if (e.changedTouches.length !== 1) {
+            return;
+        }
+
+        const touch =
+            e.changedTouches[0];
+
+        const currentTime =
+            Date.now();
+
+        const timeSinceLastTap =
+            currentTime - lastTapTime;
+
+        const distanceFromLastTap =
+            Math.hypot(
+                touch.clientX - lastTapX,
+                touch.clientY - lastTapY
+            );
+
+        const isDoubleTap =
+            timeSinceLastTap < DOUBLE_TAP_DELAY &&
+            distanceFromLastTap < DOUBLE_TAP_DISTANCE;
+
+        if (!isDoubleTap) {
+
+            lastTapTime =
+                currentTime;
+
+            lastTapX =
+                touch.clientX;
+
+            lastTapY =
+                touch.clientY;
+
+            return;
+
+        }
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        lastTapTime =
+            0;
+
+        if (isCreatingPrinter) {
+            return;
+        }
+
+        isCreatingPrinter =
+            true;
+
+        try {
+
+            const rect =
+                panzoomArea.getBoundingClientRect();
+
+            const x =
+                ((touch.clientX - rect.left) / rect.width) * 100;
+
+            const y =
+                ((touch.clientY - rect.top) / rect.height) * 100;
+
+            await createPrinter({
+                model: "",
+                serial: "",
+                ip: "",
+                loc: "",
+                col: "",
+                notes: "",
+                backup: false,
+                photos: [],
+                plant: currentPlant,
+                page: currentMapPage + 1,
+                x,
+                y,
+
+                userRole,
+                userPlant
+            });
+
+            await loadPrinters();
+
+        } finally {
+
+            isCreatingPrinter =
+                false;
+
+        }
+
+    },
+    { passive: false }
+);
 
 // Double-click mouse
 panzoomArea.addEventListener('dblclick', async (e) => {
