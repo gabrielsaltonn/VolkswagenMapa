@@ -975,10 +975,19 @@ const photoPreview = document.getElementById('previewFoto');
 const prevPhotoBtn = document.getElementById('fotoAnterior');
 const nextPhotoBtn = document.getElementById('proxFoto');
 const addPhotoBtn = document.getElementById('addFotoBtn');
+const takePhotoBtn = document.getElementById('tirarFotoBtn');
+
 const carousel = document.querySelector(".efeitoCarrossel");
 const removePhotoBtn = document.getElementById('removerFoto');
+
 const photoInput = document.getElementById('adFoto');
+const cameraInput = document.getElementById('cameraFoto');
+
 const contadorFotos = document.getElementById("contadorFotos");
+
+takePhotoBtn.addEventListener("click", () => {
+    cameraInput.click();
+});
 
 addPhotoBtn.addEventListener("click", () => {
     photoInput.click();
@@ -1935,58 +1944,114 @@ nextPhotoBtn.addEventListener("click", () => {
 });
 
 // Adicionar foto
-photoInput.addEventListener("change", (e) => {
+// Ler arquivo como base64
+function readPhotoAsDataURL(file) {
 
-    const files = [...e.target.files];
+    return new Promise((resolve, reject) => {
 
-    if (files.length === 0) return;
+        const reader =
+            new FileReader();
 
-    const printer = printers[currentPrinterIndex];
+        reader.onload = () => {
+            resolve(reader.result);
+        };
 
-    if (!printer.photos) {
-        printer.photos = [];
-    }
-
-    let loaded = 0;
-
-    files.forEach(file => {
-
-        const reader = new FileReader();
-
-        reader.onload = async () => {
-
-            printer.photos.push(reader.result);
-
-            loaded++;
-
-            if (loaded === files.length) {
-
-                carousel.style.display = "inline-block";
-                removePhotoBtn.style.display = "inline-block";
-
-                prevPhotoBtn.style.display =
-                    printer.photos.length > 1 ? "block" : "none";
-
-                nextPhotoBtn.style.display =
-                    printer.photos.length > 1 ? "block" : "none";
-
-                currentPhotoIndex = printer.photos.length - 1;
-
-                photoPreview.src =
-                    printer.photos[currentPhotoIndex];
-
-                atualizarContadorFotos();
-
-                await syncPrinter(printer);
-            }
+        reader.onerror = () => {
+            reject(reader.error);
         };
 
         reader.readAsDataURL(file);
 
     });
 
-    photoInput.value = "";
-});
+}
+
+// Adicionar foto pela câmera ou galeria
+async function handlePhotoInputChange(e) {
+
+    const input =
+        e.target;
+
+    const files =
+        [...input.files];
+
+    if (files.length === 0) {
+        return;
+    }
+
+    const printer =
+        printers[currentPrinterIndex];
+
+    if (!printer) {
+        input.value = "";
+        return;
+    }
+
+    if (!printer.photos) {
+        printer.photos = [];
+    }
+
+    try {
+
+        const newPhotos =
+            await Promise.all(
+                files.map(file =>
+                    readPhotoAsDataURL(file)
+                )
+            );
+
+        printer.photos.push(...newPhotos);
+
+        carousel.style.display =
+            "inline-block";
+
+        removePhotoBtn.style.display =
+            "inline-block";
+
+        prevPhotoBtn.style.display =
+            printer.photos.length > 1
+                ? "block"
+                : "none";
+
+        nextPhotoBtn.style.display =
+            printer.photos.length > 1
+                ? "block"
+                : "none";
+
+        currentPhotoIndex =
+            printer.photos.length - 1;
+
+        photoPreview.src =
+            printer.photos[currentPhotoIndex];
+
+        atualizarContadorFotos();
+
+        await syncPrinter(printer);
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao carregar foto:",
+            error
+        );
+
+    } finally {
+
+        input.value = "";
+
+    }
+
+}
+
+photoInput.addEventListener(
+    "change",
+    handlePhotoInputChange
+);
+
+cameraInput.addEventListener(
+    "change",
+    handlePhotoInputChange
+);
 
 // Remover foto
 removePhotoBtn.addEventListener("click", async () => {

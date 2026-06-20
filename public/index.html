@@ -213,10 +213,41 @@
                 <div id="contadorFotos"></div>
                 
                 <div class="actFotos">
-                    <input type="file" id="adFoto" accept="image/*" multiple hidden>
-                    <button id="addFotoBtn">Adicionar / Tirar foto</button>
-                    <button id="removerFoto">Remover Foto</button>
+
+                        <input
+                            type="file"
+                            id="cameraFoto"
+                            accept="image/*"
+                            capture="environment"
+                            hidden>
+
+                        <input
+                            type="file"
+                            id="adFoto"
+                            accept="image/*"
+                            multiple
+                            hidden>
+
+                        <button
+                            type="button"
+                            id="tirarFotoBtn">
+                            Tirar foto
+                        </button>
+
+                        <button
+                            type="button"
+                            id="addFotoBtn">
+                            Escolher da galeria
+                        </button>
+
+                        <button
+                            type="button"
+                            id="removerFoto">
+                            Remover Foto
+                        </button>
+
                 </div>
+                
             </div>
  
             <!--Formulário-->
