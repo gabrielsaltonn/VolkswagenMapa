@@ -1638,6 +1638,24 @@ const panzoomInstance = Panzoom(panzoomArea, {
 });
 panzoomArea.parentElement.addEventListener('wheel', panzoomInstance.zoomWithWheel);
 
+function getMapPositionFromClientPoint(clientX, clientY) {
+
+    const rect =
+        floor.getBoundingClientRect();
+
+    const x =
+        ((clientX - rect.left) / rect.width) * 100;
+
+    const y =
+        ((clientY - rect.top) / rect.height) * 100;
+
+    return {
+        x: Math.min(100, Math.max(0, x)),
+        y: Math.min(100, Math.max(0, y))
+    };
+
+}
+
 // Atualizar contadores
 function updateCounters() {
 
@@ -2264,14 +2282,11 @@ panzoomArea.addEventListener(
 
         try {
 
-            const rect =
-                panzoomArea.getBoundingClientRect();
-
-            const x =
-                ((touch.clientX - rect.left) / rect.width) * 100;
-
-            const y =
-                ((touch.clientY - rect.top) / rect.height) * 100;
+            const { x, y } =
+                getMapPositionFromClientPoint(
+                    touch.clientX,
+                    touch.clientY
+                );
 
             await createPrinter({
                 model: "",
@@ -2307,9 +2322,12 @@ panzoomArea.addEventListener(
 // Double-click mouse
 panzoomArea.addEventListener('dblclick', async (e) => {
     if (!captureMode) return;
-    const rect = panzoomArea.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    const { x, y } =
+        getMapPositionFromClientPoint(
+            e.clientX,
+            e.clientY
+        );
 
     await createPrinter({
     model: "",
