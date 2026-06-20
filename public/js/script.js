@@ -1612,9 +1612,21 @@ let currentPrinterIndex = null;
 
 // Impedir que qualquer botão envie toques/cliques para o mapa
 document.querySelectorAll("button").forEach(btn => {
+
+    if (btn.id === "menuBtn") {
+        return;
+    }
+
     ["touchstart", "touchend", "click"].forEach(ev => {
-        btn.addEventListener(ev, e => e.stopPropagation(), { passive: false });
+
+        btn.addEventListener(
+            ev,
+            e => e.stopPropagation(),
+            { passive: false }
+        );
+
     });
+
 });
 
 // Panzoom
@@ -2409,12 +2421,6 @@ function closeQuickLinksSidebar() {
 
 }
 
-menuBtn.addEventListener("click", () => {
-
-    openQuickLinksSidebar();
-
-});
-
 collapsedLogoBtn.addEventListener(
     "click",
     () => {
@@ -2431,6 +2437,26 @@ closeQuickLinks.addEventListener(
         closeQuickLinksSidebar();
 
     }
+);
+
+function handleMenuButtonOpen(e) {
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    openQuickLinksSidebar();
+
+}
+
+menuBtn.addEventListener(
+    "click",
+    handleMenuButtonOpen
+);
+
+menuBtn.addEventListener(
+    "touchend",
+    handleMenuButtonOpen,
+    { passive: false }
 );
 
 document.addEventListener("click", (e) => {
