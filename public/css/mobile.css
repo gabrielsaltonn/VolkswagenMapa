@@ -792,3 +792,84 @@ textarea {
     }
 
 }
+
+/* Carrossel de fotos no mobile por arraste */
+
+@media (max-width: 768px) {
+
+    .mFoto {
+        display: none !important;
+    }
+
+    .efeitoCarrossel {
+        touch-action: pan-y !important;
+        user-select: none !important;
+    }
+
+    #previewFoto {
+        -webkit-user-drag: none;
+        user-select: none;
+    }
+
+}
+
+/* Arraste real do carrossel no mobile */
+
+@media (max-width: 768px) {
+
+    .efeitoCarrossel {
+        touch-action: pan-y !important;
+        overflow: hidden !important;
+    }
+
+    #previewFoto {
+        transition:
+            transform 0.18s ease,
+            opacity 0.18s ease;
+
+        will-change: transform, opacity;
+    }
+
+    #previewFoto.photo-dragging {
+        transition: none !important;
+    }
+
+}
+
+/* Ajuste da moldura da foto no mobile */
+
+@media (max-width: 768px) {
+
+    .efeitoCarrossel {
+        width: fit-content !important;
+        max-width: calc(100vw - 80px) !important;
+
+        margin-left: auto !important;
+        margin-right: auto !important;
+
+        padding: 8px !important;
+
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+
+        box-sizing: border-box !important;
+    }
+
+    #previewFoto {
+        width: auto !important;
+        height: auto !important;
+
+        max-width: calc(100vw - 110px) !important;
+        max-height: 250px !important;
+
+        display: block !important;
+        object-fit: contain !important;
+    }
+
+    .photo-menu-box {
+        top: 10px !important;
+        right: 10px !important;
+    }
+
+}

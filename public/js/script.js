@@ -2020,38 +2020,435 @@ function showModal(printer, index) {
     modal.style.display = "flex";
 }
 
+let isPhotoAnimating = false;
+
+function animatePhotoChange(newIndex, direction) {
+
+    if (isPhotoAnimating) {
+        return;
+    }
+
+    const printer =
+        printers[currentPrinterIndex];
+
+    if (
+        !printer ||
+        !printer.photos ||
+        !printer.photos[newIndex]
+    ) {
+        return;
+    }
+
+    isPhotoAnimating =
+        true;
+
+    const outClass =
+        direction === "next"
+            ? "photo-out-left"
+            : "photo-out-right";
+
+    const inClass =
+        direction === "next"
+            ? "photo-in-right"
+            : "photo-in-left";
+
+    photoPreview.classList.remove(
+        "photo-out-left",
+        "photo-out-right",
+        "photo-in-left",
+        "photo-in-right"
+    );
+
+    photoPreview.classList.add(
+        outClass
+    );
+
+    setTimeout(() => {
+
+        currentPhotoIndex =
+            newIndex;
+
+        photoPreview.src =
+            printer.photos[currentPhotoIndex];
+
+        photoPreview.classList.remove(
+            outClass
+        );
+
+        photoPreview.classList.add(
+            inClass
+        );
+
+        atualizarContadorFotos();
+
+        setTimeout(() => {
+
+            photoPreview.classList.remove(
+                inClass
+            );
+
+            isPhotoAnimating =
+                false;
+
+        }, 220);
+
+    }, 160);
+
+}
+
 // Navegação de fotos
-prevPhotoBtn.addEventListener("click", () => {
+function showPreviousPhoto() {
 
-    const printer = printers[currentPrinterIndex];
+    const printer =
+        printers[currentPrinterIndex];
 
-    if (!printer.photos) return;
+    if (
+        !printer ||
+        !printer.photos ||
+        printer.photos.length <= 1
+    ) {
+        return;
+    }
 
-    currentPhotoIndex =
+    const newIndex =
         (currentPhotoIndex - 1 + printer.photos.length) %
         printer.photos.length;
 
-    photoPreview.src =
-        printer.photos[currentPhotoIndex];
+    animatePhotoChange(
+        newIndex,
+        "prev"
+    );
 
-    atualizarContadorFotos();
-});
+}
 
-nextPhotoBtn.addEventListener("click", () => {
+function showNextPhoto() {
 
-    const printer = printers[currentPrinterIndex];
+    const printer =
+        printers[currentPrinterIndex];
 
-    if (!printer.photos) return;
+    if (
+        !printer ||
+        !printer.photos ||
+        printer.photos.length <= 1
+    ) {
+        return;
+    }
 
-    currentPhotoIndex =
+    const newIndex =
         (currentPhotoIndex + 1) %
         printer.photos.length;
 
-    photoPreview.src =
-        printer.photos[currentPhotoIndex];
+    animatePhotoChange(
+        newIndex,
+        "next"
+    );
 
-    atualizarContadorFotos();
-});
+}
+
+prevPhotoBtn.addEventListener(
+    "click",
+    showPreviousPhoto
+);
+
+nextPhotoBtn.addEventListener(
+    "click",
+    showNextPhoto
+);
+
+// Swipe / arraste real das fotos no mobile
+let photoSwipeStartX = 0;
+let photoSwipeStartY = 0;
+let photoSwipeDeltaX = 0;
+let photoSwipeActive = false;
+let photoSwipeDragging = false;
+
+const PHOTO_SWIPE_MIN_DISTANCE = 55;
+
+function resetPhotoDragStyle() {
+
+    photoPreview.classList.remove(
+        "photo-dragging"
+    );
+
+    photoPreview.style.transform =
+        "";
+
+    photoPreview.style.opacity =
+        "";
+
+}
+
+function changePhotoAfterDrag(direction) {
+
+    const printer =
+        printers[currentPrinterIndex];
+
+    if (
+        !printer ||
+        !printer.photos ||
+        printer.photos.length <= 1
+    ) {
+        resetPhotoDragStyle();
+        return;
+    }
+
+    if (isPhotoAnimating) {
+        resetPhotoDragStyle();
+        return;
+    }
+
+    isPhotoAnimating =
+        true;
+
+    const isNext =
+        direction === "next";
+
+    const newIndex =
+        isNext
+            ? (currentPhotoIndex + 1) % printer.photos.length
+            : (currentPhotoIndex - 1 + printer.photos.length) % printer.photos.length;
+
+    const exitX =
+        isNext
+            ? "-110%"
+            : "110%";
+
+    const enterX =
+        isNext
+            ? "110%"
+            : "-110%";
+
+    photoPreview.classList.remove(
+        "photo-dragging"
+    );
+
+    photoPreview.style.transition =
+        "transform 0.16s ease, opacity 0.16s ease";
+
+    photoPreview.style.transform =
+        `translateX(${exitX})`;
+
+    photoPreview.style.opacity =
+        "0";
+
+    setTimeout(() => {
+
+        currentPhotoIndex =
+            newIndex;
+
+        photoPreview.src =
+            printer.photos[currentPhotoIndex];
+
+        photoPreview.style.transition =
+            "none";
+
+        photoPreview.style.transform =
+            `translateX(${enterX})`;
+
+        photoPreview.style.opacity =
+            "0";
+
+        atualizarContadorFotos();
+
+        requestAnimationFrame(() => {
+
+            photoPreview.style.transition =
+                "transform 0.2s ease, opacity 0.2s ease";
+
+            photoPreview.style.transform =
+                "translateX(0)";
+
+            photoPreview.style.opacity =
+                "1";
+
+            setTimeout(() => {
+
+                photoPreview.style.transition =
+                    "";
+
+                photoPreview.style.transform =
+                    "";
+
+                photoPreview.style.opacity =
+                    "";
+
+                isPhotoAnimating =
+                    false;
+
+            }, 220);
+
+        });
+
+    }, 160);
+
+}
+
+carousel.addEventListener(
+    "touchstart",
+    (e) => {
+
+        if (
+            e.target.closest(".photo-menu-box")
+        ) {
+            return;
+        }
+
+        const printer =
+            printers[currentPrinterIndex];
+
+        if (
+            !printer ||
+            !printer.photos ||
+            printer.photos.length <= 1 ||
+            isPhotoAnimating
+        ) {
+            return;
+        }
+
+        if (e.touches.length !== 1) {
+            return;
+        }
+
+        const touch =
+            e.touches[0];
+
+        photoSwipeStartX =
+            touch.clientX;
+
+        photoSwipeStartY =
+            touch.clientY;
+
+        photoSwipeDeltaX =
+            0;
+
+        photoSwipeActive =
+            true;
+
+        photoSwipeDragging =
+            false;
+
+    },
+    { passive: true }
+);
+
+carousel.addEventListener(
+    "touchmove",
+    (e) => {
+
+        if (!photoSwipeActive) {
+            return;
+        }
+
+        if (e.touches.length !== 1) {
+            return;
+        }
+
+        const touch =
+            e.touches[0];
+
+        const deltaX =
+            touch.clientX - photoSwipeStartX;
+
+        const deltaY =
+            touch.clientY - photoSwipeStartY;
+
+        const isHorizontalMove =
+            Math.abs(deltaX) > 8 &&
+            Math.abs(deltaX) > Math.abs(deltaY);
+
+        if (!isHorizontalMove) {
+            return;
+        }
+
+        e.preventDefault();
+
+        photoSwipeDragging =
+            true;
+
+        photoSwipeDeltaX =
+            deltaX;
+
+        const limitedDeltaX =
+            Math.max(
+                -110,
+                Math.min(110, deltaX)
+            );
+
+        const opacity =
+            Math.max(
+                0.45,
+                1 - Math.abs(limitedDeltaX) / 180
+            );
+
+        photoPreview.classList.add(
+            "photo-dragging"
+        );
+
+        photoPreview.style.transform =
+            `translateX(${limitedDeltaX}px)`;
+
+        photoPreview.style.opacity =
+            opacity;
+
+    },
+    { passive: false }
+);
+
+carousel.addEventListener(
+    "touchend",
+    () => {
+
+        if (!photoSwipeActive) {
+            return;
+        }
+
+        photoSwipeActive =
+            false;
+
+        if (!photoSwipeDragging) {
+            resetPhotoDragStyle();
+            return;
+        }
+
+        const shouldChangePhoto =
+            Math.abs(photoSwipeDeltaX) >= PHOTO_SWIPE_MIN_DISTANCE;
+
+        if (!shouldChangePhoto) {
+
+            photoPreview.classList.remove(
+                "photo-dragging"
+            );
+
+            photoPreview.style.transition =
+                "transform 0.18s ease, opacity 0.18s ease";
+
+            photoPreview.style.transform =
+                "translateX(0)";
+
+            photoPreview.style.opacity =
+                "1";
+
+            setTimeout(() => {
+
+                photoPreview.style.transition =
+                    "";
+
+                resetPhotoDragStyle();
+
+            }, 180);
+
+            return;
+
+        }
+
+        if (photoSwipeDeltaX < 0) {
+            changePhotoAfterDrag("next");
+        } else {
+            changePhotoAfterDrag("prev");
+        }
+
+    }
+);
 
 // Adicionar foto
 // Ler arquivo como base64
