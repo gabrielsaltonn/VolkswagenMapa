@@ -3517,42 +3517,49 @@ function renderCollapsedQuickLinks() {
             }
         );
 
+    // helper to fetch best favicon from server
+    async function fetchFavicon(url) {
+        try {
+            const resp = await fetch(`/api/favicon?url=${encodeURIComponent(url)}`);
+            if (!resp.ok) throw new Error("no-favicon");
+            const data = await resp.json();
+            return data.url;
+        } catch (e) {
+            try {
+                const domain = new URL(url).hostname;
+                return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+            } catch (err) {
+                return `https://www.google.com/s2/favicons?sz=64&domain_url=${encodeURIComponent(url)}`;
+            }
+        }
+    }
+
     sortedLinks.forEach(link => {
 
-        const item =
-            document.createElement("a");
+        const item = document.createElement("a");
 
-        item.href =
-            link.url;
+        item.href = link.url;
+        item.target = "_blank";
+        item.className = "collapsed-sidebar-btn collapsed-link-btn";
+        item.title = link.name;
+        item.dataset.label = link.name;
 
-        item.target =
-            "_blank";
+        const domain = new URL(link.url).hostname;
 
-        item.className =
-            "collapsed-sidebar-btn collapsed-link-btn";
+        const defaultFavicon = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
 
-        item.title =
-            link.name;
+        const img = document.createElement("img");
+        img.src = defaultFavicon;
+        img.alt = link.name;
 
-        item.dataset.label = 
-            link.name;
+        // async replace with best favicon
+        fetchFavicon(link.url).then(url => {
+            if (url) img.src = url;
+        }).catch(() => {});
 
-        const domain =
-            new URL(link.url).hostname;
+        item.appendChild(img);
 
-        const faviconUrl =
-            `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
-
-        item.innerHTML =
-            `
-                <img
-                    src="${faviconUrl}"
-                    alt="${link.name}">
-            `;
-
-        collapsedQuickLinksList.appendChild(
-            item
-        );
+        collapsedQuickLinksList.appendChild(item);
 
     });
 
@@ -3571,17 +3578,29 @@ function createQuickLink(name, url, index) {
 
     const domain = new URL(url).hostname;
 
-    const faviconUrl =
-        `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+    const defaultFavicon = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
 
-    link.innerHTML = `
-        <img
-            src="${faviconUrl}"
-            class="quick-link-favicon"
-            alt="${name}">
+    const img = document.createElement("img");
+    img.className = "quick-link-favicon";
+    img.alt = name;
+    img.src = defaultFavicon;
 
-        <span>${name}</span>
-    `;
+    // try to fetch a better favicon from server
+    (async () => {
+        try {
+            const resp = await fetch(`/api/favicon?url=${encodeURIComponent(url)}`);
+            if (resp.ok) {
+                const data = await resp.json();
+                if (data.url) img.src = data.url;
+            }
+        } catch (e) {}
+    })();
+
+    const span = document.createElement("span");
+    span.textContent = name;
+
+    link.appendChild(img);
+    link.appendChild(span);
 
     const pinBtn = document.createElement("button");
 

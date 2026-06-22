@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import Printer from "./models/Printer.js";
 import printerRoutes from "./routes/printers.js";
 import quickLinkRoutes from "./routes/quickLinks.js";
+import faviconRoutes from "./routes/favicon.js";
 import authRoutes from "./routes/auth.js";
 import mapRoutes from "./routes/maps.js";
 import uploadRoutes from "./routes/upload.js";
@@ -17,6 +18,7 @@ app.use(express.static("public"));
 
 app.use("/api/printers", printerRoutes);
 app.use("/api/quicklinks", quickLinkRoutes);
+app.use("/api/favicon", faviconRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/maps", mapRoutes);
 app.use("/api/upload", uploadRoutes)
