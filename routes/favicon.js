@@ -73,6 +73,41 @@ function selectBestIcon($, baseUrl) {
     return null;
 }
 
+const PRODUCT_ICONS = {
+    excel: "https://static2.sharepointonline.com/files/fabric/assets/brand-icons/product/png/excel_48x1.png",
+    sharepoint: "https://static2.sharepointonline.com/files/fabric/assets/brand-icons/product/png/sharepoint_48x1.png",
+    microsoft: "https://static2.sharepointonline.com/files/fabric/assets/brand-icons/product/png/microsoft_48x1.png"
+};
+
+function isExcelUrl(parsed) {
+    const href = parsed.href.toLowerCase();
+
+    // Detect direct Excel file links or SharePoint/OneDrive Excel viewers.
+    const excelFilePattern = /\.(xlsx|xls|xlsm|xltx|xlsb|csv|ods)(?:$|[\?&#\/])/i;
+    const excelUrlPattern = /(^|\.)excel\.|office\.com.*excel|onedrive\.live\.com.*excel|\/(_layouts\/15\/wopiframe\.aspx|_layouts\/15\/xlviewer\.aspx|_layouts\/15\/doc\.aspx)|\/:x:\/(?:r|p)\//i;
+
+    return excelFilePattern.test(href) || excelUrlPattern.test(href);
+}
+
+function getMicrosoftIcon(parsed) {
+    const hostname = parsed.hostname.toLowerCase();
+    const href = parsed.href.toLowerCase();
+
+    if (isExcelUrl(parsed)) {
+        return PRODUCT_ICONS.excel;
+    }
+
+    if (hostname.includes("sharepoint") || href.includes("sharepoint.")) {
+        return PRODUCT_ICONS.sharepoint;
+    }
+
+    if (hostname.includes("microsoft") || hostname.includes("office.com") || hostname.includes("microsoftonline.com") || hostname.includes("azure.com") || hostname.includes("visualstudio.com") || hostname.includes("teams.microsoft.com") || hostname.includes("onedrive.com") || hostname.includes("outlook.com") || hostname.includes("powerbi.com") || hostname.includes("dynamics.com")) {
+        return PRODUCT_ICONS.microsoft;
+    }
+
+    return null;
+}
+
 router.get("/", async (req, res) => {
     const target = req.query.url;
 
@@ -86,6 +121,13 @@ router.get("/", async (req, res) => {
         if (cached) return res.json({ url: cached, cached: true });
 
         const parsed = new URL(target);
+
+        // If the URL matches Excel / SharePoint / Microsoft patterns, return a product icon immediately
+        const msIcon = getMicrosoftIcon(parsed);
+        if (msIcon) {
+            setCache(target, msIcon);
+            return res.json({ url: msIcon, source: "product" });
+        }
 
         // Fetch HTML of target page with a short timeout
         const response = await fetch(parsed.toString(), { redirect: 'follow', timeout: 5000 });
