@@ -761,7 +761,12 @@ function updatePermissionButtons() {
 const mModel = document.getElementById('mModel');
 const mSerial = document.getElementById('mSerial');
 const mIP = document.getElementById('mIP');
+
+const mPrintQueue =
+    document.getElementById("mPrintQueue");
+
 const mIPLink = document.getElementById('mIPLink');
+
 mIPLink.addEventListener("click", () => {
     const ip = mIP.value.trim();
 
@@ -1892,6 +1897,12 @@ function renderPins(selectMode = false) {
 
                     ||
 
+                    (printer.printQueue || "")
+                        .toLowerCase()
+                        .includes(searchText)
+
+                    ||
+
                     (printer.col || "")
                         .toLowerCase()
                         .includes(searchText)
@@ -1994,6 +2005,8 @@ function showModal(printer, index) {
     mModel.value = printer.model;
     mSerial.value = printer.serial;
     mIP.value = printer.ip || "";
+    mPrintQueue.value =
+        printer.printQueue || "";
     mLoc.value = printer.loc || "";
     mCol.value = printer.col || "";
     mNotes.value = printer.notes || "";
@@ -2002,6 +2015,7 @@ function showModal(printer, index) {
     mModel.disabled = !canEdit;
     mSerial.disabled = !canEdit;
     mIP.disabled = !canEdit;
+    mPrintQueue.disabled = !canEdit;
     mLoc.disabled = !canEdit;
     mCol.disabled = !canEdit;
     mNotes.disabled = !canEdit;
@@ -2731,6 +2745,9 @@ savePrinterBtn.addEventListener("click", async (e) => {
     printer.ip =
         mIP.value.trim();
 
+    printer.printQueue =
+        mPrintQueue.value.trim();
+
     printer.loc =
         mLoc.value;
 
@@ -2983,6 +3000,7 @@ panzoomArea.addEventListener(
                 model: "",
                 serial: "",
                 ip: "",
+                printQueue: "",
                 loc: "",
                 col: "",
                 notes: "",
@@ -3024,6 +3042,7 @@ panzoomArea.addEventListener('dblclick', async (e) => {
     model: "",
     serial: "",
     ip: "",
+    printQueue: "",
     loc: "",
     col: "",
     notes: "",

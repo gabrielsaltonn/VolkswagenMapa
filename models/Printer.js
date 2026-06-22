@@ -4,6 +4,12 @@ const PrinterSchema = new mongoose.Schema({
     model: String,
     serial: String,
     ip: String,
+
+    printQueue: {
+        type: String,
+        default: ""
+    },
+
     loc: String,
     col: String,
     notes: String,
