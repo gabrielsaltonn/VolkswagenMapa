@@ -1872,6 +1872,11 @@ function renderPins(selectMode = false) {
 
         if (!searchText) return true;
 
+        const backupText =
+            printer.backup
+                ? "backup bkp reserva"
+                : "";
+
         return (
                     (printer.model || "")
                         .toLowerCase()
@@ -1906,6 +1911,10 @@ function renderPins(selectMode = false) {
                     (printer.col || "")
                         .toLowerCase()
                         .includes(searchText)
+
+                    ||
+
+                    backupText.includes(searchText)
                 );
 
             })
@@ -1921,7 +1930,31 @@ function renderPins(selectMode = false) {
 
                 const circle = document.createElement("div");
                 circle.className = "pin-circle";
-                circle.style.background = printer.backup ? "green" : "red";
+
+                const hasPhoto =
+                    printer.photos &&
+                    printer.photos.length > 0;
+
+                if (printer.backup) {
+
+                    circle.style.background =
+                        "green";
+
+                } else if (hasPhoto) {
+
+                    circle.classList.add(
+                        "pin-has-photo"
+                    );
+
+                    circle.style.backgroundImage =
+                        `url("${printer.photos[0]}")`;
+
+                } else {
+
+                    circle.style.background =
+                        "red";
+
+                }
 
                 if (selectedPins.has(index)) {
                     pinWrapper.classList.add("selected-pin");

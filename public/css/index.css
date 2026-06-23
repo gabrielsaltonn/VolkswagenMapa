@@ -1121,7 +1121,13 @@ body.quick-sidebar-open .collapsed-sidebar {
     }
 }
 
-
+.pin-circle.pin-has-photo {
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    border: 2px solid white !important;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.65) !important;
+}
 
 
 
