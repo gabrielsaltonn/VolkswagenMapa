@@ -45,7 +45,7 @@ body {
     text-align: center;
     margin: 0;
     min-height: 100vh;
-    background: linear-gradient(80deg, #1a223d, #0e725c, #217e97);
+    background: linear-gradient(80deg, #001f63, #720e3f, #c35fc1);
     display: flex;
     flex-direction: column;
 }

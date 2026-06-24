@@ -4,12 +4,8 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background: linear-gradient(
-        80deg,
-        #1a223d,
-        #0e725c,
-        #217e97
-    );
+    background: linear-gradient(80deg, #001f63, #720e3f, #c35fc1)
+    
 }
 
 .login-body > footer {

@@ -125,7 +125,7 @@ textarea {
     header #search {
         display: block !important;
 
-        width: calc(100vw - 88px) !important;
+        width: calc(100vw - 280px) !important;
         min-width: 0 !important;
         max-width: none !important;
 
@@ -141,6 +141,7 @@ textarea {
 
         position: relative !important;
         z-index: 1 !important;
+        left: 10%;
     }
 
     .map-container {
@@ -322,10 +323,11 @@ textarea {
     }
 
     header #search {
-        width: calc(100vw - 82px) !important;
+        width: calc(100vw - 120px) !important;
         margin-left: 62px !important;
         height: 42px !important;
         font-size: 0.78rem !important;
+        left: 0%;
     }
 
     .map-container {

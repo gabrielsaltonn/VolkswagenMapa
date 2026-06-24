@@ -67,6 +67,7 @@ header h1 {
     transition:
         background-color 0.2s ease,
         box-shadow 0.2s ease;
+    right: 6%;
 }
 
 .search::placeholder {
@@ -106,6 +107,7 @@ header h1 {
         order: 1;
         width: 100%;
         flex: none;
+        left: 25%;
     }
 
     .logo1 {
@@ -114,6 +116,7 @@ header h1 {
 
     .search {
         order: 2;
+        left: 25%;
     }
 
     #plantSelect {
