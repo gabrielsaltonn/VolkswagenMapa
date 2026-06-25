@@ -327,14 +327,19 @@ confirmDeleteMapBtn.addEventListener(
             }
         );
 
+        const deletedCurrentPlant =
+            mapToDelete.name === currentPlant;
+
         deleteMapModal.style.display =
             "none";
 
         mapToDelete = null;
 
-        await loadMaps();
+        if (deletedCurrentPlant) {
+            currentMapPage = 0;
+        }
 
-        renderMapAdmin();
+        await refreshMapsAndView();
 
     }
 );
@@ -482,9 +487,7 @@ confirmNewPlantBtn.addEventListener(
         newPlantModal.style.display =
             "none";
 
-        await loadMaps();
-
-        renderMapAdmin();
+        await refreshMapsAndView();
 
         showMessageModal(
             "Sucesso",
@@ -636,29 +639,18 @@ mapUploadInput.addEventListener(
             map
         );
 
-        await loadMaps();
-
-        currentMapPage =
+        const updatedPageIndex =
             map.pages.length - 1;
 
-        updatePlantImage();
-
-        renderPins();
-
-        await loadMaps();
-
-        const updatedMap =
-            maps.find(
-                m => m._id === map._id
-            );
-
-        if (updatedMap) {
-
-            renderMapPages(
-                updatedMap
-            );
-
+        if (map.name === currentPlant) {
+            currentMapPage = updatedPageIndex;
         }
+
+        await refreshMapsAndView({
+            renderAdmin: false,
+            pagesMapId: map._id,
+            keepPagesModal: true
+        });
 
         showMessageModal(
             "Mapa adicionado",
@@ -1134,6 +1126,28 @@ const currentUser =
 
 const selectedPins = new Set();
 
+let expandedPinClusterId = null;
+
+const PIN_CLUSTER_RADIUS_PERCENT = 0.75;
+const PIN_CLUSTER_SPREAD_PERCENT = 1.45;
+const PIN_TINY_SIZE = 2.5;
+
+const CLUSTER_FULL_ZOOM = 7.2;
+const CLUSTER_DETAIL_ZOOM = 9.2;
+
+function getClusterTransition(scale) {
+
+    const progress =
+        (scale - CLUSTER_FULL_ZOOM) /
+        (CLUSTER_DETAIL_ZOOM - CLUSTER_FULL_ZOOM);
+
+    return Math.min(
+        1,
+        Math.max(0, progress)
+    );
+
+}
+
 let maps = [];
 
 let selectedMapAdmin = null;
@@ -1207,9 +1221,7 @@ confirmEditMapBtn.addEventListener(
 
         mapToEdit = null;
 
-        await loadMaps();
-
-        renderMapAdmin();
+        await refreshMapsAndView();
 
     }
 );
@@ -1287,6 +1299,69 @@ async function loadMaps() {
 
 }
 
+async function refreshMapsAndView({
+    renderAdmin = true,
+    pagesMapId = null,
+    keepPagesModal = false
+} = {}) {
+
+    await loadMaps();
+
+    const pages =
+        getCurrentMapPages();
+
+    if (
+        currentMapPage >= pages.length
+    ) {
+
+        currentMapPage =
+            Math.max(
+                0,
+                pages.length - 1
+            );
+
+    }
+
+    if (!pages.length) {
+        currentMapPage = 0;
+    }
+
+    selectedPins.clear();
+
+    if (
+        typeof expandedPinClusterId !== "undefined"
+    ) {
+        expandedPinClusterId = null;
+    }
+
+    updatePlantImage();
+
+    renderPins();
+
+    updatePermissionButtons();
+
+    if (renderAdmin) {
+        renderMapAdmin();
+    }
+
+    if (
+        keepPagesModal &&
+        pagesMapId
+    ) {
+
+        const updatedMap =
+            maps.find(
+                map => map._id === pagesMapId
+            );
+
+        if (updatedMap) {
+            renderMapPages(updatedMap);
+        }
+
+    }
+
+}
+
 function renderMapAdmin() {
 
     mapsAdminList.innerHTML = "";
@@ -1338,7 +1413,7 @@ function renderMapAdmin() {
             "click",
             async () => {
 
-                mapTpEdit = map;
+                mapToEdit = map;
             
                 editMapInput.value =
                     map.label;
@@ -1449,20 +1524,11 @@ function renderMapPages(map) {
 
                         }
 
-                        await loadMaps();
-
-                        const updatedMap =
-                            maps.find(
-                                m => m._id === map._id
-                            );
-
-                        if (updatedMap) {
-
-                            renderMapPages(
-                                updatedMap
-                            );
-
-                        }
+                        await refreshMapsAndView({
+                            renderAdmin: false,
+                            pagesMapId: map._id,
+                            keepPagesModal: true
+                        });
 
                     },
                     true
@@ -1708,8 +1774,10 @@ searchInput.addEventListener("input", (e) => {
 
     searchText = e.target.value.toLowerCase();
 
-    console.log("Pesquisando:", searchText);
+    expandedPinClusterId = null;
 
+    console.log("Pesquisando:", searchText);
+    
     renderPins();
 
 });
@@ -1722,6 +1790,8 @@ plantSelect.addEventListener("change", (e) => {
 
     searchText = "";
     searchInput.value = "";
+
+    expandedPinClusterId = null;
 
     selectedPins.clear();
 
@@ -1824,25 +1894,611 @@ function atualizarContadorFotos() {
 
 // Ajustar tamanho dos pins conforme o zoom
 function adjustPins(scale) {
-    const minSize = 1;
-    const maxSize = 20;
-    const zoomMax = panzoomInstance.getOptions().maxScale;
-    const zoomMin = panzoomInstance.getOptions().minScale;
 
-    const size = Math.max(minSize, maxSize - ((scale - zoomMin) / (zoomMax - zoomMin)) * (maxSize - minSize));
+    const minSize = PIN_TINY_SIZE;
+    const maxSize = 30;
+
+    const zoomMax =
+        panzoomInstance.getOptions().maxScale;
+
+    const zoomMin =
+        panzoomInstance.getOptions().minScale;
+
+    const baseSize =
+        Math.max(
+            minSize,
+            maxSize -
+                ((scale - zoomMin) / (zoomMax - zoomMin)) *
+                (maxSize - minSize)
+        );
 
     document.querySelectorAll(".pin-circle").forEach(pin => {
-        pin.style.width = `${size}px`;
-        pin.style.height = `${size}px`;
 
-        if (size <= 1.5) {
-            pin.style.border = "none";
-            pin.style.boxShadow = "none";
-        } else {
-            pin.style.border = "1px solid white";
-            pin.style.boxShadow = "0 0 3px rgba(0,0,0,0.45)";
+        const isClusterDetailDot =
+            Boolean(
+                pin.closest(".cluster-detail-pin")
+            );
+
+        const finalSize =
+            isClusterDetailDot
+                ? PIN_TINY_SIZE
+                : baseSize;
+
+        const isTiny =
+            isClusterDetailDot ||
+            finalSize <= PIN_TINY_SIZE;
+
+        const pinSize =
+            `${finalSize}px`;
+
+        pin.style.setProperty(
+            "width",
+            pinSize,
+            "important"
+        );
+
+        pin.style.setProperty(
+            "height",
+            pinSize,
+            "important"
+        );
+
+        pin.style.setProperty(
+            "min-width",
+            pinSize,
+            "important"
+        );
+
+        pin.style.setProperty(
+            "min-height",
+            pinSize,
+            "important"
+        );
+
+        pin.style.setProperty(
+            "max-width",
+            pinSize,
+            "important"
+        );
+
+        pin.style.setProperty(
+            "max-height",
+            pinSize,
+            "important"
+        );
+
+        pin.style.setProperty(
+            "padding",
+            "0",
+            "important"
+        );
+
+        pin.style.setProperty(
+            "box-sizing",
+            "border-box",
+            "important"
+        );
+
+        pin.style.setProperty(
+            "aspect-ratio",
+            "1 / 1",
+            "important"
+        );
+
+        pin.classList.toggle(
+            "pin-tiny",
+            isTiny
+        );
+
+        if (
+            pin.classList.contains("pin-cluster-circle")
+        ) {
+
+            if (!pin.dataset.clusterCount) {
+                pin.dataset.clusterCount =
+                    pin.textContent;
+            }
+
+            pin.textContent =
+                isTiny
+                    ? ""
+                    : pin.dataset.clusterCount;
+
+            pin.style.fontSize =
+                isTiny
+                    ? "0px"
+                    : "11px";
+
         }
+
+        if (pin.dataset.photoUrl) {
+
+            if (isTiny) {
+
+                pin.style.backgroundImage =
+                    "none";
+
+                pin.style.background =
+                    "red";
+
+            } else {
+
+                pin.style.backgroundImage =
+                    `url("${pin.dataset.photoUrl}")`;
+
+            }
+
+        }
+
+        if (isTiny) {
+
+            pin.style.border =
+                "none";
+
+            pin.style.boxShadow =
+                "none";
+
+            pin.style.outline =
+                "none";
+
+            pin.style.padding =
+                "0";
+
+            pin.style.lineHeight =
+                "0";
+
+            pin.style.fontSize =
+                "0";
+                    
+        } else {
+
+            pin.style.border =
+                "1px solid white";
+
+            pin.style.boxShadow =
+                "0 0 3px rgba(0,0,0,0.45)";
+
+            pin.style.outline =
+                "";
+
+        }
+
     });
+
+}
+
+function clampPinPosition(value) {
+
+    return Math.min(
+        99.5,
+        Math.max(0.5, value)
+    );
+
+}
+
+function printerMatchesCurrentView(printer) {
+
+    if (printer.plant !== currentPlant) {
+        return false;
+    }
+
+    const printerPage =
+        printer.page || 1;
+
+    if (printerPage !== currentMapPage + 1) {
+        return false;
+    }
+
+    if (!searchText) {
+        return true;
+    }
+
+    const backupText =
+        printer.backup
+            ? "backup bkp reserva"
+            : "";
+
+    return (
+        (printer.model || "")
+            .toLowerCase()
+            .includes(searchText)
+
+        ||
+
+        (printer.serial || "")
+            .toLowerCase()
+            .includes(searchText)
+
+        ||
+
+        (printer.loc || "")
+            .toLowerCase()
+            .includes(searchText)
+
+        ||
+
+        (printer.ip || "")
+            .toLowerCase()
+            .includes(searchText)
+
+        ||
+
+        (printer.printQueue || "")
+            .toLowerCase()
+            .includes(searchText)
+
+        ||
+
+        (printer.col || "")
+            .toLowerCase()
+            .includes(searchText)
+
+        ||
+
+        backupText.includes(searchText)
+    );
+
+}
+
+function getPinDistance(printerA, printerB) {
+
+    return Math.hypot(
+        Number(printerA.x) - Number(printerB.x),
+        Number(printerA.y) - Number(printerB.y)
+    );
+
+}
+
+function buildPinClusters(items) {
+
+    const clusters = [];
+
+    items.forEach(item => {
+
+        const cluster =
+            clusters.find(existingCluster =>
+                existingCluster.items.some(existingItem =>
+                    getPinDistance(
+                        item.printer,
+                        existingItem.printer
+                    ) <= PIN_CLUSTER_RADIUS_PERCENT
+                )
+            );
+
+        if (cluster) {
+
+            cluster.items.push(item);
+
+        } else {
+
+            clusters.push({
+                items: [item]
+            });
+
+        }
+
+    });
+
+    return clusters.map(cluster => {
+
+        const sortedItems =
+            [...cluster.items].sort(
+                (a, b) => a.realIndex - b.realIndex
+            );
+
+        const centerX =
+            sortedItems.reduce(
+                (sum, item) => sum + Number(item.printer.x),
+                0
+            ) / sortedItems.length;
+
+        const centerY =
+            sortedItems.reduce(
+                (sum, item) => sum + Number(item.printer.y),
+                0
+            ) / sortedItems.length;
+
+        return {
+            id: sortedItems
+                .map(item => item.realIndex)
+                .join("-"),
+            items: sortedItems,
+            x: centerX,
+            y: centerY
+        };
+
+    });
+
+}
+
+function createPinCircle(printer) {
+
+    const circle =
+        document.createElement("div");
+
+    circle.className =
+        "pin-circle";
+
+    const hasPhoto =
+        printer.photos &&
+        printer.photos.length > 0;
+
+    if (printer.backup) {
+
+        circle.style.background =
+            "green";
+
+    } else if (hasPhoto) {
+
+        circle.classList.add(
+            "pin-has-photo"
+        );
+
+        circle.style.backgroundImage =
+            `url("${printer.photos[0]}")`;
+
+        circle.dataset.photoUrl =
+            printer.photos[0];
+
+    } else {
+
+        circle.style.background =
+            "red";
+
+    }
+
+    return circle;
+
+}
+
+function renderSinglePin(
+    item,
+    selectMode = false,
+    position = null,
+    extraClass = ""
+) {
+
+    const printer =
+        item.printer;
+
+    const index =
+        item.realIndex;
+
+    const pinWrapper =
+        document.createElement("div");
+
+    pinWrapper.className =
+        "pin-wrapper";
+
+    if (captureMode) {
+
+        pinWrapper.classList.add(
+            "pin-capture-disabled"
+        );
+
+    }
+
+    if (extraClass) {
+
+        pinWrapper.classList.add(
+            extraClass
+        );
+
+    }
+
+    pinWrapper.style.left =
+        `${position ? position.x : printer.x}%`;
+
+    pinWrapper.style.top =
+        `${position ? position.y : printer.y}%`;
+
+    const circle =
+        createPinCircle(printer);
+
+    if (selectedPins.has(index)) {
+
+        pinWrapper.classList.add(
+            "selected-pin"
+        );
+
+        if (isMultiDeleteMode) {
+
+            circle.classList.add(
+                "pin-floating"
+            );
+
+        }
+
+    }
+
+    pinWrapper.appendChild(circle);
+
+    pinWrapper.addEventListener("click", (e) => {
+
+        e.stopPropagation();
+
+        console.log(
+            "Pin clicado:",
+            printer
+        );
+
+        if (selectMode) {
+
+            if (selectedPins.has(index)) {
+
+                selectedPins.delete(index);
+
+                pinWrapper.classList.remove(
+                    "selected-pin"
+                );
+
+                circle.classList.remove(
+                    "pin-floating"
+                );
+
+            } else {
+
+                selectedPins.add(index);
+
+                pinWrapper.classList.add(
+                    "selected-pin"
+                );
+
+                if (isMultiDeleteMode) {
+
+                    circle.classList.add(
+                        "pin-floating"
+                    );
+
+                }
+
+            }
+
+        } else {
+
+            showModal(
+                printer,
+                index
+            );
+
+        }
+
+    });
+
+    pinsDiv.appendChild(
+        pinWrapper
+    );
+
+    return pinWrapper;
+
+}
+
+function renderClusterPin(
+    cluster,
+    opacity = 1,
+    isInteractive = true
+) {
+
+    const pinWrapper =
+        document.createElement("div");
+
+    pinWrapper.className =
+        "pin-wrapper pin-cluster-wrapper";
+
+    pinWrapper.style.left =
+        `${cluster.x}%`;
+
+    pinWrapper.style.top =
+        `${cluster.y}%`;
+
+    pinWrapper.style.opacity =
+        opacity;
+
+    if (!isInteractive) {
+
+        pinWrapper.classList.add(
+            "pin-cluster-disabled"
+        );
+
+    }
+
+    const circle =
+        document.createElement("div");
+
+    circle.className =
+        "pin-circle pin-cluster-circle";
+
+    circle.textContent =
+        cluster.items.length;
+
+    circle.dataset.clusterCount =
+        cluster.items.length;
+
+    pinWrapper.appendChild(
+        circle
+    );
+
+    if (isInteractive) {
+
+        pinWrapper.addEventListener("click", (e) => {
+
+            e.stopPropagation();
+
+            expandedPinClusterId =
+                expandedPinClusterId === cluster.id
+                    ? null
+                    : cluster.id;
+
+            renderPins();
+
+        });
+
+    }
+
+    pinsDiv.appendChild(
+        pinWrapper
+    );
+
+}
+
+function renderClusterDetailPins(
+    cluster,
+    opacity,
+    isInteractive
+) {
+
+    cluster.items.forEach(item => {
+
+        const pinWrapper =
+            renderSinglePin(
+                item,
+                false,
+                null,
+                "cluster-detail-pin"
+            );
+
+        pinWrapper.style.opacity =
+            opacity;
+
+        if (!isInteractive) {
+
+            pinWrapper.classList.add(
+                "cluster-detail-disabled"
+            );
+
+        }
+
+    });
+
+}
+
+function renderExpandedCluster(cluster) {
+
+    const total =
+        cluster.items.length;
+
+    cluster.items.forEach((item, groupIndex) => {
+
+        const offset =
+            (groupIndex - ((total - 1) / 2))
+            * PIN_CLUSTER_SPREAD_PERCENT;
+
+        renderSinglePin(
+            item,
+            false,
+            {
+                x: clampPinPosition(
+                    cluster.x + offset
+                ),
+                y: clampPinPosition(
+                    cluster.y
+                )
+            },
+            "expanded-cluster-pin"
+        );
+
+    });
+
 }
 
 // Renderizar pins
@@ -1850,148 +2506,191 @@ function renderPins(selectMode = false) {
 
     pinsDiv.innerHTML = "";
 
-    printers
-        .map((printer, realIndex) => ({
-            printer,
-            realIndex
-        }))
-        .filter(item => {
+    const visibleItems =
+        printers
+            .map((printer, realIndex) => ({
+                printer,
+                realIndex
+            }))
+            .filter(item =>
+                printerMatchesCurrentView(
+                    item.printer
+                )
+            );
 
-        const printer = item.printer;
+    if (selectMode || isMultiDeleteMode || captureMode) {
 
-        if (printer.plant !== currentPlant) {
-            return false;
-        }
+        visibleItems.forEach(item => {
 
-        const printerPage =
-            printer.page || 1;
+            renderSinglePin(
+                item,
+                selectMode || isMultiDeleteMode
+            );
 
-        if (printerPage !== currentMapPage + 1) {
-            return false;
-        }
-
-        if (!searchText) return true;
-
-        const backupText =
-            printer.backup
-                ? "backup bkp reserva"
-                : "";
-
-        return (
-                    (printer.model || "")
-                        .toLowerCase()
-                        .includes(searchText)
-
-                    ||
-
-                    (printer.serial || "")
-                        .toLowerCase()
-                        .includes(searchText)
-
-                    ||
-
-                    (printer.loc || "")
-                        .toLowerCase()
-                        .includes(searchText)
-
-                    ||
-
-                    (printer.ip || "")
-                        .toLowerCase()
-                        .includes(searchText)
-
-                    ||
-
-                    (printer.printQueue || "")
-                        .toLowerCase()
-                        .includes(searchText)
-
-                    ||
-
-                    (printer.col || "")
-                        .toLowerCase()
-                        .includes(searchText)
-
-                    ||
-
-                    backupText.includes(searchText)
-                );
-
-            })
-            .forEach(item => {
-
-                const printer = item.printer;
-                const index = item.realIndex;
-
-                const pinWrapper = document.createElement("div");
-                pinWrapper.className = "pin-wrapper";
-                pinWrapper.style.left = `${printer.x}%`;
-                pinWrapper.style.top = `${printer.y}%`;
-
-                const circle = document.createElement("div");
-                circle.className = "pin-circle";
-
-                const hasPhoto =
-                    printer.photos &&
-                    printer.photos.length > 0;
-
-                if (printer.backup) {
-
-                    circle.style.background =
-                        "green";
-
-                } else if (hasPhoto) {
-
-                    circle.classList.add(
-                        "pin-has-photo"
-                    );
-
-                    circle.style.backgroundImage =
-                        `url("${printer.photos[0]}")`;
-
-                } else {
-
-                    circle.style.background =
-                        "red";
-
-                }
-
-                if (selectedPins.has(index)) {
-                    pinWrapper.classList.add("selected-pin");
-                    if (isMultiDeleteMode) {
-                        circle.classList.add("pin-floating");
-                    }
-                }
-
-                pinWrapper.appendChild(circle);
-
-                pinWrapper.addEventListener("click", () => {
-
-                console.log("Pin clicado:", printer);
-
-                if (selectMode) {
-                    if (selectedPins.has(index)) {
-                        selectedPins.delete(index);
-                        pinWrapper.classList.remove("selected-pin");
-                        circle.classList.remove("pin-floating");
-                    } else {
-                        selectedPins.add(index);
-                        pinWrapper.classList.add("selected-pin");
-                        if (isMultiDeleteMode) {
-                            circle.classList.add("pin-floating");
-                        }
-                    }
-                } else {
-                    showModal(printer, index);
-                }
-            });
-
-            pinsDiv.appendChild(pinWrapper);
         });
 
-        updateCounters();
-        adjustPins(panzoomInstance.getScale());
+    } else {
+
+        const scale =
+            panzoomInstance.getScale();
+
+        const clusterProgress =
+            getClusterTransition(scale);
+
+        const isDetailMode =
+            clusterProgress >= 1;
+
+        const clusters =
+            buildPinClusters(
+                visibleItems
+            );
+
+        clusters.forEach(cluster => {
+
+            if (cluster.items.length === 1) {
+
+                renderSinglePin(
+                    cluster.items[0],
+                    false
+                );
+
+                return;
+
+            }
+
+            if (
+                expandedPinClusterId === cluster.id &&
+                !isDetailMode
+            ) {
+
+                renderExpandedCluster(
+                    cluster
+                );
+
+                return;
+
+            }
+
+            if (clusterProgress > 0) {
+
+                renderClusterDetailPins(
+                    cluster,
+                    clusterProgress,
+                    isDetailMode
+                );
+
+            }
+
+            if (!isDetailMode) {
+
+                renderClusterPin(
+                    cluster,
+                    1 - clusterProgress,
+                    true
+                );
+
+            }
+
+        });
+
+    }
+
+    updateCounters();
+
+    adjustPins(
+        panzoomInstance.getScale()
+    );
+
 }
+
+// Fechar grupo somente em clique real, não ao arrastar o mapa
+let clusterCloseStartX = 0;
+let clusterCloseStartY = 0;
+let clusterCloseMoved = false;
+
+const CLUSTER_CLOSE_MAX_MOVE = 8;
+
+document.addEventListener(
+    "pointerdown",
+    (e) => {
+
+        if (!expandedPinClusterId) {
+            return;
+        }
+
+        clusterCloseStartX =
+            e.clientX;
+
+        clusterCloseStartY =
+            e.clientY;
+
+        clusterCloseMoved =
+            false;
+
+    }
+);
+
+document.addEventListener(
+    "pointermove",
+    (e) => {
+
+        if (!expandedPinClusterId) {
+            return;
+        }
+
+        const moveX =
+            Math.abs(
+                e.clientX - clusterCloseStartX
+            );
+
+        const moveY =
+            Math.abs(
+                e.clientY - clusterCloseStartY
+            );
+
+        if (
+            moveX > CLUSTER_CLOSE_MAX_MOVE ||
+            moveY > CLUSTER_CLOSE_MAX_MOVE
+        ) {
+
+            clusterCloseMoved =
+                true;
+
+        }
+
+    }
+);
+
+document.addEventListener(
+    "click",
+    (e) => {
+
+        if (!expandedPinClusterId) {
+            return;
+        }
+
+        if (clusterCloseMoved) {
+
+            clusterCloseMoved =
+                false;
+
+            return;
+
+        }
+
+        if (
+            e.target.closest(".pin-wrapper")
+        ) {
+            return;
+        }
+
+        expandedPinClusterId =
+            null;
+
+        renderPins();
+
+    }
+);
 
 // Mostrar modal
 function showModal(printer, index) {
@@ -3095,7 +3794,44 @@ await loadPrinters();
 });
 
 // Zoom altera pins
-panzoomArea.addEventListener('panzoomchange', (e) => adjustPins(e.detail.scale));
+let pinZoomRenderFrame = null;
+let lastPinZoomScale = 1;
+
+panzoomArea.addEventListener("panzoomchange", (e) => {
+
+    const scale =
+        e.detail.scale;
+
+    if (
+        Math.abs(scale - lastPinZoomScale) < 0.03
+    ) {
+
+        adjustPins(scale);
+
+        return;
+
+    }
+
+    lastPinZoomScale =
+        scale;
+
+    if (pinZoomRenderFrame) {
+        cancelAnimationFrame(
+            pinZoomRenderFrame
+        );
+    }
+
+    pinZoomRenderFrame =
+        requestAnimationFrame(() => {
+
+            renderPins();
+
+            pinZoomRenderFrame =
+                null;
+
+        });
+
+});
 
 // Alternar modo de captura
 toggleHelper.addEventListener('click', () => {
@@ -3111,8 +3847,13 @@ toggleHelper.addEventListener('click', () => {
 
     captureMode = true;
 
+    expandedPinClusterId =
+        null;
+
     toggleHelper.textContent =
         'Clique no mapa 2x para adicionar';
+
+    renderPins();
 
 });
 
