@@ -51,12 +51,19 @@ router.post("/register", async (req, res) => {
                 10
             );
 
-        const newUser =
+       const newUser =
             await User.create({
                 username,
                 password: hashedPassword,
                 role: "user",
                 plant: "SJP",
+                access: [
+                    {
+                        contractNumber: "1234",
+                        role: "user",
+                        plants: ["SJP"]
+                    }
+                ],
                 status: "pending"
             });
 
@@ -130,12 +137,24 @@ router.post("/login", async (req, res) => {
 
         }
 
+        const access =
+            user.access && user.access.length > 0
+                ? user.access
+                : [
+                    {
+                        contractNumber: "1234",
+                        role: user.role,
+                        plants: [user.plant || "SJP"]
+                    }
+                ];
+
         res.json({
             mensagem: "Login realizado",
             user: {
                 username: user.username,
                 role: user.role,
                 plant: user.plant,
+                access,
                 status: user.status
             }
         });
@@ -265,14 +284,8 @@ router.patch("/role/:id", async (req, res) => {
         }
 
         const user =
-            await User.findByIdAndUpdate(
-                req.params.id,
-                {
-                    role
-                },
-                {
-                    new: true
-                }
+            await User.findById(
+                req.params.id
             );
 
         if (!user) {
@@ -282,6 +295,31 @@ router.patch("/role/:id", async (req, res) => {
             });
 
         }
+
+        user.role =
+            role;
+
+        const defaultAccess =
+            user.access.find(accessItem =>
+                accessItem.contractNumber === "1234"
+            );
+
+        if (defaultAccess) {
+
+            defaultAccess.role =
+                role;
+
+        } else {
+
+            user.access.push({
+                contractNumber: "1234",
+                role,
+                plants: [user.plant || "SJP"]
+            });
+
+        }
+
+        await user.save();
 
         res.json({
             mensagem: "Role atualizada",
@@ -322,14 +360,8 @@ router.patch("/plant/:id", async (req, res) => {
         }
 
         const user =
-            await User.findByIdAndUpdate(
-                req.params.id,
-                {
-                    plant
-                },
-                {
-                    new: true
-                }
+            await User.findById(
+                req.params.id
             );
 
         if (!user) {
@@ -339,6 +371,31 @@ router.patch("/plant/:id", async (req, res) => {
             });
 
         }
+
+        user.plant =
+            plant;
+
+        const defaultAccess =
+            user.access.find(accessItem =>
+                accessItem.contractNumber === "1234"
+            );
+
+        if (defaultAccess) {
+
+            defaultAccess.plants =
+                [plant];
+
+        } else {
+
+            user.access.push({
+                contractNumber: "1234",
+                role: user.role || "user",
+                plants: [plant]
+            });
+
+        }
+
+        await user.save();
 
         res.json({
             mensagem: "Planta atualizada",
