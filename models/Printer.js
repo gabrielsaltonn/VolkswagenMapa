@@ -27,6 +27,13 @@ const PrinterSchema = new mongoose.Schema({
     backup: Boolean,
     photos: [String],
 
+    contractNumber: {
+        type: String,
+        required: true,
+        default: "1234",
+        trim: true
+    },
+
     plant: String,
 
     page: {
