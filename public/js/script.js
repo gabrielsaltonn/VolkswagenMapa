@@ -66,6 +66,26 @@ const loggedUserPlant =
         "loggedUserPlant"
     );
 
+const contractSelect =
+    document.getElementById(
+        "contractSelect"
+    );
+
+const SUPER_ADMIN_USERS = [
+    "admin@simpress.com.br",
+    "admin.dev@simpress.com.br"
+];
+
+function isSuperAdminUser() {
+
+    return SUPER_ADMIN_USERS.includes(
+        String(loggedUser.username || "")
+            .trim()
+            .toLowerCase()
+    );
+
+}
+
 loggedUserName.textContent =
     `${loggedUser.username}`;
 
@@ -1339,7 +1359,7 @@ async function updateMap(id, mapData) {
             body: JSON.stringify({
                 ...mapData,
                 contractNumber:
-                    mapData.ContractNumber ||
+                    mapData.contractNumber ||
                     activeContractNumber
             })
         });
@@ -1347,6 +1367,107 @@ async function updateMap(id, mapData) {
     return await response.json();
 
 }
+
+async function loadContracts() {
+
+    try {
+
+        const response =
+            await fetch("/api/contracts");
+
+        const contracts =
+            await response.json();
+
+        const userContractNumbers =
+            loggedUser.access?.map(item =>
+                item.contractNumber
+            ) || [];
+
+        const availableContracts =
+            isSuperAdminUser()
+                ? contracts
+                : contracts.filter(contract =>
+                    userContractNumbers.includes(
+                        contract.number
+                    )
+                );
+
+        contractSelect.innerHTML = "";
+
+        availableContracts.forEach(contract => {
+
+            const option =
+                document.createElement("option");
+
+            option.value =
+                contract.number;
+
+            option.textContent =
+                `${contract.name} - ${contract.number}`;
+
+            contractSelect.appendChild(option);
+
+        });
+
+        if (
+            !availableContracts.some(contract =>
+                contract.number === activeContractNumber
+            )
+        ) {
+
+            activeContractNumber =
+                availableContracts[0]?.number ||
+                DEFAULT_CONTRACT_NUMBER;
+
+            localStorage.setItem(
+                "activeContractNumber",
+                activeContractNumber
+            );
+
+        }
+
+        contractSelect.value =
+            activeContractNumber;
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao carregar contratos:",
+            error
+        );
+
+    }
+
+}
+
+contractSelect.addEventListener(
+    "change",
+    async (e) => {
+
+        activeContractNumber =
+            e.target.value;
+
+        localStorage.setItem(
+            "activeContractNumber",
+            activeContractNumber
+        );
+
+        currentMapPage = 0;
+
+        searchText = "";
+        searchInput.value = "";
+
+        selectedPins.clear();
+
+        expandedPinClusterId =
+            null;
+
+        await refreshMapsAndView();
+
+        await loadPrinters();
+
+    }
+);
 
 async function loadMaps() {
 
@@ -4864,11 +4985,9 @@ collapsedLogoutBtn.addEventListener(
     confirmLogout
 );
 
-updatePlantImage();
-
-updatePermissionButtons();
-
 async function startApp() {
+
+    await loadContracts();
 
     await loadMaps();
 
@@ -4876,11 +4995,12 @@ async function startApp() {
 
     await loadPrinters();
 
+    updatePermissionButtons();
+
+    fetchQuickLinks();
+
 }
 
 startApp();
-
-// Inicializar atalhos
-fetchQuickLinks();
 
 // Gabriel Salton

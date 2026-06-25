@@ -286,6 +286,36 @@
     filter: brightness(0.92);
 }
 
+.contract-selector-label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    margin-top: 8px;
+
+    font-size: 12px;
+    font-weight: 700;
+    color: #000000;
+
+}
+
+#contractSelect {
+    width: 100%;
+
+    padding: 7px 8px;
+
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+
+    background: white;
+    color: #0f172a;
+
+    font-size: 12px;
+    font-weight: 700;
+
+    box-sizing: border-box;
+}
+
 .sidebar-divider {
     width: 100%;
     height: 1px;
