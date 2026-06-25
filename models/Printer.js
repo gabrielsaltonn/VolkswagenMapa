@@ -5,6 +5,11 @@ const PrinterSchema = new mongoose.Schema({
     serial: String,
     ip: String,
 
+    macAddress: {
+        type: String,
+        default: ""
+    },
+
     printQueue: {
         type: String,
         default: ""
@@ -12,6 +17,12 @@ const PrinterSchema = new mongoose.Schema({
 
     loc: String,
     col: String,
+
+    costCenter: {
+        type: String,
+        default: ""
+    },
+
     notes: String,
     backup: Boolean,
     photos: [String],

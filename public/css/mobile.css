@@ -575,7 +575,7 @@ textarea {
 
     #infoPrinters textarea {
         min-height: 80px !important;
-        resize: vertical !important;
+        resize: none !important;
     }
 
     .ip-container {

@@ -200,6 +200,11 @@
     text-align: center;
 }
 
+#infoPrinters textarea,
+#mNotes {
+    resize: none;
+}
+
 .ip-container {
     display: flex;
     gap: 8px;
@@ -244,7 +249,7 @@
 
 #deletePrinterBtn {
     color: white;
-    background: var(--primary);
+    background: red;
     border: 1px solid black;
     border-radius: var(--radius-sm);
     padding: 5px 20px;

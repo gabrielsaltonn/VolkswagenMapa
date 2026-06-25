@@ -754,10 +754,29 @@ const mModel = document.getElementById('mModel');
 const mSerial = document.getElementById('mSerial');
 const mIP = document.getElementById('mIP');
 
+const mMacAddress =
+    document.getElementById("mMacAddress");
+
 const mPrintQueue =
     document.getElementById("mPrintQueue");
 
-const mIPLink = document.getElementById('mIPLink');
+const mLoc = 
+    document.getElementById('mLocal');
+
+const mCol = 
+    document.getElementById('mCol');
+
+const mCostCenter =
+    document.getElementById("mCostCenter");
+
+const mNotes = 
+    document.getElementById('mNotes');
+
+const mBackup = 
+    document.getElementById('mBckp');
+
+const mIPLink = 
+    document.getElementById('mIPLink');
 
 mIPLink.addEventListener("click", () => {
     const ip = mIP.value.trim();
@@ -772,11 +791,9 @@ mIPLink.addEventListener("click", () => {
 
     window.open(url, "_blank");
 });
-const mLoc = document.getElementById('mLocal');
-const mCol = document.getElementById('mCol');
-const mNotes = document.getElementById('mNotes');
-const mBackup = document.getElementById('mBckp');
-const savePrinterBtn = document.getElementById('salvarImpressora');
+
+const savePrinterBtn = 
+    document.getElementById('salvarImpressora');
 
 const savePrinterMessage =
     document.getElementById(
@@ -1826,11 +1843,16 @@ async function deletePrinterById(id) {
 
 searchInput.addEventListener("input", (e) => {
 
-    searchText = e.target.value.toLowerCase();
+    searchText =
+        e.target.value;
 
-    expandedPinClusterId = null;
+    expandedPinClusterId =
+        null;
 
-    console.log("Pesquisando:", searchText);
+    console.log(
+        "Pesquisando:",
+        searchText
+    );
     
     renderPins();
 
@@ -2137,6 +2159,16 @@ function clampPinPosition(value) {
 
 }
 
+function normalizeSearchValue(value) {
+
+    return String(value || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]/g, "");
+
+}
+
 function printerMatchesCurrentView(printer) {
 
     if (printer.plant !== currentPlant) {
@@ -2159,44 +2191,29 @@ function printerMatchesCurrentView(printer) {
             ? "backup bkp reserva"
             : "";
 
-    return (
-        (printer.model || "")
-            .toLowerCase()
-            .includes(searchText)
+    const normalizedSearch =
+        normalizeSearchValue(searchText);
 
-        ||
+    if (!normalizedSearch) {
+        return true;
+    }
 
-        (printer.serial || "")
-            .toLowerCase()
-            .includes(searchText)
+    const normalizedPrinterData =
+        normalizeSearchValue([
+            printer.model,
+            printer.serial,
+            printer.loc,
+            printer.ip,
+            printer.macAddress,
+            printer.printQueue,
+            printer.col,
+            printer.costCenter,
+            printer.notes,
+            backupText
+        ].join(" "));
 
-        ||
-
-        (printer.loc || "")
-            .toLowerCase()
-            .includes(searchText)
-
-        ||
-
-        (printer.ip || "")
-            .toLowerCase()
-            .includes(searchText)
-
-        ||
-
-        (printer.printQueue || "")
-            .toLowerCase()
-            .includes(searchText)
-
-        ||
-
-        (printer.col || "")
-            .toLowerCase()
-            .includes(searchText)
-
-        ||
-
-        backupText.includes(searchText)
+    return normalizedPrinterData.includes(
+        normalizedSearch
     );
 
 }
@@ -2798,22 +2815,33 @@ function showModal(printer, index) {
 
     }
 
-    mModel.value = printer.model;
-    mSerial.value = printer.serial;
+    mModel.value = printer.model || "";
+    mSerial.value = printer.serial || "";
     mIP.value = printer.ip || "";
+
+    mMacAddress.value =
+        printer.macAddress || "";
+
     mPrintQueue.value =
         printer.printQueue || "";
+
     mLoc.value = printer.loc || "";
     mCol.value = printer.col || "";
+
+    mCostCenter.value =
+        printer.costCenter || "";
+
     mNotes.value = printer.notes || "";
     mBackup.checked = printer.backup;
 
     mModel.disabled = !canEdit;
     mSerial.disabled = !canEdit;
     mIP.disabled = !canEdit;
+    mMacAddress.disabled = !canEdit;
     mPrintQueue.disabled = !canEdit;
     mLoc.disabled = !canEdit;
     mCol.disabled = !canEdit;
+    mCostCenter.disabled = !canEdit;
     mNotes.disabled = !canEdit;
     mBackup.disabled = !canEdit;
 
@@ -3541,6 +3569,9 @@ savePrinterBtn.addEventListener("click", async (e) => {
     printer.ip =
         mIP.value.trim();
 
+    printer.macAddress =
+        mMacAddress.value.trim();
+
     printer.printQueue =
         mPrintQueue.value.trim();
 
@@ -3549,6 +3580,9 @@ savePrinterBtn.addEventListener("click", async (e) => {
 
     printer.col =
         mCol.value;
+
+    printer.costCenter =
+        mCostCenter.value.trim();
 
     printer.notes =
         mNotes.value;
@@ -3792,24 +3826,26 @@ panzoomArea.addEventListener(
                     touch.clientY
                 );
 
-            await createPrinter({
-                model: "",
-                serial: "",
-                ip: "",
-                printQueue: "",
-                loc: "",
-                col: "",
-                notes: "",
-                backup: false,
-                photos: [],
-                plant: currentPlant,
-                page: currentMapPage + 1,
-                x,
-                y,
+                await createPrinter({
+                    model: "",
+                    serial: "",
+                    ip: "",
+                    macAddress: "",
+                    printQueue: "",
+                    loc: "",
+                    col: "",
+                    costCenter: "",
+                    notes: "",
+                    backup: false,
+                    photos: [],
+                    plant: currentPlant,
+                    page: currentMapPage + 1,
+                    x,
+                    y,
 
-                userRole,
-                userPlant
-            });
+                    userRole,
+                    userPlant
+                });
 
             await loadPrinters();
 
@@ -3835,23 +3871,25 @@ panzoomArea.addEventListener('dblclick', async (e) => {
         );
 
     await createPrinter({
-    model: "",
-    serial: "",
-    ip: "",
-    printQueue: "",
-    loc: "",
-    col: "",
-    notes: "",
-    backup: false,
-    photos: [],
-    plant: currentPlant,
-    page: currentMapPage + 1,
-    x,
-    y,
+        model: "",
+        serial: "",
+        ip: "",
+        macAddress: "",
+        printQueue: "",
+        loc: "",
+        col: "",
+        costCenter: "",
+        notes: "",
+        backup: false,
+        photos: [],
+        plant: currentPlant,
+        page: currentMapPage + 1,
+        x,
+        y,
 
-    userRole,
-    userPlant
-});
+        userRole,
+        userPlant
+    });
 
 await loadPrinters();
 
