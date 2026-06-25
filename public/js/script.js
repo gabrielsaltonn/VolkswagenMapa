@@ -1128,9 +1128,63 @@ const selectedPins = new Set();
 
 let expandedPinClusterId = null;
 
-const PIN_CLUSTER_RADIUS_PERCENT = 0.75;
-const PIN_CLUSTER_SPREAD_PERCENT = 1.45;
-const PIN_TINY_SIZE = 2.5;
+const PIN_CLUSTER_RADIUS_PERCENT = 1;
+const PIN_TINY_SIZE = 1;
+
+const MOBILE_MAP_QUERY =
+    "(max-width: 768px)";
+
+const PIN_MAX_SIZE_DESKTOP = 30;
+const PIN_MAX_SIZE_MOBILE = 18;
+
+const CLUSTER_MAX_SIZE_DESKTOP = 30;
+const CLUSTER_MAX_SIZE_MOBILE = 24;
+
+const EXPANDED_CLUSTER_GAP_DESKTOP_PX = 34;
+const EXPANDED_CLUSTER_GAP_MOBILE_PX = 24;
+
+function isMobileMapView() {
+
+    return window.matchMedia(
+        MOBILE_MAP_QUERY
+    ).matches;
+
+}
+
+function getPinMaxSize(pin) {
+
+    const isCluster =
+        pin.classList.contains(
+            "pin-cluster-circle"
+        );
+
+    if (isMobileMapView()) {
+
+        return isCluster
+            ? CLUSTER_MAX_SIZE_MOBILE
+            : PIN_MAX_SIZE_MOBILE;
+
+    }
+
+    return isCluster
+        ? CLUSTER_MAX_SIZE_DESKTOP
+        : PIN_MAX_SIZE_DESKTOP;
+
+}
+
+function getExpandedClusterSpreadPercent() {
+
+    const mapWidth =
+        mapWrap.getBoundingClientRect().width || 320;
+
+    const gapPx =
+        isMobileMapView()
+            ? EXPANDED_CLUSTER_GAP_MOBILE_PX
+            : EXPANDED_CLUSTER_GAP_DESKTOP_PX;
+
+    return (gapPx / mapWidth) * 100;
+
+}
 
 const CLUSTER_FULL_ZOOM = 7.2;
 const CLUSTER_DETAIL_ZOOM = 9.2;
@@ -1895,8 +1949,8 @@ function atualizarContadorFotos() {
 // Ajustar tamanho dos pins conforme o zoom
 function adjustPins(scale) {
 
-    const minSize = PIN_TINY_SIZE;
-    const maxSize = 30;
+    const minSize =
+        PIN_TINY_SIZE;
 
     const zoomMax =
         panzoomInstance.getOptions().maxScale;
@@ -1904,19 +1958,26 @@ function adjustPins(scale) {
     const zoomMin =
         panzoomInstance.getOptions().minScale;
 
-    const baseSize =
-        Math.max(
-            minSize,
-            maxSize -
-                ((scale - zoomMin) / (zoomMax - zoomMin)) *
-                (maxSize - minSize)
-        );
+    const zoomProgress =
+        (scale - zoomMin) /
+        (zoomMax - zoomMin);
 
     document.querySelectorAll(".pin-circle").forEach(pin => {
 
         const isClusterDetailDot =
             Boolean(
                 pin.closest(".cluster-detail-pin")
+            );
+
+        const maxSize =
+            getPinMaxSize(pin);
+
+        const baseSize =
+            Math.max(
+                minSize,
+                maxSize -
+                    zoomProgress *
+                    (maxSize - minSize)
             );
 
         const finalSize =
@@ -2049,7 +2110,7 @@ function adjustPins(scale) {
 
             pin.style.fontSize =
                 "0";
-                    
+
         } else {
 
             pin.style.border =
@@ -2477,11 +2538,14 @@ function renderExpandedCluster(cluster) {
     const total =
         cluster.items.length;
 
+    const spreadPercent =
+        getExpandedClusterSpreadPercent();
+
     cluster.items.forEach((item, groupIndex) => {
 
         const offset =
             (groupIndex - ((total - 1) / 2))
-            * PIN_CLUSTER_SPREAD_PERCENT;
+            * spreadPercent;
 
         renderSinglePin(
             item,
@@ -3796,6 +3860,24 @@ await loadPrinters();
 // Zoom altera pins
 let pinZoomRenderFrame = null;
 let lastPinZoomScale = 1;
+
+let resizePinsTimer = null;
+
+window.addEventListener("resize", () => {
+
+    clearTimeout(resizePinsTimer);
+
+    resizePinsTimer =
+        setTimeout(() => {
+
+            expandedPinClusterId =
+                null;
+
+            renderPins();
+
+        }, 150);
+
+});
 
 panzoomArea.addEventListener("panzoomchange", (e) => {
 
