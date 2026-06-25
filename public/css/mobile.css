@@ -875,3 +875,30 @@ textarea {
     }
 
 }
+
+/* Corrige alinhamento dos pins no mobile sem esticar o mapa */
+
+@media (max-width: 768px) {
+    #mapWrap {
+        aspect-ratio: 2048 / 1448 !important;
+    }
+
+    #panzoom-area {
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    #floor {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: contain !important;
+    }
+
+    #panzoom-area .pins {
+        position: absolute !important;
+        inset: 0 !important;
+
+        width: 100% !important;
+        height: 100% !important;
+    }
+}
