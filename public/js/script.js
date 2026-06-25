@@ -11,6 +11,36 @@ const userRole =
 const userPlant =
     loggedUser.plant;
 
+const DEFAULT_CONTRACT_NUMBER =
+    "1234";
+
+function getInitialActiveContractNumber() {
+
+    const storedContract =
+        localStorage.getItem(
+            "activeContractNumber"
+        );
+
+    if (storedContract) {
+        return storedContract;
+    }
+
+    const firstAccessContract =
+        loggedUser.access?.[0]?.contractNumber;
+
+    return firstAccessContract ||
+        DEFAULT_CONTRACT_NUMBER;
+
+}
+
+let activeContractNumber =
+    getInitialActiveContractNumber();
+
+localStorage.setItem(
+    "activeContractNumber",
+    activeContractNumber
+);
+
 function canEditPlant(plant) {
 
     if (userRole === "admin") {
@@ -464,7 +494,8 @@ confirmNewPlantBtn.addEventListener(
                     body: JSON.stringify({
                         name: plantName,
                         label,
-                        pages: []
+                        pages: [],
+                        contractNumber: activeContractNumber
                     })
                 }
             );
@@ -1305,7 +1336,12 @@ async function updateMap(id, mapData) {
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify(mapData)
+            body: JSON.stringify({
+                ...mapData,
+                contractNumber:
+                    mapData.ContractNumber ||
+                    activeContractNumber
+            })
         });
 
     return await response.json();
@@ -1317,7 +1353,9 @@ async function loadMaps() {
     try {
 
         const response =
-            await fetch("/api/maps");
+            await fetch(
+                `/api/maps?contractNumber=${encodeURIComponent(activeContractNumber)}`
+            );
 
         maps =
             await response.json();
@@ -1705,7 +1743,9 @@ async function loadPrinters() {
 
     try {
 
-        const response = await fetch("/api/printers");
+        const response = await fetch(
+            `/api/printers?contractNumber=${encodeURIComponent(activeContractNumber)}`
+        );
 
         printers = await response.json();
 
@@ -1732,6 +1772,9 @@ async function updatePrinter(id, printerData) {
             },
             body: JSON.stringify({
                 ...printerData,
+                contractNumber:
+                    printerData.contractNumber ||
+                    activeContractNumber,
                 userRole,
                 userPlant
             })
@@ -1758,7 +1801,12 @@ async function createPrinter(printerData) {
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify(printerData)
+            body: JSON.stringify({
+                ...printerData,
+                contractNumber:
+                    printerData.contractNumber ||
+                    activeContractNumber
+            })
         });
 
         const newPrinter = await response.json();
@@ -3838,6 +3886,7 @@ panzoomArea.addEventListener(
                     notes: "",
                     backup: false,
                     photos: [],
+                    contractNumber: activeContractNumber,
                     plant: currentPlant,
                     page: currentMapPage + 1,
                     x,
@@ -3882,6 +3931,7 @@ panzoomArea.addEventListener('dblclick', async (e) => {
         notes: "",
         backup: false,
         photos: [],
+        contractNumber: activeContractNumber,
         plant: currentPlant,
         page: currentMapPage + 1,
         x,
