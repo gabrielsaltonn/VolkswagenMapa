@@ -5,22 +5,17 @@ import { fileURLToPath } from "url";
 import Map from "../models/Map.js";
 import Printer from "../models/Printer.js";
 
+import {
+    DEFAULT_CONTRACT_NUMBER,
+    getContractNumber,
+    requireContractAccess,
+    requireContractManager
+} from "../utils/permissions.js";
+
 const router = express.Router();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-const DEFAULT_CONTRACT_NUMBER = "1234";
-
-function getContractNumber(req) {
-
-    return String(
-        req.query.contractNumber ||
-        req.body.contractNumber ||
-        DEFAULT_CONTRACT_NUMBER
-    ).trim();
-
-}
 
 router.get("/", async (req, res) => {
 
@@ -28,6 +23,17 @@ router.get("/", async (req, res) => {
 
         const contractNumber =
             getContractNumber(req);
+
+        const permission =
+            await requireContractAccess(
+                req,
+                res,
+                contractNumber
+            );
+
+        if (!permission) {
+            return;
+        }
 
         const maps =
             await Map.find({
@@ -53,9 +59,27 @@ router.post("/", async (req, res) => {
         const contractNumber =
             getContractNumber(req);
 
+        const permission =
+            await requireContractManager(
+                req,
+                res,
+                contractNumber
+            );
+
+        if (!permission) {
+            return;
+        }
+
+        const {
+            loggedUsername,
+            userRole,
+            userPlant,
+            ...mapData
+        } = req.body;
+
         const map =
             await Map.create({
-                ...req.body,
+                ...mapData,
                 contractNumber
             });
 
@@ -96,14 +120,27 @@ router.put("/:id", async (req, res) => {
 
         }
 
+        const contractNumber =
+            currentMap.contractNumber ||
+            req.body.contractNumber ||
+            DEFAULT_CONTRACT_NUMBER;
+
+        const permission =
+            await requireContractManager(
+                req,
+                res,
+                contractNumber
+            );
+
+        if (!permission) {
+            return;
+        }
+
         const updateData = {
             name: req.body.name,
             label: req.body.label,
             pages: req.body.pages,
-            contractNumber:
-                req.body.contractNumber ||
-                currentMap.contractNumber ||
-                DEFAULT_CONTRACT_NUMBER
+            contractNumber
         };
 
         Object.keys(updateData).forEach(key => {
@@ -156,6 +193,21 @@ router.delete("/:id/pages/:pageIndex", async (req, res) => {
                 erro: "Planta não encontrada"
             });
 
+        }
+
+        const contractNumber =
+            map.contractNumber ||
+            DEFAULT_CONTRACT_NUMBER;
+
+        const permission =
+            await requireContractManager(
+                req,
+                res,
+                contractNumber
+            );
+
+        if (!permission) {
+            return;
         }
 
         const pageIndex =
@@ -253,6 +305,17 @@ router.delete("/:id", async (req, res) => {
         const contractNumber =
             map.contractNumber ||
             DEFAULT_CONTRACT_NUMBER;
+
+        const permission =
+            await requireContractManager(
+                req,
+                res,
+                contractNumber
+            );
+
+        if (!permission) {
+            return;
+        }
 
         await Printer.deleteMany({
             plant: map.name,

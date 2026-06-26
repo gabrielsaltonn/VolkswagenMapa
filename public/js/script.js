@@ -41,6 +41,18 @@ localStorage.setItem(
     activeContractNumber
 );
 
+function getContractQueryParams() {
+
+    const params =
+        new URLSearchParams({
+            contractNumber: activeContractNumber,
+            loggedUsername: loggedUser.username
+        });
+
+    return params.toString();
+
+}
+
 const SUPER_ADMIN_USERS = [
     "admin@simpress.com.br",
     "admin.dev@simpress.com.br"
@@ -492,7 +504,13 @@ confirmDeleteMapBtn.addEventListener(
         await fetch(
             `/api/maps/${mapToDelete._id}`,
             {
-                method: "DELETE"
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    loggedUsername: loggedUser.username
+                })
             }
         );
 
@@ -634,9 +652,12 @@ confirmNewPlantBtn.addEventListener(
                         name: plantName,
                         label,
                         pages: [],
-                        contractNumber: activeContractNumber
+                        contractNumber: activeContractNumber,
+                        loggedUsername: loggedUser.username
                     })
+
                 }
+
             );
 
         const data =
@@ -1479,7 +1500,9 @@ async function updateMap(id, mapData) {
                 ...mapData,
                 contractNumber:
                     mapData.contractNumber ||
-                    activeContractNumber
+                    activeContractNumber,
+                loggedUsername:
+                    loggedUser.username
             })
         });
 
@@ -1604,7 +1627,7 @@ async function loadMaps() {
 
         const response =
             await fetch(
-                `/api/maps?contractNumber=${encodeURIComponent(activeContractNumber)}`
+                `/api/maps?${getContractQueryParams()}`
             );
 
         maps =
@@ -1864,7 +1887,13 @@ function renderMapPages(map) {
                             await fetch(
                                 `/api/maps/${map._id}/pages/${index}`,
                                 {
-                                    method: "DELETE"
+                                    method: "DELETE",
+                                    headers: {
+                                        "Content-Type": "application/json"
+                                    },
+                                    body: JSON.stringify({
+                                        loggedUsername: loggedUser.username
+                                    })
                                 }
                             );
 
@@ -1993,8 +2022,9 @@ async function loadPrinters() {
 
     try {
 
-        const response = await fetch(
-            `/api/printers?contractNumber=${encodeURIComponent(activeContractNumber)}`
+        const response = 
+            await fetch(
+                `/api/printers?${getContractQueryParams()}`
         );
 
         printers = await response.json();
@@ -2025,9 +2055,12 @@ async function updatePrinter(id, printerData) {
                 contractNumber:
                     printerData.contractNumber ||
                     activeContractNumber,
+                loggedUsername:
+                    loggedUser.username,
                 userRole,
                 userPlant
             })
+
         });
 
         return await response.json();
@@ -2055,8 +2088,11 @@ async function createPrinter(printerData) {
                 ...printerData,
                 contractNumber:
                     printerData.contractNumber ||
-                    activeContractNumber
+                    activeContractNumber,
+                loggedUsername:
+                    loggedUser.username
             })
+
         });
 
         const newPrinter = await response.json();
@@ -2106,11 +2142,13 @@ async function deletePrinterById(id) {
                 headers: {
                     "Content-Type": "application/json"
                 },
-
                 body: JSON.stringify({
+                    loggedUsername:
+                        loggedUser.username,
                     userRole,
                     userPlant
                 })
+
             });
 
         if (!response.ok) {
@@ -4629,7 +4667,6 @@ async function deleteQuickLinkAPI(id) {
                 headers: {
                     "Content-Type": "application/json"
                 },
-
                 body: JSON.stringify({
                     user: currentUser
                 })
@@ -4660,7 +4697,6 @@ async function updateQuickLinkAPI(id, data) {
                     "Content-Type":
                         "application/json"
                 },
-
                 body: JSON.stringify({
                     ...data,
                     user: currentUser

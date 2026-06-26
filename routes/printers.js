@@ -1,29 +1,14 @@
 import express from "express";
 import Printer from "../models/Printer.js";
 
+import {
+    DEFAULT_CONTRACT_NUMBER,
+    getContractNumber,
+    requireContractAccess,
+    requirePlantEditor
+} from "../utils/permissions.js";
+
 const router = express.Router();
-
-const DEFAULT_CONTRACT_NUMBER = "1234";
-
-function getContractNumber(req) {
-
-    return String(
-        req.query.contractNumber ||
-        req.body.contractNumber ||
-        DEFAULT_CONTRACT_NUMBER
-    ).trim();
-
-}
-
-function canEditPlant(userRole, userPlant, targetPlant) {
-
-    if (userRole === "admin") {
-        return true;
-    }
-
-    return userPlant === targetPlant;
-
-}
 
 router.get("/", async (req, res) => {
 
@@ -31,6 +16,17 @@ router.get("/", async (req, res) => {
 
         const contractNumber =
             getContractNumber(req);
+
+        const permission =
+            await requireContractAccess(
+                req,
+                res,
+                contractNumber
+            );
+
+        if (!permission) {
+            return;
+        }
 
         const printers =
             await Printer.find({
@@ -54,15 +50,13 @@ router.post("/", async (req, res) => {
     try {
 
         const {
-            userRole,
-            userPlant,
             plant
         } = req.body;
 
-        if (!canEditPlant(userRole, userPlant, plant)) {
+        if (!plant) {
 
-            return res.status(403).json({
-                erro: "Você não tem permissão para adicionar impressoras nesta planta."
+            return res.status(400).json({
+                erro: "Planta é obrigatória."
             });
 
         }
@@ -70,9 +64,28 @@ router.post("/", async (req, res) => {
         const contractNumber =
             getContractNumber(req);
 
+        const permission =
+            await requirePlantEditor(
+                req,
+                res,
+                contractNumber,
+                plant
+            );
+
+        if (!permission) {
+            return;
+        }
+
+        const {
+            loggedUsername,
+            userRole,
+            userPlant,
+            ...printerData
+        } = req.body;
+
         const printer =
             await Printer.create({
-                ...req.body,
+                ...printerData,
                 contractNumber
             });
 
@@ -105,35 +118,59 @@ router.put("/:id", async (req, res) => {
 
         }
 
-        const {
-            userRole,
-            userPlant
-        } = req.body;
+        const contractNumber =
+            printer.contractNumber ||
+            req.body.contractNumber ||
+            DEFAULT_CONTRACT_NUMBER;
 
-        if (
-            !canEditPlant(
-                userRole,
-                userPlant,
-                printer.plant
-            )
-        ) {
+        const currentPlant =
+            printer.plant;
 
-            return res.status(403).json({
-                erro:
-                    "Você não tem permissão para alterar esta impressora."
-            });
+        const targetPlant =
+            req.body.plant ||
+            printer.plant;
+
+        const currentPlantPermission =
+            await requirePlantEditor(
+                req,
+                res,
+                contractNumber,
+                currentPlant
+            );
+
+        if (!currentPlantPermission) {
+            return;
+        }
+
+        if (targetPlant !== currentPlant) {
+
+            const targetPlantPermission =
+                await requirePlantEditor(
+                    req,
+                    res,
+                    contractNumber,
+                    targetPlant
+                );
+
+            if (!targetPlantPermission) {
+                return;
+            }
 
         }
+
+        const {
+            loggedUsername,
+            userRole,
+            userPlant,
+            ...printerData
+        } = req.body;
 
         const updatedPrinter =
             await Printer.findByIdAndUpdate(
                 req.params.id,
                 {
-                    ...req.body,
-                    contractNumber:
-                        req.body.contractNumber ||
-                        printer.contractNumber ||
-                        DEFAULT_CONTRACT_NUMBER
+                    ...printerData,
+                    contractNumber
                 },
                 {
                     new: true
@@ -169,24 +206,20 @@ router.delete("/:id", async (req, res) => {
 
         }
 
-        const {
-            userRole,
-            userPlant
-        } = req.body;
+        const contractNumber =
+            printer.contractNumber ||
+            DEFAULT_CONTRACT_NUMBER;
 
-        if (
-            !canEditPlant(
-                userRole,
-                userPlant,
+        const permission =
+            await requirePlantEditor(
+                req,
+                res,
+                contractNumber,
                 printer.plant
-            )
-        ) {
+            );
 
-            return res.status(403).json({
-                erro:
-                    "Você não tem permissão para excluir esta impressora."
-            });
-
+        if (!permission) {
+            return;
         }
 
         await Printer.findByIdAndDelete(
