@@ -1,8 +1,156 @@
 import express from "express";
 import bcrypt from "bcrypt";
 import User from "../models/User.js";
+import Contract from "../models/Contract.js";
+
+import {
+    DEFAULT_CONTRACT_NUMBER,
+    getRequester,
+    isSuperAdmin,
+    normalizeUsername
+} from "../utils/permissions.js";
 
 const router = express.Router();
+
+const VALID_ACCESS_ROLES = [
+    "user",
+    "admin",
+    "gestor"
+];
+
+function normalizePlants(plants) {
+
+    if (!Array.isArray(plants)) {
+        return [];
+    }
+
+    const normalizedPlants =
+        plants
+            .map(plant =>
+                String(plant || "")
+                    .trim()
+                    .toUpperCase()
+            )
+            .filter(Boolean);
+
+    const uniquePlants =
+        [...new Set(normalizedPlants)];
+
+    if (uniquePlants.includes("ALL")) {
+        return ["ALL"];
+    }
+
+    return uniquePlants;
+
+}
+
+function normalizeAccessList(accessList) {
+
+    if (!Array.isArray(accessList)) {
+
+        return {
+            error: "A lista de acessos é obrigatória."
+        };
+
+    }
+
+    if (accessList.length === 0) {
+
+        return {
+            error: "O usuário precisa ter pelo menos um acesso."
+        };
+
+    }
+
+    const usedContracts =
+        new Set();
+
+    const normalizedAccess = [];
+
+    for (const accessItem of accessList) {
+
+        const contractNumber =
+            String(accessItem.contractNumber || "")
+                .trim();
+
+        const role =
+            String(accessItem.role || "")
+                .trim()
+                .toLowerCase();
+
+        const plants =
+            normalizePlants(accessItem.plants);
+
+        if (!contractNumber) {
+
+            return {
+                error: "Número do contrato é obrigatório."
+            };
+
+        }
+
+        if (usedContracts.has(contractNumber)) {
+
+            return {
+                error: `Contrato duplicado na lista de acessos: ${contractNumber}.`
+            };
+
+        }
+
+        if (!VALID_ACCESS_ROLES.includes(role)) {
+
+            return {
+                error: `Role inválida para o contrato ${contractNumber}.`
+            };
+
+        }
+
+        if (plants.length === 0) {
+
+            return {
+                error: `Informe pelo menos uma planta para o contrato ${contractNumber}.`
+            };
+
+        }
+
+        usedContracts.add(contractNumber);
+
+        normalizedAccess.push({
+            contractNumber,
+            role,
+            plants
+        });
+
+    }
+
+    return {
+        access: normalizedAccess
+    };
+
+}
+
+function syncLegacyFieldsFromAccess(user) {
+
+    const defaultAccess =
+        user.access.find(accessItem =>
+            accessItem.contractNumber === DEFAULT_CONTRACT_NUMBER
+        ) || user.access[0];
+
+    if (!defaultAccess) {
+        return;
+    }
+
+    user.role =
+        defaultAccess.role === "user"
+            ? "user"
+            : "admin";
+
+    user.plant =
+        defaultAccess.plants.includes("ALL")
+            ? "ALL"
+            : defaultAccess.plants[0] || "SJP";
+
+}
 
 router.post("/register", async (req, res) => {
 
@@ -400,6 +548,126 @@ router.patch("/plant/:id", async (req, res) => {
         res.json({
             mensagem: "Planta atualizada",
             user
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+            erro: error.message
+        });
+
+    }
+
+});
+
+router.patch("/access/:id", async (req, res) => {
+
+    try {
+
+        const requester =
+            await getRequester(req);
+
+        if (!requester) {
+
+            return res.status(401).json({
+                erro: "Usuário autenticado não informado ou não aprovado."
+            });
+
+        }
+
+        if (!isSuperAdmin(requester)) {
+
+            return res.status(403).json({
+                erro: "Apenas o administrador principal pode alterar acessos de contratos."
+            });
+
+        }
+
+        const user =
+            await User.findById(
+                req.params.id
+            );
+
+        if (!user) {
+
+            return res.status(404).json({
+                erro: "Usuário não encontrado"
+            });
+
+        }
+
+        if (
+            normalizeUsername(user.username) ===
+            normalizeUsername(requester.username)
+        ) {
+
+            return res.status(403).json({
+                erro: "Você não pode alterar os próprios acessos."
+            });
+
+        }
+
+        const {
+            access,
+            error
+        } = normalizeAccessList(
+            req.body.access
+        );
+
+        if (error) {
+
+            return res.status(400).json({
+                erro: error
+            });
+
+        }
+
+        const requestedContractNumbers =
+            access.map(accessItem =>
+                accessItem.contractNumber
+            );
+
+        const existingContracts =
+            await Contract.find({
+                number: {
+                    $in: requestedContractNumbers
+                },
+                status: "active"
+            });
+
+        const existingContractNumbers =
+            existingContracts.map(contract =>
+                contract.number
+            );
+
+        const invalidContracts =
+            requestedContractNumbers.filter(contractNumber =>
+                !existingContractNumbers.includes(contractNumber)
+            );
+
+        if (invalidContracts.length > 0) {
+
+            return res.status(400).json({
+                erro: `Contrato(s) inválido(s) ou inativo(s): ${invalidContracts.join(", ")}.`
+            });
+
+        }
+
+        user.access =
+            access;
+
+        syncLegacyFieldsFromAccess(user);
+
+        await user.save();
+
+        const safeUser =
+            user.toObject();
+
+        delete safeUser.password;
+
+        res.json({
+            mensagem: "Acessos atualizados com sucesso.",
+            user: safeUser
         });
 
     } catch (error) {
