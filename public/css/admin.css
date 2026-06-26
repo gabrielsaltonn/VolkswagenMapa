@@ -348,7 +348,7 @@
 .user-access-list {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 12px;
 }
 
 .user-access-item {
@@ -416,4 +416,133 @@
     color: #64748b;
     font-size: 0.85rem;
     font-weight: 600;
+}
+
+.user-access-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.user-access-header h3 {
+    margin: 0;
+}
+
+#addUserAccessBtn {
+    width: 100%;
+
+    margin-top: 12px;
+    padding: 10px;
+
+    border: none;
+    border-radius: var(--radius-md);
+
+    background: var(--primary);
+    color: white;
+
+    cursor: pointer;
+    font-weight: bold;
+}
+
+#addUserAccessBtn:hover {
+    background: var(--primary-hover);
+}
+
+.user-access-item {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    padding: 12px;
+
+    border: 1px solid #dbe4f0;
+    border-radius: 12px;
+
+    background: white;
+}
+
+.user-access-item label {
+    display: flex;
+    flex-direction: column;
+    gap: 5px !important;
+
+    color: var(--primary);
+    font-size: 0.85rem;
+    font-weight: 800;
+}
+
+.user-access-item select {
+    width: 100%;
+
+    padding: 10px;
+
+    border: 1px solid #cbd5e1;
+    border-radius: var(--radius-sm);
+
+    background: white;
+    color: #0f172a;
+
+    font-weight: 700;
+}
+
+.user-access-plants-editor {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.user-access-plant-check {
+    display: inline-flex !important;
+    flex-direction: row !important;
+    align-items: center;
+    gap: 5px !important;
+
+    padding: 4px 8px;
+
+    border-radius: 999px;
+
+    background: #e0f2fe;
+    color: #0f172a;
+
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+}
+
+.user-access-plant-check input {
+    margin: 0;
+}
+
+.remove-user-access-btn {
+    width: 100%;
+
+    margin-top: 4px;
+    padding: 9px 10px;
+
+    border: none;
+    border-radius: var(--radius-md);
+
+    background: var(--danger);
+    color: white;
+
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.remove-user-access-btn:hover {
+    background: var(--danger-hover);
+}
+
+#userModal .card::after {
+    content: "";
+
+    display: block;
+
+    width: 100%;
+    height: 1px;
+
+    margin: 4px 0;
+
+    background: #dbe4f0;
 }

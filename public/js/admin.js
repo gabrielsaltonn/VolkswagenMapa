@@ -190,16 +190,6 @@ const userModalName =
         "userModalName"
     );
 
-const userRole =
-    document.getElementById(
-        "userRole"
-    );
-
-const userPlant =
-    document.getElementById(
-        "userPlant"
-    );
-
 const userStatus =
     document.getElementById(
         "userStatus"
@@ -208,6 +198,11 @@ const userStatus =
 const userAccessList =
     document.getElementById(
         "userAccessList"
+    );
+
+const addUserAccessBtn =
+    document.getElementById(
+        "addUserAccessBtn"
     );
 
 const saveUserBtn =
@@ -231,8 +226,17 @@ const deleteUserBtn =
     );
 
 let selectedUser = null;
-
 let contracts = [];
+
+let selectedUserAccessDraft = [];
+
+const ACCESS_ROLE_OPTIONS = [
+    "user",
+    "admin",
+    "gestor"
+];
+
+let contractPlants = {};
 
 async function loadPendingUsers() {
 
@@ -338,6 +342,14 @@ async function loadContracts() {
                 ? data
                 : [];
 
+        await Promise.all(
+            contracts.map(contract =>
+                loadPlantsForContract(
+                    contract.number
+                )
+            )
+        );
+
     } catch (error) {
 
         console.error(
@@ -348,6 +360,69 @@ async function loadContracts() {
         contracts = [];
 
     }
+
+}
+
+async function loadPlantsForContract(contractNumber) {
+
+    try {
+
+        const params =
+            new URLSearchParams({
+                contractNumber,
+                loggedUsername:
+                    loggedUser.username
+            });
+
+        const response =
+            await fetch(
+                `/api/maps?${params.toString()}`
+            );
+
+        const maps =
+            await response.json();
+
+        const mapPlants =
+            Array.isArray(maps)
+                ? maps.map(map => map.name)
+                : [];
+
+        contractPlants[contractNumber] =
+            [
+                "ALL",
+                ...new Set(mapPlants)
+            ];
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao carregar plantas do contrato:",
+            contractNumber,
+            error
+        );
+
+        contractPlants[contractNumber] =
+            ["ALL"];
+
+    }
+
+}
+
+function getPlantOptionsForContract(
+    contractNumber,
+    selectedPlants = []
+) {
+
+    const plantsFromMaps =
+        contractPlants[contractNumber] ||
+        ["ALL"];
+
+    return [
+        ...new Set([
+            ...plantsFromMaps,
+            ...selectedPlants
+        ])
+    ];
 
 }
 
@@ -363,6 +438,30 @@ function getContractLabel(contractNumber) {
     }
 
     return `${contract.name} - ${contract.number}`;
+
+}
+
+function getContractOptionsHtml(currentContractNumber) {
+
+    const usedContracts =
+        selectedUserAccessDraft
+            .map(accessItem => accessItem.contractNumber)
+            .filter(contractNumber =>
+                contractNumber !== currentContractNumber
+            );
+
+    return contracts
+        .filter(contract =>
+            !usedContracts.includes(contract.number)
+        )
+        .map(contract => `
+            <option
+                value="${contract.number}"
+                ${contract.number === currentContractNumber ? "selected" : ""}>
+                ${contract.name} - ${contract.number}
+            </option>
+        `)
+        .join("");
 
 }
 
@@ -387,12 +486,22 @@ function getUserAccessList(user) {
 
 function renderUserAccessList(user) {
 
-    const accessList =
-        getUserAccessList(user);
+    selectedUserAccessDraft =
+        getUserAccessList(user).map(accessItem => ({
+            contractNumber: accessItem.contractNumber,
+            role: accessItem.role,
+            plants: [...(accessItem.plants || [])]
+        }));
+
+    renderUserAccessEditor();
+
+}
+
+function renderUserAccessEditor() {
 
     userAccessList.innerHTML = "";
 
-    if (accessList.length === 0) {
+    if (selectedUserAccessDraft.length === 0) {
 
         userAccessList.innerHTML = `
             <div class="user-access-empty">
@@ -404,7 +513,7 @@ function renderUserAccessList(user) {
 
     }
 
-    accessList.forEach(accessItem => {
+    selectedUserAccessDraft.forEach((accessItem, index) => {
 
         const div =
             document.createElement("div");
@@ -412,26 +521,140 @@ function renderUserAccessList(user) {
         div.className =
             "user-access-item";
 
-        const plants =
-            accessItem.plants || [];
+        const plantOptions =
+            getPlantOptionsForContract(
+                accessItem.contractNumber,
+                accessItem.plants || []
+            );
 
         div.innerHTML = `
-            <strong class="user-access-contract">
-                ${getContractLabel(accessItem.contractNumber)}
-            </strong>
+            <label>
+                Contrato
 
-            <span class="user-access-role ${accessItem.role}">
-                ${accessItem.role}
-            </span>
+                <select class="access-contract-select">
+                    ${getContractOptionsHtml(accessItem.contractNumber)}
+                </select>
+            </label>
 
-            <div class="user-access-plants">
-                ${plants.map(plant => `
-                    <span class="user-access-plant">
-                        ${plant}
-                    </span>
-                `).join("")}
-            </div>
+            <label>
+                Tipo de acesso
+
+                <select class="access-role-select">
+                    ${ACCESS_ROLE_OPTIONS.map(role => `
+                        <option
+                            value="${role}"
+                            ${role === accessItem.role ? "selected" : ""}>
+                            ${role}
+                        </option>
+                    `).join("")}
+                </select>
+            </label>
+
+            <label>
+                Planta
+
+                <div class="user-access-plants-editor">
+                    ${plantOptions.map(plant => `
+                        <label class="user-access-plant-check">
+                            <input
+                                type="checkbox"
+                                value="${plant}"
+                                ${accessItem.plants.includes(plant) ? "checked" : ""}>
+                            ${plant}
+                        </label>
+                    `).join("")}
+                </div>
+            </label>
+
+            <button
+                type="button"
+                class="remove-user-access-btn">
+                Remover acesso
+            </button>
         `;
+
+        const contractSelect =
+            div.querySelector(
+                ".access-contract-select"
+            );
+
+        const roleSelect =
+            div.querySelector(
+                ".access-role-select"
+            );
+
+        const plantCheckboxes =
+            div.querySelectorAll(
+                ".user-access-plant-check input"
+            );
+
+        const removeBtn =
+            div.querySelector(
+                ".remove-user-access-btn"
+            );
+
+        contractSelect.addEventListener(
+            "change",
+            () => {
+
+                selectedUserAccessDraft[index].contractNumber =
+                    contractSelect.value;
+
+                renderUserAccessEditor();
+
+            }
+        );
+
+        roleSelect.addEventListener(
+            "change",
+            () => {
+
+                selectedUserAccessDraft[index].role =
+                    roleSelect.value;
+
+            }
+        );
+
+        plantCheckboxes.forEach(checkbox => {
+
+            checkbox.addEventListener(
+                "change",
+                () => {
+
+                    const checkedPlants =
+                        [...plantCheckboxes]
+                            .filter(item => item.checked)
+                            .map(item => item.value);
+
+                    if (checkedPlants.includes("ALL")) {
+
+                        selectedUserAccessDraft[index].plants =
+                            ["ALL"];
+
+                    } else {
+
+                        selectedUserAccessDraft[index].plants =
+                            checkedPlants;
+
+                    }
+
+                    renderUserAccessEditor();
+
+                }
+            );
+
+        });
+
+        removeBtn.addEventListener(
+            "click",
+            () => {
+
+                selectedUserAccessDraft.splice(index, 1);
+
+                renderUserAccessEditor();
+
+            }
+        );
 
         userAccessList.appendChild(div);
 
@@ -445,12 +668,6 @@ function showUserModal(user) {
 
     userModalName.textContent =
         getDisplayName(user.username);
-
-    userRole.value =
-        user.role;
-
-    userPlant.value =
-        user.plant;
 
     userStatus.textContent =
         user.status;
@@ -501,6 +718,42 @@ closeUserModal.addEventListener(
 
         userModal.style.display =
             "none";
+
+    }
+);
+
+addUserAccessBtn.addEventListener(
+    "click",
+    () => {
+
+        const usedContracts =
+            selectedUserAccessDraft.map(accessItem =>
+                accessItem.contractNumber
+            );
+
+        const availableContract =
+            contracts.find(contract =>
+                !usedContracts.includes(contract.number)
+            );
+
+        if (!availableContract) {
+
+            showAdminMessageModal(
+                "Sem contratos disponíveis",
+                "Todos os contratos ativos já foram adicionados para este usuário."
+            );
+
+            return;
+
+        }
+
+        selectedUserAccessDraft.push({
+            contractNumber: availableContract.number,
+            role: "user",
+            plants: ["ALL"]
+        });
+
+        renderUserAccessEditor();
 
     }
 );
@@ -571,63 +824,80 @@ async function loadAllUsers() {
 
 }
 
-async function approveUser(id) {
-
-    await fetch(
-        `/api/auth/approve/${id}`,
-        {
-            method: "PATCH"
-        }
-    );
-
-    await loadPendingUsers();
-    await loadAllUsers();
-
-}
-
-async function rejectUser(id) {
-
-    await fetch(
-        `/api/auth/reject/${id}`,
-        {
-            method: "PATCH"
-        }
-    );
-
-    await loadPendingUsers();
-    await loadAllUsers();
-}
-
 saveUserBtn.addEventListener("click", async () => {
 
     if (!selectedUser) {
         return;
     }
 
-    await fetch(`/api/auth/role/${selectedUser._id}`, {
-        method: "PATCH",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            role: userRole.value
-        })
-    });
+    if (selectedUserAccessDraft.length === 0) {
 
-    await fetch(`/api/auth/plant/${selectedUser._id}`, {
-        method: "PATCH",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            plant: userPlant.value
-        })
-    });
+        showAdminMessageModal(
+            "Acesso obrigatório",
+            "O usuário precisa ter pelo menos um acesso."
+        );
 
-    userModal.style.display = "none";
+        return;
+
+    }
+
+    const hasInvalidAccess =
+        selectedUserAccessDraft.some(accessItem =>
+            !accessItem.contractNumber ||
+            !accessItem.role ||
+            !accessItem.plants ||
+            accessItem.plants.length === 0
+        );
+
+    if (hasInvalidAccess) {
+
+        showAdminMessageModal(
+            "Acesso incompleto",
+            "Confira se todos os acessos possuem contrato, tipo de acesso e pelo menos uma planta."
+        );
+
+        return;
+
+    }
+
+    const response =
+        await fetch(
+            `/api/auth/access/${selectedUser._id}`,
+            {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    loggedUsername:
+                        loggedUser.username,
+                    access:
+                        selectedUserAccessDraft
+                })
+            }
+        );
+
+    const data =
+        await response.json();
+
+    if (!response.ok) {
+
+        showAdminMessageModal(
+            "Erro",
+            data.erro ||
+            "Erro ao salvar acessos do usuário."
+        );
+
+        return;
+
+    }
+
+    userModal.style.display =
+        "none";
 
     await loadPendingUsers();
     await loadAllUsers();
+
 });
 
 deleteUserBtn.addEventListener(
@@ -644,7 +914,9 @@ deleteUserBtn.addEventListener(
             async () => {
 
                 const response =
-                    await fetch(`/api/auth/users/${selectedUser._id}`, {
+                    await fetch(
+                        `/api/auth/users/${selectedUser._id}`, 
+                        {
                         method: "DELETE",
 
                         headers: {
@@ -693,25 +965,48 @@ approveUserBtn.addEventListener(
             return;
         }
 
-        await fetch(`/api/auth/role/${selectedUser._id}`, {
-            method: "PATCH",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                role: userRole.value
-            })
-        });
+        if (selectedUserAccessDraft.length === 0) {
 
-        await fetch(`/api/auth/plant/${selectedUser._id}`, {
-            method: "PATCH",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                plant: userPlant.value
-            })
-        });
+            showAdminMessageModal(
+                "Acesso obrigatório",
+                "Defina pelo menos um acesso antes de aprovar o usuário."
+            );
+
+            return;
+
+        }
+
+        const accessResponse =
+            await fetch(
+                `/api/auth/access/${selectedUser._id}`,
+                {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        loggedUsername:
+                            loggedUser.username,
+                        access:
+                            selectedUserAccessDraft
+                    })
+                }
+            );
+
+        const accessData =
+            await accessResponse.json();
+
+        if (!accessResponse.ok) {
+
+            showAdminMessageModal(
+                "Erro",
+                accessData.erro ||
+                "Erro ao salvar acessos do usuário."
+            );
+
+            return;
+
+        }
 
         await fetch(
             `/api/auth/approve/${selectedUser._id}`,

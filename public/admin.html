@@ -73,54 +73,30 @@
             Usuário
         </h2>
 
-        <label>
-            Tipo de acesso
-
-            <select id="userRole">
-                <option value="user">
-                    user
-                </option>
-
-                <option value="admin">
-                    admin
-                </option>
-            </select>
-        </label>
-
-        <label>
-            Planta
-
-            <select id="userPlant">
-                <option value="ANC">ANC</option>
-                <option value="SCAR">SCAR</option>
-                <option value="SJP">SJP</option>
-                <option value="TAUB">TAUB</option>
-                <option value="VIN">VIN</option>
-                <option value="ALL">ALL</option>
-            </select>
-        </label>
-
-        <label>
-            Status
-
-            <div
-                id="userStatus"
-                class="user-status-box">
-            </div>
-        </label>
-
         <div class="user-access-section">
-
-            <h3>
-                Acessos por contrato
-            </h3>
 
             <div
                 id="userAccessList"
                 class="user-access-list">
             </div>
 
+            <button
+                id="addUserAccessBtn"
+                type="button"
+                class="btn-effect">
+                + Adicionar contrato
+            </button>
+
         </div>
+
+        <label>
+            Status
+            
+            <div 
+                id="userStatus" 
+                class="user-status-box">
+            </div>
+        </label>
 
         <button id="saveUserBtn">
             Salvar
