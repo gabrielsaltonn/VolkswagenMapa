@@ -7,6 +7,7 @@ import {
     DEFAULT_CONTRACT_NUMBER,
     getRequester,
     isSuperAdmin,
+    canManageUsers,
     normalizeUsername
 } from "../utils/permissions.js";
 
@@ -281,13 +282,15 @@ router.post("/login", async (req, res) => {
         const access =
             user.access && user.access.length > 0
                 ? user.access
-                : [
-                    {
-                        contractNumber: "1234",
-                        role: user.role,
-                        plants: [user.plant || "SJP"]
-                    }
-                ];
+                : user.role === "gestor"
+                    ? []
+                    : [
+                        {
+                            contractNumber: "1234",
+                            role: user.role,
+                            plants: [user.plant || "SJP"]
+                        }
+                    ];
 
         res.json({
             mensagem: "Login realizado",
@@ -456,6 +459,28 @@ router.patch("/role/:id", async (req, res) => {
 
         }
 
+        const requester =
+            await getRequester(req);
+
+        if (!requester) {
+
+            return res.status(401).json({
+                erro: "Usuário autenticado não informado ou não aprovado."
+            });
+
+        }
+
+        if (
+            role === "gestor" &&
+            !isSuperAdmin(requester)
+        ) {
+
+            return res.status(403).json({
+                erro: "Apenas o administrador principal pode definir gestores."
+            });
+
+        }
+
         user.role =
             role;
 
@@ -604,10 +629,10 @@ router.patch("/access/:id", async (req, res) => {
 
         }
 
-        if (!isSuperAdmin(requester)) {
+        if (!canManageUsers(requester)) {
 
             return res.status(403).json({
-                erro: "Apenas o administrador principal pode alterar acessos de contratos."
+                erro: "Apenas administrador principal ou gestor pode alterar acessos de contratos."
             });
 
         }

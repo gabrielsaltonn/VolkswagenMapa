@@ -120,7 +120,31 @@ confirmAdminMessageBtn.addEventListener(
     }
 );
 
-if (loggedUser.role !== "admin") {
+const SUPER_ADMIN_USERS = [
+    "admin@simpress.com.br",
+    "admin.dev@simpress.com.br"
+];
+
+function isSuperAdminUser() {
+
+    return SUPER_ADMIN_USERS.includes(
+        String(loggedUser.username || "")
+            .trim()
+            .toLowerCase()
+    );
+
+}
+
+function canAccessAdminPage() {
+
+    return (
+        loggedUser.role === "admin" ||
+        loggedUser.role === "gestor"
+    );
+
+}
+
+if (!canAccessAdminPage()) {
 
     showAdminMessageModal(
         "Acesso negado",
@@ -208,6 +232,46 @@ const userSystemRole =
         "userSystemRole"
     );
 
+function updateSystemRoleOptions(user) {
+
+    const gestorOption =
+        userSystemRole.querySelector(
+            'option[value="gestor"]'
+        );
+
+    if (!gestorOption) {
+        return;
+    }
+
+    if (isSuperAdminUser()) {
+
+        gestorOption.hidden =
+            false;
+
+        gestorOption.disabled =
+            false;
+
+        userSystemRole.disabled =
+            false;
+
+        return;
+
+    }
+
+    gestorOption.hidden =
+        true;
+
+    gestorOption.disabled =
+        true;
+
+    userSystemRole.disabled =
+        true;
+
+    userSystemRole.value =
+        "user";
+
+}
+
 const userStatus =
     document.getElementById(
         "userStatus"
@@ -286,9 +350,12 @@ async function loadPendingUsers() {
             div.className =
                 "admin-user-card";
 
-            if (user.role === "admin") {
-                    div.classList.add("admin-user-card-admin");
-                }
+            if (
+                user.role === "admin" ||
+                user.role === "gestor"
+            ) {
+                div.classList.add("admin-user-card-admin");
+            }
 
             div.innerHTML = `
                 <div class="admin-user-avatar">
@@ -504,16 +571,6 @@ function getContractLabel(contractNumber) {
     }
 
     return `${contract.name} - ${contract.number}`;
-
-}
-
-function normalizeContractSearch(value) {
-
-    return String(value || "")
-        .trim()
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
 
 }
 
@@ -943,8 +1000,10 @@ function showUserModal(user) {
     userModalName.textContent =
         getDisplayName(user.username);
 
+    updateSystemRoleOptions(user);
+
     userSystemRole.value =
-        user.role === "gestor"
+        isSuperAdminUser() && user.role === "gestor"
             ? "gestor"
             : "user";
 
@@ -1067,11 +1126,14 @@ async function loadAllUsers() {
         activeUsersCounter.textContent =
             `Ativos: ${users.length}`;
 
-        const admins =
-            users.filter(user => user.role === "admin").length;
+        const managers =
+            users.filter(user =>
+                user.role === "admin" ||
+                user.role === "gestor"
+            ).length;
 
         adminUsersCounter.textContent =
-            ` | Adm's: ${admins}`;
+            ` | Admin/Gestor: ${managers}`;
 
         allUsersList.innerHTML = "";
 
@@ -1088,7 +1150,10 @@ async function loadAllUsers() {
 
             div.className = "admin-user-card";
 
-            if (user.role === "admin") {
+            if (
+                user.role === "admin" ||
+                user.role === "gestor"
+            ) {
                 div.classList.add("admin-user-card-admin");
             }
 
@@ -1135,7 +1200,8 @@ saveUserBtn.addEventListener("click", async () => {
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
-                        role: "gestor"
+                        role: "gestor",
+                        loggedUsername: loggedUser.username
                     })
                 }
             );
@@ -1311,7 +1377,8 @@ approveUserBtn.addEventListener(
                             "Content-Type": "application/json"
                         },
                         body: JSON.stringify({
-                            role: "gestor"
+                            role: "gestor",
+                            loggedUsername: loggedUser.username
                         })
                     }
                 );

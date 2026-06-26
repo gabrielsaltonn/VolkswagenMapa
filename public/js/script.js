@@ -74,6 +74,12 @@ function isSuperAdminUser() {
 
 }
 
+function isGestorUser() {
+
+    return loggedUser.role === "gestor";
+
+}
+
 function getActiveUserAccess() {
 
     const accessList =
@@ -87,7 +93,10 @@ function getActiveUserAccess() {
 
 function getActiveUserPlants() {
 
-    if (isSuperAdminUser()) {
+    if (
+        isSuperAdminUser() ||
+        isGestorUser()
+    ) {
         return ["ALL"];
     }
 
@@ -102,7 +111,10 @@ function getActiveUserPlants() {
 
 function getActiveUserRole() {
 
-    if (isSuperAdminUser()) {
+    if (
+        isSuperAdminUser() ||
+        isGestorUser()
+    ) {
         return "admin";
     }
 
@@ -132,7 +144,10 @@ function syncActiveUserPermissions() {
 
 function canManageCurrentContract() {
 
-    if (isSuperAdminUser()) {
+    if (
+        isSuperAdminUser() ||
+        isGestorUser()
+    ) {
         return true;
     }
 
@@ -148,7 +163,10 @@ function canManageCurrentContract() {
 
 function canEditPlant(plant) {
 
-    if (isSuperAdminUser()) {
+    if (
+        isSuperAdminUser() ||
+        isGestorUser()
+    ) {
         return true;
     }
 
@@ -1526,7 +1544,10 @@ async function loadContracts() {
             ) || [];
 
         const availableContracts =
-            isSuperAdminUser()
+            (
+                isSuperAdminUser() ||
+                isGestorUser()
+            )
                 ? contracts
                 : contracts.filter(contract =>
                     userContractNumbers.includes(

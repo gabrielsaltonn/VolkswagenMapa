@@ -47,6 +47,25 @@ export function isSuperAdmin(user) {
 
 }
 
+export function isGestor(user) {
+
+    if (!user) {
+        return false;
+    }
+
+    return user.role === "gestor";
+
+}
+
+export function canManageUsers(user) {
+
+    return (
+        isSuperAdmin(user) ||
+        isGestor(user)
+    );
+
+}
+
 export async function getRequester(req) {
 
     const username =
@@ -73,6 +92,16 @@ export function getAccessForContract(
     }
 
     if (isSuperAdmin(user)) {
+
+        return {
+            contractNumber,
+            role: "admin",
+            plants: ["ALL"]
+        };
+
+    }
+
+    if (isGestor(user)) {
 
         return {
             contractNumber,
