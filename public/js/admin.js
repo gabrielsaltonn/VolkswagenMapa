@@ -135,6 +135,15 @@ function isSuperAdminUser() {
 
 }
 
+function canCreateContracts() {
+
+    return (
+        isSuperAdminUser() ||
+        loggedUser.role === "gestor"
+    );
+
+}
+
 function canAccessAdminPage() {
 
     return (
@@ -204,6 +213,48 @@ const contractsList =
     document.getElementById(
         "contractsList"
     );
+
+const createContractBtn =
+    document.getElementById(
+        "createContractBtn"
+    );
+
+const contractModal =
+    document.getElementById(
+        "contractModal"
+    );
+
+const closeContractModal =
+    document.getElementById(
+        "closeContractModal"
+    );
+
+const contractNameInput =
+    document.getElementById(
+        "contractNameInput"
+    );
+
+const contractNumberInput =
+    document.getElementById(
+        "contractNumberInput"
+    );
+
+const contractModalMessage =
+    document.getElementById(
+        "contractModalMessage"
+    );
+
+const saveContractBtn =
+    document.getElementById(
+        "saveContractBtn"
+    );
+
+if (!canCreateContracts()) {
+
+    createContractBtn.style.display =
+        "none";
+
+}
 
 const userSearch =
     document.getElementById(
@@ -477,6 +528,19 @@ function renderContracts() {
         const div =
             document.createElement("div");
 
+        const isActive =
+            contract.status === "active";
+
+        const nextStatus =
+            isActive
+                ? "inactive"
+                : "active";
+
+        const actionText =
+            isActive
+                ? "Inativar"
+                : "Ativar";
+
         div.className =
             "admin-contract-card";
 
@@ -489,10 +553,85 @@ function renderContracts() {
                 Número: ${contract.number}
             </div>
 
-            <span class="admin-contract-status">
+            <span class="admin-contract-status ${contract.status}">
                 ${contract.status}
             </span>
+
+            ${
+                canCreateContracts()
+                    ? `
+                        <div class="admin-contract-actions">
+                            <button
+                                type="button"
+                                class="toggle-contract-status-btn ${isActive ? "danger-contract-btn" : ""}">
+                                ${actionText}
+                            </button>
+                        </div>
+                    `
+                    : ""
+            }
         `;
+
+        const toggleStatusBtn =
+            div.querySelector(
+                ".toggle-contract-status-btn"
+            );
+
+        if (toggleStatusBtn) {
+
+            toggleStatusBtn.addEventListener(
+                "click",
+                () => {
+
+                    showAdminMessageModal(
+                        `${actionText} contrato`,
+                        `Deseja realmente ${actionText.toLowerCase()} o contrato <strong>${contract.name}</strong>?`,
+                        async () => {
+
+                            const response =
+                                await fetch(
+                                    `/api/contracts/${contract._id}`,
+                                    {
+                                        method: "PUT",
+                                        headers: {
+                                            "Content-Type": "application/json"
+                                        },
+                                        body: JSON.stringify({
+                                            loggedUsername:
+                                                loggedUser.username,
+                                            status:
+                                                nextStatus
+                                        })
+                                    }
+                                );
+
+                            const data =
+                                await response.json();
+
+                            if (!response.ok) {
+
+                                showAdminMessageModal(
+                                    "Erro",
+                                    data.erro ||
+                                    "Erro ao atualizar contrato."
+                                );
+
+                                return;
+
+                            }
+
+                            await loadContracts();
+
+                            renderContracts();
+
+                        },
+                        true
+                    );
+
+                }
+            );
+
+        }
 
         contractsList.appendChild(div);
 
@@ -1555,6 +1694,144 @@ userSearch.addEventListener(
             e.target.value.toLowerCase();
 
         loadAllUsers();
+
+    }
+);
+
+function openContractModal() {
+
+    contractNameInput.value =
+        "";
+
+    contractNumberInput.value =
+        "";
+
+    contractModalMessage.textContent =
+        "";
+
+    contractModal.style.display =
+        "flex";
+
+    contractNameInput.focus();
+
+}
+
+function closeContractModalView() {
+
+    contractModal.style.display =
+        "none";
+
+}
+
+createContractBtn.addEventListener(
+    "click",
+    () => {
+
+        openContractModal();
+
+    }
+);
+
+closeContractModal.addEventListener(
+    "click",
+    () => {
+
+        closeContractModalView();
+
+    }
+);
+
+contractModal.addEventListener(
+    "click",
+    (event) => {
+
+        if (event.target === contractModal) {
+
+            closeContractModalView();
+
+        }
+
+    }
+);
+
+saveContractBtn.addEventListener(
+    "click",
+    async () => {
+
+        const name =
+            contractNameInput.value
+                .trim();
+
+        const number =
+            contractNumberInput.value
+                .trim();
+
+        contractModalMessage.textContent =
+            "";
+
+        if (!name || !number) {
+
+            contractModalMessage.textContent =
+                "Informe nome e número do contrato.";
+
+            return;
+
+        }
+
+        saveContractBtn.disabled =
+            true;
+
+        try {
+
+            const response =
+                await fetch(
+                    "/api/contracts",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            loggedUsername:
+                                loggedUser.username,
+                            name,
+                            number
+                        })
+                    }
+                );
+
+            const data =
+                await response.json();
+
+            if (!response.ok) {
+
+                contractModalMessage.textContent =
+                    data.erro ||
+                    "Erro ao criar contrato.";
+
+                return;
+
+            }
+
+            closeContractModalView();
+
+            await loadContracts();
+
+            renderContracts();
+
+        } catch (error) {
+
+            console.error(error);
+
+            contractModalMessage.textContent =
+                "Erro ao criar contrato.";
+
+        } finally {
+
+            saveContractBtn.disabled =
+                false;
+
+        }
 
     }
 );

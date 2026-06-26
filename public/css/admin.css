@@ -682,3 +682,110 @@
     color: #64748b;
     font-weight: 600;
 }
+
+.admin-section-actions {
+    display: flex;
+    justify-content: flex-end;
+
+    margin-bottom: 12px;
+}
+
+.primary-admin-btn {
+    width: 100%;
+
+    padding: 12px 16px;
+
+    border: none;
+    border-radius: var(--radius-sm);
+
+    background: #1f1b4d;
+    color: white;
+
+    font-weight: 800;
+    cursor: pointer;
+
+    transition: 0.2s ease;
+}
+
+.primary-admin-btn:hover {
+    filter: brightness(1.08);
+}
+
+.small-modal-card {
+    width: min(420px, 92vw);
+}
+
+#contractModal {
+    display: none;
+}
+
+#contractModal label {
+    display: block;
+
+    margin-top: 14px;
+
+    color: #1f1b4d;
+    font-weight: 800;
+}
+
+#contractModal input {
+    width: 100%;
+
+    margin-top: 6px;
+    padding: 11px;
+
+    border: 1px solid #cbd5e1;
+    border-radius: var(--radius-sm);
+
+    box-sizing: border-box;
+    font-weight: 700;
+}
+
+.admin-form-message {
+    min-height: 20px;
+
+    margin: 12px 0;
+
+    color: #dc2626;
+    font-weight: 800;
+}
+
+.admin-contract-actions {
+    margin-top: 12px;
+
+    display: flex;
+    gap: 8px;
+}
+
+.toggle-contract-status-btn {
+    width: 100%;
+
+    padding: 8px 10px;
+
+    border: none;
+    border-radius: var(--radius-sm);
+
+    background: var(--primary);
+    color: white;
+
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 800;
+}
+
+.toggle-contract-status-btn:hover {
+    background: var(--primary-hover);
+}
+
+.toggle-contract-status-btn.danger-contract-btn {
+    background: var(--danger);
+}
+
+.toggle-contract-status-btn.danger-contract-btn:hover {
+    background: var(--danger-hover);
+}
+
+.admin-contract-status.inactive {
+    background: #fee2e2;
+    color: #991b1b;
+}
