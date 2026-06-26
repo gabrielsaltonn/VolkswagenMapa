@@ -1532,8 +1532,21 @@ async function loadContracts() {
 
     try {
 
+        const contractParams =
+            new URLSearchParams({
+                loggedUsername:
+                    loggedUser.username
+            });
+
         const response =
-            await fetch("/api/contracts");
+            await fetch(
+                `/api/contracts?${contractParams.toString()}`
+            );
+
+        params.set(
+            "loggedUsername",
+            loggedUser.username
+        );
 
         const contracts =
             await response.json();

@@ -8,6 +8,7 @@ import {
     getRequester,
     isSuperAdmin,
     canManageUsers,
+    getVisibleContractNumbers,
     normalizeUsername
 } from "../utils/permissions.js";
 
@@ -704,6 +705,28 @@ router.patch("/access/:id", async (req, res) => {
             return res.status(400).json({
                 erro: `Contrato(s) inválido(s) ou inativo(s): ${invalidContracts.join(", ")}.`
             });
+
+        }
+
+        if (!isSuperAdmin(requester)) {
+
+            const visibleContractNumbers =
+                await getVisibleContractNumbers(
+                    requester
+                );
+
+            const forbiddenContracts =
+                requestedContractNumbers.filter(contractNumber =>
+                    !visibleContractNumbers.includes(contractNumber)
+                );
+
+            if (forbiddenContracts.length > 0) {
+
+                return res.status(403).json({
+                    erro: `Você não pode conceder acesso ao(s) contrato(s): ${forbiddenContracts.join(", ")}.`
+                });
+
+            }
 
         }
 

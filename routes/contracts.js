@@ -1,84 +1,85 @@
 import express from "express";
 import Contract from "../models/Contract.js";
-import User from "../models/User.js";
+
+import {
+    getRequester,
+    isSuperAdmin,
+    isGestor,
+    canCreateContracts,
+    normalizeUsername
+} from "../utils/permissions.js";
 
 const router = express.Router();
 
-const SUPER_ADMIN_USERS = [
-    "admin@simpress.com.br",
-    "admin.dev@simpress.com.br"
-];
+function normalizeManagers(managers) {
 
-function normalizeUsername(username) {
-
-    return String(username || "")
-        .trim()
-        .toLowerCase();
-
-}
-
-async function getRequester(loggedUsername) {
-
-    const username =
-        normalizeUsername(loggedUsername);
-
-    if (!username) {
-        return null;
+    if (!Array.isArray(managers)) {
+        return [];
     }
 
-    return await User.findOne({
-        username,
-        status: "approved"
-    });
+    return [
+        ...new Set(
+            managers
+                .map(manager =>
+                    normalizeUsername(manager)
+                )
+                .filter(Boolean)
+        )
+    ];
 
 }
 
-function isSuperAdmin(user) {
-
-    if (!user) {
-        return false;
-    }
-
-    return SUPER_ADMIN_USERS.includes(
-        normalizeUsername(user.username)
-    );
-
-}
-
-async function requireSuperAdmin(req, res) {
-
-    const loggedUsername =
-        req.body.loggedUsername ||
-        req.query.loggedUsername;
-
-    const requester =
-        await getRequester(loggedUsername);
-
-    if (!isSuperAdmin(requester)) {
-
-        res.status(403).json({
-            erro: "Apenas o administrador principal pode executar esta ação."
-        });
-
-        return null;
-
-    }
-
-    return requester;
-
-}
-
-// Listar contratos
 router.get("/", async (req, res) => {
 
     try {
 
-        const contracts =
-            await Contract.find({
-                status: "active"
-            }).sort({
-                name: 1
+        const requester =
+            await getRequester(req);
+
+        if (!requester) {
+
+            return res.status(401).json({
+                erro: "Usuário autenticado não informado ou não aprovado."
             });
+
+        }
+
+        let filter = {};
+
+        if (isGestor(requester)) {
+
+            filter.managers =
+                normalizeUsername(requester.username);
+
+        }
+
+        if (
+            !isSuperAdmin(requester) &&
+            !isGestor(requester)
+        ) {
+
+            const contractNumbers =
+                [
+                    ...new Set(
+                        (requester.access || [])
+                            .map(accessItem =>
+                                accessItem.contractNumber
+                            )
+                            .filter(Boolean)
+                    )
+                ];
+
+            filter.number = {
+                $in: contractNumbers
+            };
+
+        }
+
+        const contracts =
+            await Contract.find(filter)
+                .sort({
+                    name: 1
+                });
 
         res.json(contracts);
 
@@ -92,28 +93,36 @@ router.get("/", async (req, res) => {
 
 });
 
-// Criar contrato
 router.post("/", async (req, res) => {
 
     try {
 
         const requester =
-            await requireSuperAdmin(
-                req,
-                res
-            );
+            await getRequester(req);
 
         if (!requester) {
-            return;
+
+            return res.status(401).json({
+                erro: "Usuário autenticado não informado ou não aprovado."
+            });
+
+        }
+
+        if (!canCreateContracts(requester)) {
+
+            return res.status(403).json({
+                erro: "Apenas gestores ou administradores principais podem criar contratos."
+            });
+
         }
 
         const name =
-            req.body.name
-                ?.trim();
+            String(req.body.name || "")
+                .trim();
 
         const number =
-            req.body.number
-                ?.trim();
+            String(req.body.number || "")
+                .trim();
 
         if (!name || !number) {
 
@@ -123,16 +132,32 @@ router.post("/", async (req, res) => {
 
         }
 
-        const existingContract =
-            await Contract.findOne({
-                number
-            });
+        let managers = [];
 
-        if (existingContract) {
+        if (isSuperAdmin(requester)) {
 
-            return res.status(400).json({
-                erro: "Já existe um contrato com este número."
-            });
+            managers =
+                normalizeManagers(
+                    req.body.managers
+                );
+
+        }
+
+        if (isGestor(requester)) {
+
+            managers =
+                [
+                    normalizeUsername(requester.username)
+                ];
+
+        }
+
+        if (managers.length === 0) {
+
+            managers =
+                [
+                    normalizeUsername(requester.username)
+                ];
 
         }
 
@@ -140,15 +165,23 @@ router.post("/", async (req, res) => {
             await Contract.create({
                 name,
                 number,
-                status: "active"
+                status: "active",
+                createdBy:
+                    normalizeUsername(requester.username),
+                managers
             });
 
-        res.status(201).json({
-            mensagem: "Contrato criado com sucesso.",
-            contract
-        });
+        res.status(201).json(contract);
 
     } catch (error) {
+
+        if (error.code === 11000) {
+
+            return res.status(400).json({
+                erro: "Já existe um contrato com esse número."
+            });
+
+        }
 
         res.status(500).json({
             erro: error.message
@@ -158,43 +191,63 @@ router.post("/", async (req, res) => {
 
 });
 
-// Editar contrato
 router.put("/:id", async (req, res) => {
 
     try {
 
         const requester =
-            await requireSuperAdmin(
-                req,
-                res
-            );
+            await getRequester(req);
 
         if (!requester) {
-            return;
+
+            return res.status(401).json({
+                erro: "Usuário autenticado não informado ou não aprovado."
+            });
+
         }
 
-        const name =
-            req.body.name
-                ?.trim();
+        const contract =
+            await Contract.findById(
+                req.params.id
+            );
 
-        const number =
-            req.body.number
-                ?.trim();
+        if (!contract) {
 
-        const status =
-            req.body.status;
+            return res.status(404).json({
+                erro: "Contrato não encontrado."
+            });
 
-        const updateData = {};
-
-        if (name) {
-            updateData.name = name;
         }
 
-        if (number) {
-            updateData.number = number;
+        const isContractManager =
+            contract.managers.includes(
+                normalizeUsername(requester.username)
+            );
+
+        if (
+            !isSuperAdmin(requester) &&
+            !isContractManager
+        ) {
+
+            return res.status(403).json({
+                erro: "Você não tem permissão para editar este contrato."
+            });
+
         }
 
-        if (status) {
+        if (req.body.name !== undefined) {
+
+            contract.name =
+                String(req.body.name || "")
+                    .trim();
+
+        }
+
+        if (req.body.status !== undefined) {
+
+            const status =
+                String(req.body.status || "")
+                    .trim();
 
             if (
                 status !== "active" &&
@@ -207,41 +260,28 @@ router.put("/:id", async (req, res) => {
 
             }
 
-            updateData.status = status;
+            contract.status =
+                status;
 
         }
 
-        const contract =
-            await Contract.findByIdAndUpdate(
-                req.params.id,
-                updateData,
-                {
-                    new: true
-                }
-            );
+        if (
+            isSuperAdmin(requester) &&
+            req.body.managers !== undefined
+        ) {
 
-        if (!contract) {
-
-            return res.status(404).json({
-                erro: "Contrato não encontrado."
-            });
+            contract.managers =
+                normalizeManagers(
+                    req.body.managers
+                );
 
         }
 
-        res.json({
-            mensagem: "Contrato atualizado com sucesso.",
-            contract
-        });
+        await contract.save();
+
+        res.json(contract);
 
     } catch (error) {
-
-        if (error.code === 11000) {
-
-            return res.status(400).json({
-                erro: "Já existe um contrato com este número."
-            });
-
-        }
 
         res.status(500).json({
             erro: error.message

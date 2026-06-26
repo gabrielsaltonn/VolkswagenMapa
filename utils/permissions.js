@@ -1,4 +1,5 @@
 import User from "../models/User.js";
+import Contract from "../models/Contract.js";
 
 export const DEFAULT_CONTRACT_NUMBER =
     "1234";
@@ -57,12 +58,64 @@ export function isGestor(user) {
 
 }
 
+export function canCreateContracts(user) {
+
+    return (
+        isSuperAdmin(user) ||
+        isGestor(user)
+    );
+
+}
+
 export function canManageUsers(user) {
 
     return (
         isSuperAdmin(user) ||
         isGestor(user)
     );
+
+}
+
+export async function getVisibleContractNumbers(user) {
+
+    if (!user) {
+        return [];
+    }
+
+    if (isSuperAdmin(user)) {
+
+        const contracts =
+            await Contract.find({})
+                .select("number");
+
+        return contracts.map(contract =>
+            contract.number
+        );
+
+    }
+
+    if (isGestor(user)) {
+
+        const contracts =
+            await Contract.find({
+                managers: normalizeUsername(user.username)
+            }).select("number");
+
+        return contracts.map(contract =>
+            contract.number
+        );
+
+    }
+
+    return [
+        ...new Set(
+            (user.access || [])
+                .map(accessItem =>
+                    accessItem.contractNumber
+                )
+                .filter(Boolean)
+        )
+    ];
 
 }
 
@@ -159,21 +212,43 @@ export async function requireContractAccess(
             contractNumber
         );
 
-    if (!access) {
+    if (access) {
 
-        res.status(403).json({
-            erro: "Você não tem acesso a este contrato."
-        });
-
-        return null;
+        return {
+            requester,
+            access
+        };
 
     }
 
-    return {
-        requester,
-        access
-    };
+    if (isGestor(requester)) {
 
+        const managedContract =
+            await Contract.findOne({
+                number: contractNumber,
+                managers: normalizeUsername(requester.username)
+            });
+
+        if (managedContract) {
+
+            return {
+                requester,
+                access: {
+                    contractNumber,
+                    role: "admin",
+                    plants: ["ALL"]
+                }
+            };
+
+        }
+
+    }
+
+    res.status(403).json({
+        erro: "Você não tem acesso a este contrato."
+    });
+
+    return null;
 }
 
 export async function requireContractManager(
