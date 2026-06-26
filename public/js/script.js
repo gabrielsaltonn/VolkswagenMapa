@@ -1,14 +1,14 @@
 const loggedUser =
     JSON.parse(localStorage.getItem("user"));
 
-    if (!loggedUser) {
+if (!loggedUser) {
     window.location.href = "login.html";
 }
 
-const userRole =
+let userRole =
     loggedUser.role;
 
-const userPlant =
+let userPlant =
     loggedUser.plant;
 
 const DEFAULT_CONTRACT_NUMBER =
@@ -41,13 +41,126 @@ localStorage.setItem(
     activeContractNumber
 );
 
-function canEditPlant(plant) {
+const SUPER_ADMIN_USERS = [
+    "admin@simpress.com.br",
+    "admin.dev@simpress.com.br"
+];
 
-    if (userRole === "admin") {
+function normalizeUsername(username) {
+
+    return String(username || "")
+        .trim()
+        .toLowerCase();
+
+}
+
+function isSuperAdminUser() {
+
+    return SUPER_ADMIN_USERS.includes(
+        normalizeUsername(loggedUser.username)
+    );
+
+}
+
+function getActiveUserAccess() {
+
+    const accessList =
+        loggedUser.access || [];
+
+    return accessList.find(accessItem =>
+        accessItem.contractNumber === activeContractNumber
+    );
+
+}
+
+function getActiveUserPlants() {
+
+    if (isSuperAdminUser()) {
+        return ["ALL"];
+    }
+
+    const activeAccess =
+        getActiveUserAccess();
+
+    return activeAccess?.plants?.length
+        ? activeAccess.plants
+        : [loggedUser.plant || "SJP"];
+
+}
+
+function getActiveUserRole() {
+
+    if (isSuperAdminUser()) {
+        return "admin";
+    }
+
+    const activeAccess =
+        getActiveUserAccess();
+
+    return activeAccess?.role ||
+        loggedUser.role ||
+        "user";
+
+}
+
+function syncActiveUserPermissions() {
+
+    const plants =
+        getActiveUserPlants();
+
+    userRole =
+        getActiveUserRole();
+
+    userPlant =
+        plants.includes("ALL")
+            ? "ALL"
+            : plants[0];
+
+}
+
+function canManageCurrentContract() {
+
+    if (isSuperAdminUser()) {
         return true;
     }
 
-    return userPlant === plant;
+    const activeAccess =
+        getActiveUserAccess();
+
+    return (
+        activeAccess?.role === "admin" ||
+        activeAccess?.role === "gestor"
+    );
+
+}
+
+function canEditPlant(plant) {
+
+    if (isSuperAdminUser()) {
+        return true;
+    }
+
+    const activeAccess =
+        getActiveUserAccess();
+
+    if (!activeAccess) {
+        return false;
+    }
+
+    if (
+        activeAccess.role !== "admin" &&
+        activeAccess.role !== "gestor"
+    ) {
+        return false;
+    }
+
+    const plants =
+        activeAccess.plants || [];
+
+    return (
+        plants.includes("ALL") ||
+        plants.includes(plant)
+    );
 
 }
 
@@ -71,20 +184,22 @@ const contractSelect =
         "contractSelect"
     );
 
-const SUPER_ADMIN_USERS = [
-    "admin@simpress.com.br",
-    "admin.dev@simpress.com.br"
-];
+function renderLoggedUserAccessInfo() {
 
-function isSuperAdminUser() {
+    loggedUserName.textContent =
+        `${loggedUser.username}`;
 
-    return SUPER_ADMIN_USERS.includes(
-        String(loggedUser.username || "")
-            .trim()
-            .toLowerCase()
-    );
+    loggedUserRole.textContent =
+        `${userRole}`;
+
+    loggedUserPlant.textContent =
+        `${userPlant}`;
 
 }
+
+syncActiveUserPermissions();
+
+renderLoggedUserAccessInfo();
 
 loggedUserName.textContent =
     `${loggedUser.username}`;
@@ -216,12 +331,16 @@ const addPageModalBtn =
         "addPageModalBtn"
     );
 
-const isAdmin =
-    loggedUser.role === "admin";
+function updateMapAdminVisibility() {
 
-if (!isAdmin) {
-    manageMapsBtn.style.display = "none";
+    manageMapsBtn.style.display =
+        canManageCurrentContract()
+            ? "block"
+            : "none";
+
 }
+
+updateMapAdminVisibility();
 
 manageMapsBtn.addEventListener("click", () => {
 
@@ -1451,6 +1570,16 @@ contractSelect.addEventListener(
             "activeContractNumber",
             activeContractNumber
         );
+
+        syncActiveUserPermissions();
+
+        renderLoggedUserAccessInfo();
+
+        updateMapAdminVisibility();
+
+        if (typeof updateAdminPanelButton === "function") {
+            updateAdminPanelButton();
+        }
 
         currentMapPage = 0;
 
@@ -4867,59 +4996,50 @@ saveQuickLinkBtn.addEventListener("click", async () => {
 const adminPanelBtn =
     document.getElementById("adminPanelBtn");
 
-if (loggedUser.role === "admin") {
+function updateAdminPanelButton() {
 
-    adminPanelBtn.textContent =
-        "Gerenciar Usuários";
+    if (canManageCurrentContract()) {
 
-    adminPanelBtn.addEventListener(
-        "click",
-        () => {
+        adminPanelBtn.textContent =
+            "Gerenciar Usuários";
 
-            window.location.href =
-                "admin.html";
+    } else {
 
-        }
-    );
+        adminPanelBtn.textContent =
+            "Usuários";
 
-} else {
-
-    adminPanelBtn.textContent =
-        "Usuários";
+    }
 
     adminPanelBtn.style.display =
         "block";
 
-    adminPanelBtn.addEventListener(
-        "click",
-        () => {
-
-            window.location.href =
-                "users.html";
-
-        }
-    );
-
 }
+
+adminPanelBtn.addEventListener(
+    "click",
+    () => {
+
+        window.location.href =
+            canManageCurrentContract()
+                ? "admin.html"
+                : "users.html";
+
+    }
+);
 
 collapsedUsersBtn.addEventListener(
     "click",
     () => {
 
-        if (loggedUser.role === "admin") {
-
-            window.location.href =
-                "admin.html";
-
-        } else {
-
-            window.location.href =
-                "users.html";
-
-        }
+        window.location.href =
+            canManageCurrentContract()
+                ? "admin.html"
+                : "users.html";
 
     }
 );
+
+updateAdminPanelButton();
 
 const logoutBtn =
     document.getElementById("logoutBtn");
