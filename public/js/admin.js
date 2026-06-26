@@ -229,6 +229,7 @@ let selectedUser = null;
 let contracts = [];
 
 let selectedUserAccessDraft = [];
+let expandedUserAccessIndexes = new Set();
 
 const ACCESS_ROLE_OPTIONS = [
     "user",
@@ -493,6 +494,9 @@ function renderUserAccessList(user) {
             plants: [...(accessItem.plants || [])]
         }));
 
+    expandedUserAccessIndexes =
+        new Set();
+
     renderUserAccessEditor();
 
 }
@@ -518,8 +522,13 @@ function renderUserAccessEditor() {
         const div =
             document.createElement("div");
 
+        const isExpanded =
+            expandedUserAccessIndexes.has(index);
+
         div.className =
-            "user-access-item";
+            isExpanded
+                ? "user-access-item expanded"
+                : "user-access-item collapsed";
 
         const plantOptions =
             getPlantOptionsForContract(
@@ -528,50 +537,69 @@ function renderUserAccessEditor() {
             );
 
         div.innerHTML = `
-            <label>
-                Contrato
-
-                <select class="access-contract-select">
-                    ${getContractOptionsHtml(accessItem.contractNumber)}
-                </select>
-            </label>
-
-            <label>
-                Tipo de acesso
-
-                <select class="access-role-select">
-                    ${ACCESS_ROLE_OPTIONS.map(role => `
-                        <option
-                            value="${role}"
-                            ${role === accessItem.role ? "selected" : ""}>
-                            ${role}
-                        </option>
-                    `).join("")}
-                </select>
-            </label>
-
-            <label>
-                Planta
-
-                <div class="user-access-plants-editor">
-                    ${plantOptions.map(plant => `
-                        <label class="user-access-plant-check">
-                            <input
-                                type="checkbox"
-                                value="${plant}"
-                                ${accessItem.plants.includes(plant) ? "checked" : ""}>
-                            ${plant}
-                        </label>
-                    `).join("")}
-                </div>
-            </label>
-
             <button
                 type="button"
-                class="remove-user-access-btn">
-                Remover acesso
+                class="user-access-summary">
+                <span>
+                    ${getContractLabel(accessItem.contractNumber)}
+                </span>
+
+                <span class="user-access-toggle-icon">
+                    ${isExpanded ? "▲" : "▼"}
+                </span>
             </button>
+
+            <div class="user-access-details">
+                <label>
+                    Contrato
+
+                    <select class="access-contract-select">
+                        ${getContractOptionsHtml(accessItem.contractNumber)}
+                    </select>
+                </label>
+
+                <label>
+                    Tipo de acesso
+
+                    <select class="access-role-select">
+                        ${ACCESS_ROLE_OPTIONS.map(role => `
+                            <option
+                                value="${role}"
+                                ${role === accessItem.role ? "selected" : ""}>
+                                ${role}
+                            </option>
+                        `).join("")}
+                    </select>
+                </label>
+
+                <label>
+                    Planta
+
+                    <div class="user-access-plants-editor">
+                        ${plantOptions.map(plant => `
+                            <label class="user-access-plant-check">
+                                <input
+                                    type="checkbox"
+                                    value="${plant}"
+                                    ${accessItem.plants.includes(plant) ? "checked" : ""}>
+                                ${plant}
+                            </label>
+                        `).join("")}
+                    </div>
+                </label>
+
+                <button
+                    type="button"
+                    class="remove-user-access-btn">
+                    Remover acesso
+                </button>
+            </div>
         `;
+
+        const summaryBtn =
+            div.querySelector(
+                ".user-access-summary"
+            );
 
         const contractSelect =
             div.querySelector(
@@ -593,12 +621,36 @@ function renderUserAccessEditor() {
                 ".remove-user-access-btn"
             );
 
+        summaryBtn.addEventListener(
+            "click",
+            () => {
+
+                if (expandedUserAccessIndexes.has(index)) {
+
+                    expandedUserAccessIndexes.delete(index);
+
+                } else {
+
+                    expandedUserAccessIndexes.add(index);
+
+                }
+
+                renderUserAccessEditor();
+
+            }
+        );
+
         contractSelect.addEventListener(
             "change",
             () => {
 
                 selectedUserAccessDraft[index].contractNumber =
                     contractSelect.value;
+
+                selectedUserAccessDraft[index].plants =
+                    ["ALL"];
+
+                expandedUserAccessIndexes.add(index);
 
                 renderUserAccessEditor();
 
@@ -638,6 +690,8 @@ function renderUserAccessEditor() {
 
                     }
 
+                    expandedUserAccessIndexes.add(index);
+
                     renderUserAccessEditor();
 
                 }
@@ -650,6 +704,9 @@ function renderUserAccessEditor() {
             () => {
 
                 selectedUserAccessDraft.splice(index, 1);
+
+                expandedUserAccessIndexes =
+                    new Set();
 
                 renderUserAccessEditor();
 
@@ -752,6 +809,10 @@ addUserAccessBtn.addEventListener(
             role: "user",
             plants: ["ALL"]
         });
+
+        expandedUserAccessIndexes.add(
+            selectedUserAccessDraft.length - 1
+        );
 
         renderUserAccessEditor();
 

@@ -546,3 +546,56 @@
 
     background: #dbe4f0;
 }
+
+.user-access-item.collapsed {
+    padding: 0;
+}
+
+.user-access-summary {
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    padding: 12px 14px;
+
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+
+    background: white;
+    color: #0f172a;
+
+    cursor: pointer;
+
+    font-size: 0.95rem;
+    font-weight: 800;
+    text-align: left;
+}
+
+.user-access-summary:hover {
+    background: #f8fafc;
+}
+
+.user-access-toggle-icon {
+    color: var(--primary);
+    font-size: 0.8rem;
+    font-weight: 900;
+}
+
+.user-access-details {
+    display: none;
+
+    margin-top: 10px;
+}
+
+.user-access-item.expanded .user-access-details {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.user-access-item.expanded {
+    padding: 12px;
+}
