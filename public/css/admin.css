@@ -327,3 +327,93 @@
     position: relative;
     left: -70px;
 }
+
+.user-access-section {
+    margin-top: 8px;
+    padding: 12px;
+
+    border: 1px solid #cbd5e1;
+    border-radius: var(--radius-md);
+
+    background: #f8fafc;
+}
+
+.user-access-section h3 {
+    margin: 0 0 10px 0;
+
+    color: var(--primary);
+    font-size: 1rem;
+}
+
+.user-access-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.user-access-item {
+    padding: 10px;
+
+    border: 1px solid #dbe4f0;
+    border-radius: 10px;
+
+    background: white;
+
+    color: #0f172a;
+    font-size: 0.9rem;
+}
+
+.user-access-contract {
+    display: block;
+
+    margin-bottom: 6px;
+
+    color: var(--primary);
+    font-weight: 800;
+}
+
+.user-access-role {
+    display: inline-block;
+
+    margin-bottom: 6px;
+    padding: 3px 8px;
+
+    border-radius: 999px;
+
+    background: #e0e7ff;
+    color: #1e1b4b;
+
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.user-access-role.admin,
+.user-access-role.gestor {
+    background: #facc15;
+    color: #1e1b4b;
+}
+
+.user-access-plants {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.user-access-plant {
+    padding: 3px 7px;
+
+    border-radius: 999px;
+
+    background: #dcfce7;
+    color: #14532d;
+
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.user-access-empty {
+    color: #64748b;
+    font-size: 0.85rem;
+    font-weight: 600;
+}

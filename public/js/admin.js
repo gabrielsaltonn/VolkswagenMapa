@@ -205,6 +205,11 @@ const userStatus =
         "userStatus"
     );
 
+const userAccessList =
+    document.getElementById(
+        "userAccessList"
+    );
+
 const saveUserBtn =
     document.getElementById(
         "saveUserBtn"
@@ -226,6 +231,8 @@ const deleteUserBtn =
     );
 
 let selectedUser = null;
+
+let contracts = [];
 
 async function loadPendingUsers() {
 
@@ -316,6 +323,122 @@ function getInitials(username) {
 
 }
 
+async function loadContracts() {
+
+    try {
+
+        const response =
+            await fetch("/api/contracts");
+
+        const data =
+            await response.json();
+
+        contracts =
+            Array.isArray(data)
+                ? data
+                : [];
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao carregar contratos:",
+            error
+        );
+
+        contracts = [];
+
+    }
+
+}
+
+function getContractLabel(contractNumber) {
+
+    const contract =
+        contracts.find(item =>
+            item.number === contractNumber
+        );
+
+    if (!contract) {
+        return contractNumber;
+    }
+
+    return `${contract.name} - ${contract.number}`;
+
+}
+
+function getUserAccessList(user) {
+
+    if (
+        user.access &&
+        user.access.length > 0
+    ) {
+        return user.access;
+    }
+
+    return [
+        {
+            contractNumber: "1234",
+            role: user.role || "user",
+            plants: [user.plant || "SJP"]
+        }
+    ];
+
+}
+
+function renderUserAccessList(user) {
+
+    const accessList =
+        getUserAccessList(user);
+
+    userAccessList.innerHTML = "";
+
+    if (accessList.length === 0) {
+
+        userAccessList.innerHTML = `
+            <div class="user-access-empty">
+                Nenhum acesso cadastrado.
+            </div>
+        `;
+
+        return;
+
+    }
+
+    accessList.forEach(accessItem => {
+
+        const div =
+            document.createElement("div");
+
+        div.className =
+            "user-access-item";
+
+        const plants =
+            accessItem.plants || [];
+
+        div.innerHTML = `
+            <strong class="user-access-contract">
+                ${getContractLabel(accessItem.contractNumber)}
+            </strong>
+
+            <span class="user-access-role ${accessItem.role}">
+                ${accessItem.role}
+            </span>
+
+            <div class="user-access-plants">
+                ${plants.map(plant => `
+                    <span class="user-access-plant">
+                        ${plant}
+                    </span>
+                `).join("")}
+            </div>
+        `;
+
+        userAccessList.appendChild(div);
+
+    });
+
+}
+
 function showUserModal(user) {
 
     selectedUser = user;
@@ -334,6 +457,8 @@ function showUserModal(user) {
 
     userStatus.className =
         "user-status-box " + user.status;
+
+    renderUserAccessList(user);
         
         if (user.status === "pending") {
 
@@ -640,5 +765,14 @@ userSearch.addEventListener(
     }
 );
 
-loadPendingUsers();
-loadAllUsers();
+async function startAdminPage() {
+
+    await loadContracts();
+
+    await loadPendingUsers();
+
+    await loadAllUsers();
+
+}
+
+startAdminPage();
