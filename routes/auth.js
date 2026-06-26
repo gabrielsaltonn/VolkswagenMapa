@@ -14,9 +14,8 @@ const router = express.Router();
 
 const VALID_ACCESS_ROLES = [
     "user",
-    "admin",
-    "gestor"
-];
+    "admin"
+]
 
 function normalizePlants(plants) {
 
@@ -199,19 +198,13 @@ router.post("/register", async (req, res) => {
                 10
             );
 
-       const newUser =
+        const newUser =
             await User.create({
                 username,
                 password: hashedPassword,
                 role: "user",
-                plant: "SJP",
-                access: [
-                    {
-                        contractNumber: "1234",
-                        role: "user",
-                        plants: ["SJP"]
-                    }
-                ],
+                plant: "",
+                access: [],
                 status: "pending"
             });
 
@@ -343,14 +336,8 @@ router.patch("/approve/:id", async (req, res) => {
     try {
 
         const user =
-            await User.findByIdAndUpdate(
-                req.params.id,
-                {
-                    status: "approved"
-                },
-                {
-                    new: true
-                }
+            await User.findById(
+                req.params.id
             );
 
         if (!user) {
@@ -360,6 +347,25 @@ router.patch("/approve/:id", async (req, res) => {
             });
 
         }
+
+        if (
+            user.role !== "gestor" &&
+            (
+                !user.access ||
+                user.access.length === 0
+            )
+        ) {
+
+            return res.status(400).json({
+                erro: "Defina pelo menos um contrato antes de aprovar o usuário."
+            });
+
+        }
+
+        user.status =
+            "approved";
+
+        await user.save();
 
         res.json({
             mensagem: "Usuário aprovado",
@@ -381,14 +387,8 @@ router.patch("/reject/:id", async (req, res) => {
     try {
 
         const user =
-            await User.findByIdAndUpdate(
-                req.params.id,
-                {
-                    status: "rejected"
-                },
-                {
-                    new: true
-                }
+            await User.findById(
+                req.params.id
             );
 
         if (!user) {
@@ -399,9 +399,20 @@ router.patch("/reject/:id", async (req, res) => {
 
         }
 
+        if (user.status !== "pending") {
+
+            return res.status(400).json({
+                erro: "Apenas usuários pendentes podem ser rejeitados."
+            });
+
+        }
+
+        await User.findByIdAndDelete(
+            req.params.id
+        );
+
         res.json({
-            mensagem: "Usuário rejeitado",
-            user
+            mensagem: "Usuário rejeitado e removido do banco."
         });
 
     } catch (error) {
@@ -422,7 +433,8 @@ router.patch("/role/:id", async (req, res) => {
 
         if (
             role !== "admin" &&
-            role !== "user"
+            role !== "user" &&
+            role !== "gestor"
         ) {
 
             return res.status(400).json({
@@ -446,6 +458,23 @@ router.patch("/role/:id", async (req, res) => {
 
         user.role =
             role;
+
+        if (role === "gestor") {
+
+            user.plant =
+                "";
+
+            user.access =
+                [];
+
+            await user.save();
+
+            return res.json({
+                mensagem: "Role atualizada",
+                user
+            });
+
+        }
 
         const defaultAccess =
             user.access.find(accessItem =>

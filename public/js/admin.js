@@ -152,20 +152,33 @@ const pendingUsersList =
     );
 
 const pendingSection =
-    document.getElementById("pendingSection");
+    document.getElementById(
+        "pendingSection"
+    );
 
 const activeUsersCounter =
-    document.getElementById("activeUsersCounter");
+    document.getElementById(
+        "activeUsersCounter"
+    );
 
 const pendingUsersCounter =
-    document.getElementById("pendingUsersCounter");
+    document.getElementById(
+        "pendingUsersCounter"
+    );
 
 const adminUsersCounter =
-    document.getElementById("adminUsersCounter");
+    document.getElementById(
+        "adminUsersCounter"
+    );
 
 const allUsersList =
     document.getElementById(
         "allUsersList"
+    );
+
+const contractsList =
+    document.getElementById(
+        "contractsList"
     );
 
 const userSearch =
@@ -188,6 +201,11 @@ const closeUserModal =
 const userModalName =
     document.getElementById(
         "userModalName"
+    );
+
+const userSystemRole =
+    document.getElementById(
+        "userSystemRole"
     );
 
 const userStatus =
@@ -233,8 +251,7 @@ let expandedUserAccessIndexes = new Set();
 
 const ACCESS_ROLE_OPTIONS = [
     "user",
-    "admin",
-    "gestor"
+    "admin"
 ];
 
 let contractPlants = {};
@@ -364,6 +381,50 @@ async function loadContracts() {
 
 }
 
+function renderContracts() {
+
+    contractsList.innerHTML = "";
+
+    if (contracts.length === 0) {
+
+        contractsList.innerHTML = `
+            <div class="admin-contract-empty">
+                Nenhum contrato cadastrado.
+            </div>
+        `;
+
+        return;
+
+    }
+
+    contracts.forEach(contract => {
+
+        const div =
+            document.createElement("div");
+
+        div.className =
+            "admin-contract-card";
+
+        div.innerHTML = `
+            <strong class="admin-contract-name">
+                ${contract.name}
+            </strong>
+
+            <div class="admin-contract-number">
+                Número: ${contract.number}
+            </div>
+
+            <span class="admin-contract-status">
+                ${contract.status}
+            </span>
+        `;
+
+        contractsList.appendChild(div);
+
+    });
+
+}
+
 async function loadPlantsForContract(contractNumber) {
 
     try {
@@ -429,6 +490,10 @@ function getPlantOptionsForContract(
 
 function getContractLabel(contractNumber) {
 
+    if (!contractNumber) {
+        return "Selecione um contrato";
+    }
+
     const contract =
         contracts.find(item =>
             item.number === contractNumber
@@ -442,27 +507,94 @@ function getContractLabel(contractNumber) {
 
 }
 
-function getContractOptionsHtml(currentContractNumber) {
+function normalizeContractSearch(value) {
+
+    return String(value || "")
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
+}
+
+function normalizeContractSearch(value) {
+
+    return String(value || "")
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
+}
+
+function getContractOptionLabel(contract) {
+
+    return `${contract.name} - ${contract.number}`;
+
+}
+
+function getAvailableContractsForAccess(currentContractNumber) {
 
     const usedContracts =
         selectedUserAccessDraft
             .map(accessItem => accessItem.contractNumber)
             .filter(contractNumber =>
+                contractNumber &&
                 contractNumber !== currentContractNumber
             );
 
-    return contracts
-        .filter(contract =>
-            !usedContracts.includes(contract.number)
-        )
+    return contracts.filter(contract =>
+        !usedContracts.includes(contract.number)
+    );
+
+}
+
+function getContractDatalistOptionsHtml(currentContractNumber) {
+
+    return getAvailableContractsForAccess(currentContractNumber)
         .map(contract => `
-            <option
-                value="${contract.number}"
-                ${contract.number === currentContractNumber ? "selected" : ""}>
-                ${contract.name} - ${contract.number}
-            </option>
+            <option value="${getContractOptionLabel(contract)}"></option>
         `)
         .join("");
+
+}
+
+function findContractByInputValue(value, currentContractNumber) {
+
+    const normalizedValue =
+        normalizeContractSearch(value);
+
+    if (!normalizedValue) {
+        return null;
+    }
+
+    const availableContracts =
+        getAvailableContractsForAccess(currentContractNumber);
+
+    return availableContracts.find(contract => {
+
+        const label =
+            normalizeContractSearch(
+                getContractOptionLabel(contract)
+            );
+
+        const number =
+            normalizeContractSearch(
+                contract.number
+            );
+
+        const name =
+            normalizeContractSearch(
+                contract.name
+            );
+
+        return (
+            label === normalizedValue ||
+            number === normalizedValue ||
+            name === normalizedValue
+        );
+
+    });
 
 }
 
@@ -473,6 +605,10 @@ function getUserAccessList(user) {
         user.access.length > 0
     ) {
         return user.access;
+    }
+
+    if (user.status === "pending") {
+        return [];
     }
 
     return [
@@ -509,7 +645,9 @@ function renderUserAccessEditor() {
 
         userAccessList.innerHTML = `
             <div class="user-access-empty">
-                Nenhum acesso cadastrado.
+                Nenhum contrato selecionado. Clique em
+                <strong>+ Adicionar contrato</strong>
+                para definir o acesso do usuário.
             </div>
         `;
 
@@ -530,11 +668,16 @@ function renderUserAccessEditor() {
                 ? "user-access-item expanded"
                 : "user-access-item collapsed";
 
+        const hasSelectedContract =
+            Boolean(accessItem.contractNumber);
+
         const plantOptions =
-            getPlantOptionsForContract(
-                accessItem.contractNumber,
-                accessItem.plants || []
-            );
+            hasSelectedContract
+                ? getPlantOptionsForContract(
+                    accessItem.contractNumber,
+                    accessItem.plants || []
+                )
+                : [];
 
         div.innerHTML = `
             <button
@@ -553,40 +696,54 @@ function renderUserAccessEditor() {
                 <label>
                     Contrato
 
-                    <select class="access-contract-select">
-                        ${getContractOptionsHtml(accessItem.contractNumber)}
-                    </select>
+                    <input
+                        class="access-contract-combo"
+                        type="search"
+                        list="contract-options-${index}"
+                        placeholder="Digite nome ou número..."
+                        autocomplete="off"
+                        value="${accessItem.contractNumber ? getContractLabel(accessItem.contractNumber) : ""}">
+
+                    <datalist id="contract-options-${index}">
+                        ${getContractDatalistOptionsHtml(accessItem.contractNumber)}
+                    </datalist>
                 </label>
 
-                <label>
-                    Tipo de acesso
+                ${hasSelectedContract ? `
+                    <label>
+                        Tipo de acesso
 
-                    <select class="access-role-select">
-                        ${ACCESS_ROLE_OPTIONS.map(role => `
-                            <option
-                                value="${role}"
-                                ${role === accessItem.role ? "selected" : ""}>
-                                ${role}
-                            </option>
-                        `).join("")}
-                    </select>
-                </label>
+                        <select class="access-role-select">
+                            ${ACCESS_ROLE_OPTIONS.map(role => `
+                                <option
+                                    value="${role}"
+                                    ${role === accessItem.role ? "selected" : ""}>
+                                    ${role}
+                                </option>
+                            `).join("")}
+                        </select>
+                    </label>
 
-                <label>
-                    Planta
+                    <label>
+                        Planta
 
-                    <div class="user-access-plants-editor">
-                        ${plantOptions.map(plant => `
-                            <label class="user-access-plant-check">
-                                <input
-                                    type="checkbox"
-                                    value="${plant}"
-                                    ${accessItem.plants.includes(plant) ? "checked" : ""}>
-                                ${plant}
-                            </label>
-                        `).join("")}
+                        <div class="user-access-plants-editor">
+                            ${plantOptions.map(plant => `
+                                <label class="user-access-plant-check">
+                                    <input
+                                        type="checkbox"
+                                        value="${plant}"
+                                        ${accessItem.plants.includes(plant) ? "checked" : ""}>
+                                    ${plant}
+                                </label>
+                            `).join("")}
+                        </div>
+                    </label>
+                ` : `
+                    <div class="user-access-empty">
+                        Selecione um contrato para configurar tipo de acesso e planta.
                     </div>
-                </label>
+                `}
 
                 <button
                     type="button"
@@ -601,9 +758,9 @@ function renderUserAccessEditor() {
                 ".user-access-summary"
             );
 
-        const contractSelect =
+        const contractComboInput =
             div.querySelector(
-                ".access-contract-select"
+                ".access-contract-combo"
             );
 
         const roleSelect =
@@ -640,12 +797,25 @@ function renderUserAccessEditor() {
             }
         );
 
-        contractSelect.addEventListener(
-            "change",
+        contractComboInput.addEventListener(
+            "input",
             () => {
 
+                const selectedContract =
+                    findContractByInputValue(
+                        contractComboInput.value,
+                        accessItem.contractNumber
+                    );
+
+                if (!selectedContract) {
+                    return;
+                }
+
                 selectedUserAccessDraft[index].contractNumber =
-                    contractSelect.value;
+                    selectedContract.number;
+
+                selectedUserAccessDraft[index].role =
+                    selectedUserAccessDraft[index].role || "user";
 
                 selectedUserAccessDraft[index].plants =
                     ["ALL"];
@@ -657,15 +827,37 @@ function renderUserAccessEditor() {
             }
         );
 
-        roleSelect.addEventListener(
-            "change",
+        contractComboInput.addEventListener(
+            "blur",
             () => {
 
-                selectedUserAccessDraft[index].role =
-                    roleSelect.value;
+                const currentContractNumber =
+                    selectedUserAccessDraft[index]?.contractNumber;
+
+                if (!currentContractNumber) {
+                    contractComboInput.value = "";
+                    return;
+                }
+
+                contractComboInput.value =
+                    getContractLabel(currentContractNumber);
 
             }
         );
+
+        if (roleSelect) {
+
+            roleSelect.addEventListener(
+                "change",
+                () => {
+
+                    selectedUserAccessDraft[index].role =
+                        roleSelect.value;
+
+                }
+            );
+
+        }
 
         plantCheckboxes.forEach(checkbox => {
 
@@ -719,12 +911,44 @@ function renderUserAccessEditor() {
 
 }
 
+function updateUserAccessVisibility() {
+
+    const userAccessSection =
+        document.querySelector(
+            ".user-access-section"
+        );
+
+    if (!userAccessSection) {
+        return;
+    }
+
+    if (userSystemRole.value === "gestor") {
+
+        userAccessSection.style.display =
+            "none";
+
+    } else {
+
+        userAccessSection.style.display =
+            "block";
+
+    }
+
+}
+
 function showUserModal(user) {
 
     selectedUser = user;
 
     userModalName.textContent =
         getDisplayName(user.username);
+
+    userSystemRole.value =
+        user.role === "gestor"
+            ? "gestor"
+            : "user";
+
+    updateUserAccessVisibility();
 
     userStatus.textContent =
         user.status;
@@ -779,6 +1003,15 @@ closeUserModal.addEventListener(
     }
 );
 
+userSystemRole.addEventListener(
+    "change",
+    () => {
+
+        updateUserAccessVisibility();
+
+    }
+);
+
 addUserAccessBtn.addEventListener(
     "click",
     () => {
@@ -805,9 +1038,9 @@ addUserAccessBtn.addEventListener(
         }
 
         selectedUserAccessDraft.push({
-            contractNumber: availableContract.number,
+            contractNumber: "",
             role: "user",
-            plants: ["ALL"]
+            plants: []
         });
 
         expandedUserAccessIndexes.add(
@@ -889,6 +1122,47 @@ saveUserBtn.addEventListener("click", async () => {
 
     if (!selectedUser) {
         return;
+    }
+
+    if (userSystemRole.value === "gestor") {
+
+        const response =
+            await fetch(
+                `/api/auth/role/${selectedUser._id}`,
+                {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        role: "gestor"
+                    })
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+
+            showAdminMessageModal(
+                "Erro",
+                data.erro ||
+                "Erro ao salvar gestor."
+            );
+
+            return;
+
+        }
+
+        userModal.style.display =
+            "none";
+
+        await loadPendingUsers();
+        await loadAllUsers();
+
+        return;
+
     }
 
     if (selectedUserAccessDraft.length === 0) {
@@ -1026,6 +1300,70 @@ approveUserBtn.addEventListener(
             return;
         }
 
+        if (userSystemRole.value === "gestor") {
+
+            const roleResponse =
+                await fetch(
+                    `/api/auth/role/${selectedUser._id}`,
+                    {
+                        method: "PATCH",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            role: "gestor"
+                        })
+                    }
+                );
+
+            const roleData =
+                await roleResponse.json();
+
+            if (!roleResponse.ok) {
+
+                showAdminMessageModal(
+                    "Erro",
+                    roleData.erro ||
+                    "Erro ao definir usuário como gestor."
+                );
+
+                return;
+
+            }
+
+            const approveResponse =
+                await fetch(
+                    `/api/auth/approve/${selectedUser._id}`,
+                    {
+                        method: "PATCH"
+                    }
+                );
+
+            const approveData =
+                await approveResponse.json();
+
+            if (!approveResponse.ok) {
+
+                showAdminMessageModal(
+                    "Erro",
+                    approveData.erro ||
+                    "Erro ao aprovar gestor."
+                );
+
+                return;
+
+            }
+
+            userModal.style.display =
+                "none";
+
+            await loadPendingUsers();
+            await loadAllUsers();
+
+            return;
+
+        }
+
         if (selectedUserAccessDraft.length === 0) {
 
             showAdminMessageModal(
@@ -1093,18 +1431,43 @@ rejectUserBtn.addEventListener(
             return;
         }
 
-        await fetch(
-            `/api/auth/reject/${selectedUser._id}`,
-            {
-                method: "PATCH"
-            }
+        showAdminMessageModal(
+            "Rejeitar usuário",
+            `Deseja realmente rejeitar e remover o cadastro de <strong>${selectedUser.username}</strong>?`,
+            async () => {
+
+                const response =
+                    await fetch(
+                        `/api/auth/reject/${selectedUser._id}`,
+                        {
+                            method: "PATCH"
+                        }
+                    );
+
+                const data =
+                    await response.json();
+
+                if (!response.ok) {
+
+                    showAdminMessageModal(
+                        "Erro",
+                        data.erro ||
+                        "Erro ao rejeitar usuário."
+                    );
+
+                    return;
+
+                }
+
+                userModal.style.display =
+                    "none";
+
+                await loadPendingUsers();
+                await loadAllUsers();
+
+            },
+            true
         );
-
-        userModal.style.display =
-            "none";
-
-        await loadPendingUsers();
-        await loadAllUsers();
 
     }
 );
@@ -1124,6 +1487,8 @@ userSearch.addEventListener(
 async function startAdminPage() {
 
     await loadContracts();
+
+    renderContracts();
 
     await loadPendingUsers();
 

@@ -41,6 +41,15 @@
 
     <main class="admin-container">
 
+        <section id="contractsSection" class="admin-section">
+            <h2>Contratos</h2>
+
+            <div 
+                id="contractsList"
+                class="admin-contracts-list">
+            </div>
+        </section>
+
         <section id="pendingSection" class="admin-section">
             <h2>Usuários Pendentes</h2>
 
@@ -72,6 +81,20 @@
         <h2 id="userModalName">
             Usuário
         </h2>
+
+        <label>
+            Perfil do usuário
+
+            <select id="userSystemRole">
+                <option value="user">
+                    Usuário
+                </option>
+
+                <option value="gestor">
+                    Gestor
+                </option>
+            </select>
+        </label>
 
         <div class="user-access-section">
 

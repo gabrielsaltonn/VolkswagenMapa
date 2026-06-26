@@ -599,3 +599,86 @@
 .user-access-item.expanded {
     padding: 12px;
 }
+
+.admin-contracts-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: center;
+}
+
+.admin-contract-card {
+    width: 190px;
+
+    padding: 16px;
+
+    border: 1px solid #cbd5e1;
+    border-radius: var(--radius-md);
+
+    background: white;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+
+    color: #0f172a;
+    text-align: left;
+}
+
+.admin-contract-name {
+    display: block;
+
+    margin-bottom: 8px;
+
+    color: var(--primary);
+    font-size: 1rem;
+    font-weight: 900;
+}
+
+.admin-contract-number {
+    margin-bottom: 8px;
+
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.admin-contract-status {
+    display: inline-block;
+
+    padding: 4px 8px;
+
+    border-radius: 999px;
+
+    background: #dcfce7;
+    color: #14532d;
+
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.admin-contract-empty {
+    width: 100%;
+
+    color: #64748b;
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.access-contract-combo {
+    width: 100%;
+
+    padding: 10px;
+
+    border: 1px solid #cbd5e1;
+    border-radius: var(--radius-sm);
+
+    background: white;
+    color: #0f172a;
+
+    font-weight: 700;
+    box-sizing: border-box;
+}
+
+.access-contract-combo::placeholder {
+    color: #64748b;
+    font-weight: 600;
+}

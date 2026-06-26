@@ -40,15 +40,15 @@ const userSchema = new mongoose.Schema({
     // Campo antigo: vamos manter por compatibilidade
     role: {
         type: String,
-        enum: ["admin", "user"],
+        enum: ["admin", "user", "gestor"],
         default: "user"
     },
 
     // Campo antigo: vamos manter por compatibilidade
     plant: {
         type: String,
-        enum: ["ANC", "SCAR", "SJP", "TAUB", "VIN", "ALL"],
-        default: "SJP"
+        enum: ["", "ANC", "SCAR", "SJP", "TAUB", "VIN", "ALL"],
+        default: ""
     },
 
     // Campo novo para multi-contrato
