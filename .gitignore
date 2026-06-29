@@ -1,3 +1,5 @@
 node_modules/
 .env
 createAdmin.js
+backups/
+*.archive.gz
