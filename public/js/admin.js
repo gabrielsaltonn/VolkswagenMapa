@@ -841,9 +841,39 @@ function renderUserAccessList(user) {
 
 }
 
+function updateAddUserAccessButtonLabel() {
+
+    if (!addUserAccessBtn) {
+        return;
+    }
+
+    if (expandedUserAccessIndexes.size > 0) {
+
+        addUserAccessBtn.textContent =
+            "Salvar acesso";
+
+        addUserAccessBtn.classList.add(
+            "save-access-mode"
+        );
+
+        return;
+
+    }
+
+    addUserAccessBtn.textContent =
+        "+ Adicionar contrato";
+
+    addUserAccessBtn.classList.remove(
+        "save-access-mode"
+    );
+
+}
+
 function renderUserAccessEditor() {
 
     userAccessList.innerHTML = "";
+
+    updateAddUserAccessButtonLabel();
 
     if (selectedUserAccessDraft.length === 0) {
 
@@ -854,6 +884,8 @@ function renderUserAccessEditor() {
                 para definir o acesso do usuário.
             </div>
         `;
+
+        updateAddUserAccessButtonLabel();
 
         return;
 
@@ -1113,6 +1145,8 @@ function renderUserAccessEditor() {
 
     });
 
+    updateAddUserAccessButtonLabel();
+
 }
 
 function updateUserAccessVisibility() {
@@ -1222,6 +1256,36 @@ addUserAccessBtn.addEventListener(
     "click",
     () => {
 
+        if (expandedUserAccessIndexes.size > 0) {
+
+            const hasInvalidOpenAccess =
+                selectedUserAccessDraft.some(accessItem =>
+                    !accessItem.contractNumber ||
+                    !accessItem.role ||
+                    !accessItem.plants ||
+                    accessItem.plants.length === 0
+                );
+
+            if (hasInvalidOpenAccess) {
+
+                showAdminMessageModal(
+                    "Acesso incompleto",
+                    "Selecione contrato, tipo de acesso e pelo menos uma planta antes de salvar este acesso."
+                );
+
+                return;
+
+            }
+
+            expandedUserAccessIndexes =
+                new Set();
+
+            renderUserAccessEditor();
+
+            return;
+
+        }
+
         const usedContracts =
             selectedUserAccessDraft.map(accessItem =>
                 accessItem.contractNumber
@@ -1312,6 +1376,16 @@ async function loadAllUsers() {
                 <div class="admin-user-name">
                     ${getDisplayName(user.username)}
                 </div>
+
+                ${
+                    user.requestedContractNumber
+                        ? `
+                            <div class="admin-user-contract">
+                                Contrato: ${getContractLabel(user.requestedContractNumber)}
+                            </div>
+                        `
+                        : ""
+                }
             `;
 
             div.addEventListener("click", () => {

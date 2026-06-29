@@ -51,6 +51,12 @@ const userSchema = new mongoose.Schema({
         default: ""
     },
 
+    requestedContractNumber: {
+        type: String,
+        default: "",
+        trim: true
+    },
+
     // Campo novo para multi-contrato
     access: {
         type: [userAccessSchema],

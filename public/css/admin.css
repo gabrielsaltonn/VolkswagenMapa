@@ -789,3 +789,21 @@
     background: #fee2e2;
     color: #991b1b;
 }
+
+.admin-user-contract {
+    margin-top: 4px;
+
+    color: #475569;
+
+    font-size: 0.72rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+#addUserAccessBtn.save-access-mode {
+    background: #0f766e;
+}
+
+#addUserAccessBtn.save-access-mode:hover {
+    background: #115e59;
+}

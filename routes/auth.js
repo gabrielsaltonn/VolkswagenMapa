@@ -165,10 +165,18 @@ router.post("/register", async (req, res) => {
         const password =
             req.body.password;
 
-        if (!username || !password) {
+        const requestedContractNumber =
+            String(req.body.requestedContractNumber || "")
+                .trim();
+
+        if (
+            !username ||
+            !password ||
+            !requestedContractNumber
+        ) {
 
             return res.status(400).json({
-                mensagem: "Usuário e senha são obrigatórios"
+                mensagem: "Usuário, senha e número do contrato são obrigatórios"
             });
 
         }
@@ -194,6 +202,20 @@ router.post("/register", async (req, res) => {
 
         }
 
+        const requestedContract =
+            await Contract.findOne({
+                number: requestedContractNumber,
+                status: "active"
+            });
+
+        if (!requestedContract) {
+
+            return res.status(400).json({
+                mensagem: "Contrato não encontrado ou inativo."
+            });
+
+        }
+
         const hashedPassword =
             await bcrypt.hash(
                 password,
@@ -206,6 +228,7 @@ router.post("/register", async (req, res) => {
                 password: hashedPassword,
                 role: "user",
                 plant: "",
+                requestedContractNumber,
                 access: [],
                 status: "pending"
             });
