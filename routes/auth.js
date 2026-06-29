@@ -10,6 +10,7 @@ import {
     canManageUsers,
     getVisibleContractNumbers,
     getUserManagementContractNumbers,
+    getUserVisibleContractNumbers,
     normalizeUsername
 } from "../utils/permissions.js";
 
@@ -937,10 +938,47 @@ router.get("/users", async (req, res) => {
 
     try {
 
+        const requester =
+            await getRequester(req);
+
+        if (!requester) {
+
+            return res.status(401).json({
+                erro: "Usuário autenticado não informado ou não aprovado."
+            });
+
+        }
+
+        const filter = {
+            status: "approved"
+        };
+
+        if (!isSuperAdmin(requester)) {
+
+            const visibleContractNumbers =
+                await getUserVisibleContractNumbers(
+                    requester
+                );
+
+            if (visibleContractNumbers.length === 0) {
+
+                return res.json([]);
+
+            }
+
+            filter.access = {
+                $elemMatch: {
+                    contractNumber: {
+                        $in: visibleContractNumbers
+                    }
+                }
+            };
+
+        }
+
         const users =
-            await User.find({
-                status: "approved"
-            }).select("-password");
+            await User.find(filter)
+                .select("-password");
 
         res.json(users);
 

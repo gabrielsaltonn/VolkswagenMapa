@@ -382,3 +382,46 @@ export async function getUserManagementContractNumbers(user) {
     return [];
 
 }
+
+export async function getUserVisibleContractNumbers(user) {
+
+    if (!user) {
+        return [];
+    }
+
+    if (isSuperAdmin(user)) {
+
+        const contracts =
+            await Contract.find({})
+                .select("number");
+
+        return contracts.map(contract =>
+            contract.number
+        );
+
+    }
+
+    if (isGestor(user)) {
+
+        const contracts =
+            await Contract.find({
+                managers: normalizeUsername(user.username)
+            }).select("number");
+
+        return contracts.map(contract =>
+            contract.number
+        );
+
+    }
+
+    return [
+        ...new Set(
+            (user.access || [])
+                .map(accessItem =>
+                    accessItem.contractNumber
+                )
+                .filter(Boolean)
+        )
+    ];
+
+}

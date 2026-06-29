@@ -1367,9 +1367,15 @@ async function loadAllUsers() {
 
     try {
 
+        const params =
+            new URLSearchParams({
+                loggedUsername:
+                    loggedUser.username
+            });
+
         const response =
             await fetch(
-                "/api/auth/users"
+                `/api/auth/users?${params.toString()}`
             );
 
         const users =
