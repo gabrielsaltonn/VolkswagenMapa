@@ -9,12 +9,13 @@ import {
     isSuperAdmin,
     canManageUsers,
     getVisibleContractNumbers,
+    getUserManagementContractNumbers,
     normalizeUsername
 } from "../utils/permissions.js";
 
 const router = express.Router();
 
-const VALID_ACCESS_ROLES = [
+const VALID_ACCESS_ROLES = [    
     "user",
     "admin"
 ]
@@ -150,6 +151,53 @@ function syncLegacyFieldsFromAccess(user) {
         defaultAccess.plants.includes("ALL")
             ? "ALL"
             : defaultAccess.plants[0] || "SJP";
+
+}
+
+async function requirePendingReviewer(
+    req,
+    res,
+    targetUser
+) {
+
+    const requester =
+        await getRequester(req);
+
+    if (!requester) {
+
+        res.status(401).json({
+            erro: "Usuário autenticado não informado ou não aprovado."
+        });
+
+        return null;
+
+    }
+
+    if (isSuperAdmin(requester)) {
+        return requester;
+    }
+
+    const manageableContractNumbers =
+        await getUserManagementContractNumbers(
+            requester
+        );
+
+    if (
+        !targetUser.requestedContractNumber ||
+        !manageableContractNumbers.includes(
+            targetUser.requestedContractNumber
+        )
+    ) {
+
+        res.status(403).json({
+            erro: "Você não tem permissão para administrar este usuário pendente."
+        });
+
+        return null;
+
+    }
+
+    return requester;
 
 }
 
@@ -341,10 +389,45 @@ router.get("/pending", async (req, res) => {
 
     try {
 
-        const users =
-            await User.find({
-                status: "pending"
+        const requester =
+            await getRequester(req);
+
+        if (!requester) {
+
+            return res.status(401).json({
+                erro: "Usuário autenticado não informado ou não aprovado."
             });
+
+        }
+
+        const filter = {
+            status: "pending"
+        };
+
+        if (!isSuperAdmin(requester)) {
+
+            const manageableContractNumbers =
+                await getUserManagementContractNumbers(
+                    requester
+                );
+
+            if (manageableContractNumbers.length === 0) {
+
+                return res.status(403).json({
+                    erro: "Você não tem permissão para visualizar usuários pendentes."
+                });
+
+            }
+
+            filter.requestedContractNumber = {
+                $in: manageableContractNumbers
+            };
+
+        }
+
+        const users =
+            await User.find(filter)
+                .select("-password");
 
         res.json(users);
 
@@ -373,6 +456,17 @@ router.patch("/approve/:id", async (req, res) => {
                 erro: "Usuário não encontrado"
             });
 
+        }
+
+        const reviewer =
+            await requirePendingReviewer(
+                req,
+                res,
+                user
+            );
+
+        if (!reviewer) {
+            return;
         }
 
         if (
@@ -424,6 +518,17 @@ router.patch("/reject/:id", async (req, res) => {
                 erro: "Usuário não encontrado"
             });
 
+        }
+
+        const reviewer =
+            await requirePendingReviewer(
+                req,
+                res,
+                user
+            );
+
+        if (!reviewer) {
+            return;
         }
 
         if (user.status !== "pending") {
@@ -653,10 +758,18 @@ router.patch("/access/:id", async (req, res) => {
 
         }
 
-        if (!canManageUsers(requester)) {
+        const manageableContractNumbers =
+            await getUserManagementContractNumbers(
+                requester
+            );
+
+        if (
+            !isSuperAdmin(requester) &&
+            manageableContractNumbers.length === 0
+        ) {
 
             return res.status(403).json({
-                erro: "Apenas administrador principal ou gestor pode alterar acessos de contratos."
+                erro: "Você não tem permissão para alterar acessos de contratos."
             });
 
         }
@@ -733,14 +846,9 @@ router.patch("/access/:id", async (req, res) => {
 
         if (!isSuperAdmin(requester)) {
 
-            const visibleContractNumbers =
-                await getVisibleContractNumbers(
-                    requester
-                );
-
             const forbiddenContracts =
                 requestedContractNumbers.filter(contractNumber =>
-                    !visibleContractNumbers.includes(contractNumber)
+                    !manageableContractNumbers.includes(contractNumber)
                 );
 
             if (forbiddenContracts.length > 0) {

@@ -325,3 +325,60 @@ export async function requirePlantEditor(
     return result;
 
 }
+
+export async function getUserManagementContractNumbers(user) {
+
+    if (!user) {
+        return [];
+    }
+
+    if (isSuperAdmin(user)) {
+
+        const contracts =
+            await Contract.find({})
+                .select("number");
+
+        return contracts.map(contract =>
+            contract.number
+        );
+
+    }
+
+    if (isGestor(user)) {
+
+        const contracts =
+            await Contract.find({
+                managers: normalizeUsername(user.username)
+            }).select("number");
+
+        return contracts.map(contract =>
+            contract.number
+        );
+
+    }
+
+    const adminContractNumbers =
+        [
+            ...new Set(
+                (user.access || [])
+                    .filter(accessItem =>
+                        accessItem.role === "admin"
+                    )
+                    .map(accessItem =>
+                        accessItem.contractNumber
+                    )
+                    .filter(Boolean)
+            )
+        ];
+
+    if (adminContractNumbers.length > 0) {
+        return adminContractNumbers;
+    }
+
+    if (user.role === "admin") {
+        return [DEFAULT_CONTRACT_NUMBER];
+    }
+
+    return [];
+
+}

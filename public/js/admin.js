@@ -375,19 +375,50 @@ async function loadPendingUsers() {
 
     try {
 
+        const params =
+            new URLSearchParams({
+                loggedUsername:
+                    loggedUser.username
+            });
+
         const response =
             await fetch(
-                "/api/auth/pending"
+                `/api/auth/pending?${params.toString()}`
             );
 
         const users =
             await response.json();
 
+        if (!response.ok) {
+
+            pendingUsersCounter.textContent =
+                " | Pendentes: 0";
+
+            pendingUsersList.innerHTML =
+                "";
+
+            pendingSection.style.display =
+                "none";
+
+            console.error(
+                users.erro ||
+                "Erro ao carregar pendentes."
+            );
+
+            return;
+
+        }
+
         pendingUsersCounter.textContent =
             ` | Pendentes: ${users.length}`;
 
-        pendingUsersList.innerHTML = "";
-        pendingSection.style.display = users.length > 0 ? "block" : "none";
+        pendingUsersList.innerHTML =
+            "";
+
+        pendingSection.style.display =
+            users.length > 0
+                ? "block"
+                : "none";
 
         if (users.length === 0) {
             return;
@@ -395,7 +426,7 @@ async function loadPendingUsers() {
 
         users.forEach(user => {
 
-           const div =
+            const div =
                 document.createElement("div");
 
             div.className =
@@ -416,6 +447,16 @@ async function loadPendingUsers() {
                 <div class="admin-user-name">
                     ${getDisplayName(user.username)}
                 </div>
+
+                ${
+                    user.requestedContractNumber
+                        ? `
+                            <div class="admin-user-contract">
+                                Contrato: ${getContractLabel(user.requestedContractNumber)}
+                            </div>
+                        `
+                        : ""
+                }
             `;
 
             div.addEventListener("click", () => {
@@ -1334,6 +1375,26 @@ async function loadAllUsers() {
         const users =
             await response.json();
 
+        if (!response.ok) {
+
+            activeUsersCounter.textContent =
+                "Ativos: 0";
+
+            adminUsersCounter.textContent =
+                " | Admin/Gestor: 0";
+
+            allUsersList.innerHTML =
+                "";
+
+            console.error(
+                users.erro ||
+                "Erro ao carregar usuários ativos."
+            );
+
+            return;
+
+        }
+
         activeUsersCounter.textContent =
             `Ativos: ${users.length}`;
 
@@ -1346,7 +1407,8 @@ async function loadAllUsers() {
         adminUsersCounter.textContent =
             ` | Admin/Gestor: ${managers}`;
 
-        allUsersList.innerHTML = "";
+        allUsersList.innerHTML =
+            "";
 
         users
             .filter(user =>
@@ -1356,45 +1418,36 @@ async function loadAllUsers() {
             )
             .forEach(user => {
 
-            const div =
-                document.createElement("div");
+                const div =
+                    document.createElement("div");
 
-            div.className = "admin-user-card";
+                div.className =
+                    "admin-user-card";
 
-            if (
-                user.role === "admin" ||
-                user.role === "gestor"
-            ) {
-                div.classList.add("admin-user-card-admin");
-            }
-
-            div.innerHTML = `
-                <div class="admin-user-avatar">
-                    ${getInitials(user.username)}
-                </div>
-
-                <div class="admin-user-name">
-                    ${getDisplayName(user.username)}
-                </div>
-
-                ${
-                    user.requestedContractNumber
-                        ? `
-                            <div class="admin-user-contract">
-                                Contrato: ${getContractLabel(user.requestedContractNumber)}
-                            </div>
-                        `
-                        : ""
+                if (
+                    user.role === "admin" ||
+                    user.role === "gestor"
+                ) {
+                    div.classList.add("admin-user-card-admin");
                 }
-            `;
 
-            div.addEventListener("click", () => {
-                showUserModal(user);
+                div.innerHTML = `
+                    <div class="admin-user-avatar">
+                        ${getInitials(user.username)}
+                    </div>
+
+                    <div class="admin-user-name">
+                        ${getDisplayName(user.username)}
+                    </div>
+                `;
+
+                div.addEventListener("click", () => {
+                    showUserModal(user);
+                });
+
+                allUsersList.appendChild(div);
+
             });
-
-            allUsersList.appendChild(div);
-
-        });
 
     } catch (error) {
 
@@ -1623,7 +1676,14 @@ approveUserBtn.addEventListener(
                 await fetch(
                     `/api/auth/approve/${selectedUser._id}`,
                     {
-                        method: "PATCH"
+                        method: "PATCH",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            loggedUsername:
+                                loggedUser.username
+                        })
                     }
                 );
 
@@ -1695,12 +1755,35 @@ approveUserBtn.addEventListener(
 
         }
 
-        await fetch(
-            `/api/auth/approve/${selectedUser._id}`,
-            {
-                method: "PATCH"
-            }
-        );
+        const approveResponse =
+            await fetch(
+                `/api/auth/approve/${selectedUser._id}`,
+                {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        loggedUsername:
+                            loggedUser.username
+                    })
+                }
+            );
+
+        const approveData =
+            await approveResponse.json();
+
+        if (!approveResponse.ok) {
+
+            showAdminMessageModal(
+                "Erro",
+                approveData.erro ||
+                "Erro ao aprovar usuário."
+            );
+
+            return;
+
+        }
 
         userModal.style.display =
             "none";
@@ -1728,7 +1811,14 @@ rejectUserBtn.addEventListener(
                     await fetch(
                         `/api/auth/reject/${selectedUser._id}`,
                         {
-                            method: "PATCH"
+                            method: "PATCH",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({
+                                loggedUsername:
+                                    loggedUser.username
+                            })
                         }
                     );
 
