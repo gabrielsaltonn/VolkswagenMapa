@@ -1543,13 +1543,19 @@ async function loadContracts() {
                 `/api/contracts?${contractParams.toString()}`
             );
 
-        params.set(
-            "loggedUsername",
-            loggedUser.username
-        );
-
         const contracts =
             await response.json();
+
+        if (!response.ok) {
+
+            console.error(
+                contracts.erro ||
+                "Erro ao carregar contratos."
+            );
+
+            return;
+
+        }
 
         const userContractNumbers =
             loggedUser.access?.map(item =>
