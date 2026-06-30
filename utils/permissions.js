@@ -154,16 +154,6 @@ export function getAccessForContract(
 
     }
 
-    if (isGestor(user)) {
-
-        return {
-            contractNumber,
-            role: "admin",
-            plants: ["ALL"]
-        };
-
-    }
-
     const accessItem =
         user.access?.find(item =>
             item.contractNumber === contractNumber
@@ -296,7 +286,7 @@ export async function requirePlantEditor(
 ) {
 
     const result =
-        await requireContractManager(
+        await requireContractAccess(
             req,
             res,
             contractNumber

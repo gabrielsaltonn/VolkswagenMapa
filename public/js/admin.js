@@ -1142,22 +1142,33 @@ function renderUserAccessEditor() {
                 "change",
                 () => {
 
-                    const checkedPlants =
+                    const changedPlant =
+                        checkbox.value;
+
+                    let checkedPlants =
                         [...plantCheckboxes]
                             .filter(item => item.checked)
                             .map(item => item.value);
 
-                    if (checkedPlants.includes("ALL")) {
+                    if (
+                        changedPlant === "ALL" &&
+                        checkbox.checked
+                    ) {
 
-                        selectedUserAccessDraft[index].plants =
+                        checkedPlants =
                             ["ALL"];
 
                     } else {
 
-                        selectedUserAccessDraft[index].plants =
-                            checkedPlants;
+                        checkedPlants =
+                            checkedPlants.filter(plant =>
+                                plant !== "ALL"
+                            );
 
                     }
+
+                    selectedUserAccessDraft[index].plants =
+                        checkedPlants;
 
                     expandedUserAccessIndexes.add(index);
 

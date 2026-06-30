@@ -177,13 +177,6 @@ function canEditPlant(plant) {
         return false;
     }
 
-    if (
-        activeAccess.role !== "admin" &&
-        activeAccess.role !== "gestor"
-    ) {
-        return false;
-    }
-
     const plants =
         activeAccess.plants || [];
 
