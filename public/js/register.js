@@ -16,6 +16,11 @@ registerForm.addEventListener(
                 .trim()
                 .toLowerCase();
 
+        const requestedContractNumber =
+            document.getElementById("registerContractNumber")
+                .value
+                .trim();
+
         const password =
             document.getElementById("registerPassword")
                 .value;
@@ -24,10 +29,15 @@ registerForm.addEventListener(
             document.getElementById("confirmRegisterPassword")
                 .value;
 
-        if (!username || !password || !confirmPassword) {
+        if (
+            !username ||
+            !requestedContractNumber ||
+            !password ||
+            !confirmPassword
+        ) {
 
             registerMessage.textContent =
-                "Preencha usuário, senha e confirmação de senha.";
+                "Preencha e-mail, número do contrato, senha e confirmação de senha.";
 
             return;
 
@@ -66,7 +76,8 @@ registerForm.addEventListener(
 
                         body: JSON.stringify({
                             username,
-                            password
+                            password,
+                            requestedContractNumber
                         })
                     }
                 );

@@ -1,23 +1,189 @@
 const loggedUser =
     JSON.parse(localStorage.getItem("user"));
 
-    if (!loggedUser) {
+if (!loggedUser) {
     window.location.href = "login.html";
 }
 
-const userRole =
+let userRole =
     loggedUser.role;
 
-const userPlant =
+let userPlant =
     loggedUser.plant;
 
-function canEditPlant(plant) {
+const DEFAULT_CONTRACT_NUMBER =
+    "1234";
 
-    if (userRole === "admin") {
+function getInitialActiveContractNumber() {
+
+    const storedContract =
+        localStorage.getItem(
+            "activeContractNumber"
+        );
+
+    if (storedContract) {
+        return storedContract;
+    }
+
+    const firstAccessContract =
+        loggedUser.access?.[0]?.contractNumber;
+
+    return firstAccessContract ||
+        DEFAULT_CONTRACT_NUMBER;
+
+}
+
+let activeContractNumber =
+    getInitialActiveContractNumber();
+
+localStorage.setItem(
+    "activeContractNumber",
+    activeContractNumber
+);
+
+function getContractQueryParams() {
+
+    const params =
+        new URLSearchParams({
+            contractNumber: activeContractNumber,
+            loggedUsername: loggedUser.username
+        });
+
+    return params.toString();
+
+}
+
+const SUPER_ADMIN_USERS = [
+    "admin@simpress.com.br",
+    "admin.dev@simpress.com.br"
+];
+
+function normalizeUsername(username) {
+
+    return String(username || "")
+        .trim()
+        .toLowerCase();
+
+}
+
+function isSuperAdminUser() {
+
+    return SUPER_ADMIN_USERS.includes(
+        normalizeUsername(loggedUser.username)
+    );
+
+}
+
+function isGestorUser() {
+
+    return loggedUser.role === "gestor";
+
+}
+
+function getActiveUserAccess() {
+
+    const accessList =
+        loggedUser.access || [];
+
+    return accessList.find(accessItem =>
+        accessItem.contractNumber === activeContractNumber
+    );
+
+}
+
+function getActiveUserPlants() {
+
+    if (
+        isSuperAdminUser() ||
+        isGestorUser()
+    ) {
+        return ["ALL"];
+    }
+
+    const activeAccess =
+        getActiveUserAccess();
+
+    return activeAccess?.plants?.length
+        ? activeAccess.plants
+        : [loggedUser.plant || "SJP"];
+
+}
+
+function getActiveUserRole() {
+
+    if (
+        isSuperAdminUser() ||
+        isGestorUser()
+    ) {
+        return "admin";
+    }
+
+    const activeAccess =
+        getActiveUserAccess();
+
+    return activeAccess?.role ||
+        loggedUser.role ||
+        "user";
+
+}
+
+function syncActiveUserPermissions() {
+
+    const plants =
+        getActiveUserPlants();
+
+    userRole =
+        getActiveUserRole();
+
+    userPlant =
+        plants.includes("ALL")
+            ? "ALL"
+            : plants[0];
+
+}
+
+function canManageCurrentContract() {
+
+    if (
+        isSuperAdminUser() ||
+        isGestorUser()
+    ) {
         return true;
     }
 
-    return userPlant === plant;
+    const activeAccess =
+        getActiveUserAccess();
+
+    return (
+        activeAccess?.role === "admin" ||
+        activeAccess?.role === "gestor"
+    );
+
+}
+
+function canEditPlant(plant) {
+
+    if (
+        isSuperAdminUser() ||
+        isGestorUser()
+    ) {
+        return true;
+    }
+
+    const activeAccess =
+        getActiveUserAccess();
+
+    if (!activeAccess) {
+        return false;
+    }
+
+    const plants =
+        activeAccess.plants || [];
+
+    return (
+        plants.includes("ALL") ||
+        plants.includes(plant)
+    );
 
 }
 
@@ -35,6 +201,28 @@ const loggedUserPlant =
     document.getElementById(
         "loggedUserPlant"
     );
+
+const contractSelect =
+    document.getElementById(
+        "contractSelect"
+    );
+
+function renderLoggedUserAccessInfo() {
+
+    loggedUserName.textContent =
+        `${loggedUser.username}`;
+
+    loggedUserRole.textContent =
+        `${userRole}`;
+
+    loggedUserPlant.textContent =
+        `${userPlant}`;
+
+}
+
+syncActiveUserPermissions();
+
+renderLoggedUserAccessInfo();
 
 loggedUserName.textContent =
     `${loggedUser.username}`;
@@ -166,12 +354,16 @@ const addPageModalBtn =
         "addPageModalBtn"
     );
 
-const isAdmin =
-    loggedUser.role === "admin";
+function updateMapAdminVisibility() {
 
-if (!isAdmin) {
-    manageMapsBtn.style.display = "none";
+    manageMapsBtn.style.display =
+        canManageCurrentContract()
+            ? "block"
+            : "none";
+
 }
+
+updateMapAdminVisibility();
 
 manageMapsBtn.addEventListener("click", () => {
 
@@ -323,7 +515,13 @@ confirmDeleteMapBtn.addEventListener(
         await fetch(
             `/api/maps/${mapToDelete._id}`,
             {
-                method: "DELETE"
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    loggedUsername: loggedUser.username
+                })
             }
         );
 
@@ -464,9 +662,13 @@ confirmNewPlantBtn.addEventListener(
                     body: JSON.stringify({
                         name: plantName,
                         label,
-                        pages: []
+                        pages: [],
+                        contractNumber: activeContractNumber,
+                        loggedUsername: loggedUser.username
                     })
+
                 }
+
             );
 
         const data =
@@ -1305,19 +1507,161 @@ async function updateMap(id, mapData) {
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify(mapData)
+            body: JSON.stringify({
+                ...mapData,
+                contractNumber:
+                    mapData.contractNumber ||
+                    activeContractNumber,
+                loggedUsername:
+                    loggedUser.username
+            })
         });
 
     return await response.json();
 
 }
 
+async function loadContracts() {
+
+    try {
+
+        const contractParams =
+            new URLSearchParams({
+                loggedUsername:
+                    loggedUser.username
+            });
+
+        const response =
+            await fetch(
+                `/api/contracts?${contractParams.toString()}`
+            );
+
+        const contracts =
+            await response.json();
+
+        if (!response.ok) {
+
+            console.error(
+                contracts.erro ||
+                "Erro ao carregar contratos."
+            );
+
+            return;
+
+        }
+
+        const userContractNumbers =
+            loggedUser.access?.map(item =>
+                item.contractNumber
+            ) || [];
+
+        const availableContracts =
+            (
+                isSuperAdminUser() ||
+                isGestorUser()
+            )
+                ? contracts
+                : contracts.filter(contract =>
+                    userContractNumbers.includes(
+                        contract.number
+                    )
+                );
+
+        contractSelect.innerHTML = "";
+
+        availableContracts.forEach(contract => {
+
+            const option =
+                document.createElement("option");
+
+            option.value =
+                contract.number;
+
+            option.textContent =
+                `${contract.name} - ${contract.number}`;
+
+            contractSelect.appendChild(option);
+
+        });
+
+        if (
+            !availableContracts.some(contract =>
+                contract.number === activeContractNumber
+            )
+        ) {
+
+            activeContractNumber =
+                availableContracts[0]?.number ||
+                DEFAULT_CONTRACT_NUMBER;
+
+            localStorage.setItem(
+                "activeContractNumber",
+                activeContractNumber
+            );
+
+        }
+
+        contractSelect.value =
+            activeContractNumber;
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao carregar contratos:",
+            error
+        );
+
+    }
+
+}
+
+contractSelect.addEventListener(
+    "change",
+    async (e) => {
+
+        activeContractNumber =
+            e.target.value;
+
+        localStorage.setItem(
+            "activeContractNumber",
+            activeContractNumber
+        );
+
+        syncActiveUserPermissions();
+
+        renderLoggedUserAccessInfo();
+
+        updateMapAdminVisibility();
+
+        if (typeof updateAdminPanelButton === "function") {
+            updateAdminPanelButton();
+        }
+
+        currentMapPage = 0;
+
+        searchText = "";
+        searchInput.value = "";
+
+        selectedPins.clear();
+
+        expandedPinClusterId =
+            null;
+
+        await refreshMapsAndView();
+
+        await loadPrinters();
+
+    }
+);
+
 async function loadMaps() {
 
     try {
 
         const response =
-            await fetch("/api/maps");
+            await fetch(
+                `/api/maps?${getContractQueryParams()}`
+            );
 
         maps =
             await response.json();
@@ -1576,7 +1920,13 @@ function renderMapPages(map) {
                             await fetch(
                                 `/api/maps/${map._id}/pages/${index}`,
                                 {
-                                    method: "DELETE"
+                                    method: "DELETE",
+                                    headers: {
+                                        "Content-Type": "application/json"
+                                    },
+                                    body: JSON.stringify({
+                                        loggedUsername: loggedUser.username
+                                    })
                                 }
                             );
 
@@ -1705,7 +2055,10 @@ async function loadPrinters() {
 
     try {
 
-        const response = await fetch("/api/printers");
+        const response = 
+            await fetch(
+                `/api/printers?${getContractQueryParams()}`
+        );
 
         printers = await response.json();
 
@@ -1732,9 +2085,15 @@ async function updatePrinter(id, printerData) {
             },
             body: JSON.stringify({
                 ...printerData,
+                contractNumber:
+                    printerData.contractNumber ||
+                    activeContractNumber,
+                loggedUsername:
+                    loggedUser.username,
                 userRole,
                 userPlant
             })
+
         });
 
         return await response.json();
@@ -1758,7 +2117,15 @@ async function createPrinter(printerData) {
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify(printerData)
+            body: JSON.stringify({
+                ...printerData,
+                contractNumber:
+                    printerData.contractNumber ||
+                    activeContractNumber,
+                loggedUsername:
+                    loggedUser.username
+            })
+
         });
 
         const newPrinter = await response.json();
@@ -1808,11 +2175,13 @@ async function deletePrinterById(id) {
                 headers: {
                     "Content-Type": "application/json"
                 },
-
                 body: JSON.stringify({
+                    loggedUsername:
+                        loggedUser.username,
                     userRole,
                     userPlant
                 })
+
             });
 
         if (!response.ok) {
@@ -3838,6 +4207,7 @@ panzoomArea.addEventListener(
                     notes: "",
                     backup: false,
                     photos: [],
+                    contractNumber: activeContractNumber,
                     plant: currentPlant,
                     page: currentMapPage + 1,
                     x,
@@ -3882,6 +4252,7 @@ panzoomArea.addEventListener('dblclick', async (e) => {
         notes: "",
         backup: false,
         photos: [],
+        contractNumber: activeContractNumber,
         plant: currentPlant,
         page: currentMapPage + 1,
         x,
@@ -4329,7 +4700,6 @@ async function deleteQuickLinkAPI(id) {
                 headers: {
                     "Content-Type": "application/json"
                 },
-
                 body: JSON.stringify({
                     user: currentUser
                 })
@@ -4360,7 +4730,6 @@ async function updateQuickLinkAPI(id, data) {
                     "Content-Type":
                         "application/json"
                 },
-
                 body: JSON.stringify({
                     ...data,
                     user: currentUser
@@ -4696,59 +5065,50 @@ saveQuickLinkBtn.addEventListener("click", async () => {
 const adminPanelBtn =
     document.getElementById("adminPanelBtn");
 
-if (loggedUser.role === "admin") {
+function updateAdminPanelButton() {
 
-    adminPanelBtn.textContent =
-        "Gerenciar Usuários";
+    if (canManageCurrentContract()) {
 
-    adminPanelBtn.addEventListener(
-        "click",
-        () => {
+        adminPanelBtn.textContent =
+            "Gerenciar Usuários";
 
-            window.location.href =
-                "admin.html";
+    } else {
 
-        }
-    );
+        adminPanelBtn.textContent =
+            "Usuários";
 
-} else {
-
-    adminPanelBtn.textContent =
-        "Usuários";
+    }
 
     adminPanelBtn.style.display =
         "block";
 
-    adminPanelBtn.addEventListener(
-        "click",
-        () => {
-
-            window.location.href =
-                "users.html";
-
-        }
-    );
-
 }
+
+adminPanelBtn.addEventListener(
+    "click",
+    () => {
+
+        window.location.href =
+            canManageCurrentContract()
+                ? "admin.html"
+                : "users.html";
+
+    }
+);
 
 collapsedUsersBtn.addEventListener(
     "click",
     () => {
 
-        if (loggedUser.role === "admin") {
-
-            window.location.href =
-                "admin.html";
-
-        } else {
-
-            window.location.href =
-                "users.html";
-
-        }
+        window.location.href =
+            canManageCurrentContract()
+                ? "admin.html"
+                : "users.html";
 
     }
 );
+
+updateAdminPanelButton();
 
 const logoutBtn =
     document.getElementById("logoutBtn");
@@ -4814,11 +5174,9 @@ collapsedLogoutBtn.addEventListener(
     confirmLogout
 );
 
-updatePlantImage();
-
-updatePermissionButtons();
-
 async function startApp() {
+
+    await loadContracts();
 
     await loadMaps();
 
@@ -4826,11 +5184,12 @@ async function startApp() {
 
     await loadPrinters();
 
+    updatePermissionButtons();
+
+    fetchQuickLinks();
+
 }
 
 startApp();
-
-// Inicializar atalhos
-fetchQuickLinks();
 
 // Gabriel Salton

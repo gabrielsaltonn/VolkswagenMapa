@@ -2,10 +2,16 @@ import mongoose from "mongoose";
 
 const mapSchema = new mongoose.Schema({
 
+    contractNumber: {
+        type: String,
+        required: true,
+        default: "1234",
+        trim: true
+    },
+
     name: {
         type: String,
         required: true,
-        unique: true,
         uppercase: true,
         trim: true
     },
@@ -22,6 +28,16 @@ const mapSchema = new mongoose.Schema({
     }
 
 });
+
+mapSchema.index(
+    {
+        contractNumber: 1,
+        name: 1
+    },
+    {
+        unique: true
+    }
+);
 
 export default mongoose.model(
     "Map",

@@ -5,6 +5,13 @@ import { fileURLToPath } from "url";
 import Map from "../models/Map.js";
 import Printer from "../models/Printer.js";
 
+import {
+    DEFAULT_CONTRACT_NUMBER,
+    getContractNumber,
+    requireContractAccess,
+    requireContractManager
+} from "../utils/permissions.js";
+
 const router = express.Router();
 
 const __filename = fileURLToPath(import.meta.url);
@@ -14,8 +21,24 @@ router.get("/", async (req, res) => {
 
     try {
 
+        const contractNumber =
+            getContractNumber(req);
+
+        const permission =
+            await requireContractAccess(
+                req,
+                res,
+                contractNumber
+            );
+
+        if (!permission) {
+            return;
+        }
+
         const maps =
-            await Map.find();
+            await Map.find({
+                contractNumber
+            });
 
         res.json(maps);
 
@@ -33,8 +56,32 @@ router.post("/", async (req, res) => {
 
     try {
 
+        const contractNumber =
+            getContractNumber(req);
+
+        const permission =
+            await requireContractManager(
+                req,
+                res,
+                contractNumber
+            );
+
+        if (!permission) {
+            return;
+        }
+
+        const {
+            loggedUsername,
+            userRole,
+            userPlant,
+            ...mapData
+        } = req.body;
+
         const map =
-            await Map.create(req.body);
+            await Map.create({
+                ...mapData,
+                contractNumber
+            });
 
         res.status(201).json(map);
 
@@ -43,7 +90,7 @@ router.post("/", async (req, res) => {
         if (error.code === 11000) {
 
             return res.status(400).json({
-                erro: "Já existe uma planta com essa sigla."
+                erro: "Já existe uma planta com essa sigla neste contrato."
             });
 
         }
@@ -60,10 +107,54 @@ router.put("/:id", async (req, res) => {
 
     try {
 
+        const currentMap =
+            await Map.findById(
+                req.params.id
+            );
+
+        if (!currentMap) {
+
+            return res.status(404).json({
+                erro: "Planta não encontrada"
+            });
+
+        }
+
+        const contractNumber =
+            currentMap.contractNumber ||
+            req.body.contractNumber ||
+            DEFAULT_CONTRACT_NUMBER;
+
+        const permission =
+            await requireContractManager(
+                req,
+                res,
+                contractNumber
+            );
+
+        if (!permission) {
+            return;
+        }
+
+        const updateData = {
+            name: req.body.name,
+            label: req.body.label,
+            pages: req.body.pages,
+            contractNumber
+        };
+
+        Object.keys(updateData).forEach(key => {
+
+            if (updateData[key] === undefined) {
+                delete updateData[key];
+            }
+
+        });
+
         const map =
             await Map.findByIdAndUpdate(
                 req.params.id,
-                req.body,
+                updateData,
                 {
                     new: true
                 }
@@ -72,6 +163,14 @@ router.put("/:id", async (req, res) => {
         res.json(map);
 
     } catch (error) {
+
+        if (error.code === 11000) {
+
+            return res.status(400).json({
+                erro: "Já existe uma planta com essa sigla neste contrato."
+            });
+
+        }
 
         res.status(500).json({
             erro: error.message
@@ -94,6 +193,21 @@ router.delete("/:id/pages/:pageIndex", async (req, res) => {
                 erro: "Planta não encontrada"
             });
 
+        }
+
+        const contractNumber =
+            map.contractNumber ||
+            DEFAULT_CONTRACT_NUMBER;
+
+        const permission =
+            await requireContractManager(
+                req,
+                res,
+                contractNumber
+            );
+
+        if (!permission) {
+            return;
         }
 
         const pageIndex =
@@ -188,8 +302,24 @@ router.delete("/:id", async (req, res) => {
 
         }
 
+        const contractNumber =
+            map.contractNumber ||
+            DEFAULT_CONTRACT_NUMBER;
+
+        const permission =
+            await requireContractManager(
+                req,
+                res,
+                contractNumber
+            );
+
+        if (!permission) {
+            return;
+        }
+
         await Printer.deleteMany({
-            plant: map.name
+            plant: map.name,
+            contractNumber
         });
 
         for (const page of map.pages) {

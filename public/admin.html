@@ -41,6 +41,24 @@
 
     <main class="admin-container">
 
+        <section id="contractsSection" class="admin-section">
+            <h2>Contratos</h2>
+
+            <div class="admin-section-actions">
+                <button
+                    type="button"
+                    id="createContractBtn"
+                    class="primary-admin-btn">
+                    + Novo contrato
+                </button>
+            </div>
+
+            <div 
+                id="contractsList"
+                class="admin-contracts-list">
+            </div>
+        </section>
+
         <section id="pendingSection" class="admin-section">
             <h2>Usuários Pendentes</h2>
 
@@ -74,37 +92,40 @@
         </h2>
 
         <label>
-            Tipo de acesso
+            Perfil do usuário
 
-            <select id="userRole">
+            <select id="userSystemRole">
                 <option value="user">
-                    user
+                    Usuário
                 </option>
 
-                <option value="admin">
-                    admin
+                <option value="gestor">
+                    Gestor
                 </option>
             </select>
         </label>
 
-        <label>
-            Planta
+        <div class="user-access-section">
 
-            <select id="userPlant">
-                <option value="ANC">ANC</option>
-                <option value="SCAR">SCAR</option>
-                <option value="SJP">SJP</option>
-                <option value="TAUB">TAUB</option>
-                <option value="VIN">VIN</option>
-                <option value="ALL">ALL</option>
-            </select>
-        </label>
+            <div
+                id="userAccessList"
+                class="user-access-list">
+            </div>
+
+            <button
+                id="addUserAccessBtn"
+                type="button"
+                class="btn-effect">
+                + Adicionar contrato
+            </button>
+
+        </div>
 
         <label>
             Status
-
-            <div
-                id="userStatus"
+            
+            <div 
+                id="userStatus" 
                 class="user-status-box">
             </div>
         </label>
@@ -174,6 +195,59 @@
     </div>
 
 </div>
+
+    <div
+        id="contractModal"
+        class="modal"
+        role="dialog"
+        aria-modal="true">
+
+        <div class="card small-modal-card">
+
+            <button
+                type="button"
+                id="closeContractModal"
+                class="close">
+                &times;
+            </button>
+
+            <h2>
+                Novo contrato
+            </h2>
+
+            <label>
+                Nome do contrato
+
+                <input
+                    id="contractNameInput"
+                    type="text"
+                    placeholder="Ex: Unimed">
+            </label>
+
+            <label>
+                Número do contrato
+
+                <input
+                    id="contractNumberInput"
+                    type="text"
+                    placeholder="Ex: 5678">
+            </label>
+
+            <div
+                id="contractModalMessage"
+                class="admin-form-message">            
+            </div>
+
+            <button
+                type="button"
+                id="saveContractBtn"
+                class="primary-admin-btn">
+                Salvar contrato
+            </button>
+
+        </div>
+    
+    </div>
 
     <footer class="app-footer">
         © Desenvolvido por
