@@ -199,13 +199,39 @@ async function loadUsers() {
 
     try {
 
+        const params =
+            new URLSearchParams({
+                loggedUsername:
+                    loggedUser.username
+            });
+
         const response =
             await fetch(
-                "/api/auth/users"
+                `/api/auth/users?${params.toString()}`
             );
 
-        users =
+        const data =
             await response.json();
+
+        if (!response.ok) {
+
+            console.error(
+                data.erro ||
+                "Erro ao carregar usuários."
+            );
+
+            users = [];
+
+            renderUsers();
+
+            return;
+
+        }
+
+        users =
+            Array.isArray(data)
+                ? data
+                : [];
 
         renderUsers();
 
@@ -215,6 +241,10 @@ async function loadUsers() {
             "Erro ao carregar usuários:",
             error
         );
+
+        users = [];
+
+        renderUsers();
 
     }
 
